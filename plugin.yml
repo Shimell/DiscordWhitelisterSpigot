@@ -1,0 +1,11 @@
+name: DiscordWhitelister
+version: 1.0.0
+author: Joe Shimell
+main: uk.co.angrybee.joe.DiscordWhitelister
+description: Discord whitelister bot.
+api-version: 1.13
+
+permissions:
+  discordbot:
+    description: discordbot permission.
+    default: true
