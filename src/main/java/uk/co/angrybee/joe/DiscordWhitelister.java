@@ -7,11 +7,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 
 public class DiscordWhitelister extends JavaPlugin
 {
+
+    private ServerDiscordClient serverDiscordClient;
 
     private File whitelisterBotConfigFile;
     private FileConfiguration whitelisterBotConfig;
@@ -19,7 +22,6 @@ public class DiscordWhitelister extends JavaPlugin
     private boolean configCreated = false;
 
     private String botToken;
-    private List allowedRoles;
     private boolean botEnabled = true;
 
     @Override
@@ -35,12 +37,12 @@ public class DiscordWhitelister extends JavaPlugin
         }
         else if(configCreated)
         {
-            getLogger().info("Config newly created, token will be in-valid, doing nothing until next server start");
+            getLogger().info("Config newly created, please paste your bot token into the config file, doing nothing until next server start");
         }
         else
         {
             getLogger().info("Initializing Discord client");
-            ServerDiscordClient serverDiscordClient = new ServerDiscordClient();
+            serverDiscordClient = new ServerDiscordClient();
             serverDiscordClient.InitializeClient(botToken);
             getLogger().info("Successfully initialized Discord client");
         }
@@ -96,6 +98,9 @@ public class DiscordWhitelister extends JavaPlugin
             List<String> tempSetupRoles = Arrays.asList("Owner", "Admin", "Mod");
             getWhitelisterBotConfig().set("allowed-to-use-roles", tempSetupRoles);
 
+            List<String> tempChannelIds = Arrays.asList("445666834382061569", "488450157881327616");
+            getWhitelisterBotConfig().set("target-text-channels", tempChannelIds);
+
             getWhitelisterBotConfig().set("bot-enabled", true);
 
             try
@@ -113,8 +118,10 @@ public class DiscordWhitelister extends JavaPlugin
     public void AssignVars()
     {
         botToken = getWhitelisterBotConfig().getString("discord-bot-token");
-        allowedRoles = getWhitelisterBotConfig().getList("allowed-to-use-roles");
         botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
+
+        serverDiscordClient.allowedRoles = getWhitelisterBotConfig().getList("allowed-to-use-roles");
+        serverDiscordClient.channelIds = getWhitelisterBotConfig().getList("target-text-channels");
     }
 
 }
