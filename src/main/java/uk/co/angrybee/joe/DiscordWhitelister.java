@@ -7,7 +7,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,16 +16,21 @@ public class DiscordWhitelister extends JavaPlugin
     private ServerDiscordClient serverDiscordClient;
 
     private File whitelisterBotConfigFile;
-    private FileConfiguration whitelisterBotConfig;
+    private static FileConfiguration whitelisterBotConfig;
 
     private boolean configCreated = false;
 
     private String botToken;
     private boolean botEnabled = true;
 
+    private static JavaPlugin thisPlugin;
+
     @Override
     public void onEnable()
     {
+        thisPlugin = this;
+        whitelisterBotConfig = new YamlConfiguration();
+
         ConfigSetup();
 
         AssignVars();
@@ -48,16 +52,21 @@ public class DiscordWhitelister extends JavaPlugin
         }
     }
 
-    public FileConfiguration getWhitelisterBotConfig()
+    public static JavaPlugin getPlugin()
     {
-        return this.whitelisterBotConfig;
+        return thisPlugin;
+    }
+
+    public static FileConfiguration getWhitelisterBotConfig()
+    {
+        return whitelisterBotConfig;
     }
 
     public void ConfigSetup()
     {
-        String fileString = "discord-whitelister.yml";
+        //String fileString = "discord-whitelister.yml";
 
-        whitelisterBotConfigFile = new File(getDataFolder(), fileString);
+        whitelisterBotConfigFile = new File(getDataFolder(), "discord-whitelister.yml");
 
         if(!whitelisterBotConfigFile.exists())
         {
@@ -78,8 +87,6 @@ public class DiscordWhitelister extends JavaPlugin
                     ", please edit this else the plugin will not work!");
             configCreated = true;
         }
-
-        whitelisterBotConfig = new YamlConfiguration();
 
         try
         {
@@ -119,9 +126,5 @@ public class DiscordWhitelister extends JavaPlugin
     {
         botToken = getWhitelisterBotConfig().getString("discord-bot-token");
         botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
-
-        serverDiscordClient.allowedRoles = getWhitelisterBotConfig().getList("allowed-to-use-roles");
-        serverDiscordClient.channelIds = getWhitelisterBotConfig().getList("target-text-channels");
     }
-
 }
