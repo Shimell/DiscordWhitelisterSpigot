@@ -78,7 +78,7 @@ public class ServerDiscordClient extends ListenerAdapter
                     }
                 }
 
-                if(messageContents.contains("!whitelist") && userHasPerms)
+                if(messageContents.toLowerCase().contains("!whitelist") && userHasPerms)
                 {
                     String nameToWhitelist = messageContents;
                     nameToWhitelist = nameToWhitelist.toLowerCase();
