@@ -64,8 +64,6 @@ public class DiscordWhitelister extends JavaPlugin
 
     public void ConfigSetup()
     {
-        //String fileString = "discord-whitelister.yml";
-
         whitelisterBotConfigFile = new File(getDataFolder(), "discord-whitelister.yml");
 
         if(!whitelisterBotConfigFile.exists())
@@ -118,7 +116,6 @@ public class DiscordWhitelister extends JavaPlugin
             {
                 e.printStackTrace();
             }
-
         }
     }
 
