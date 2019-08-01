@@ -122,7 +122,7 @@ public class ServerDiscordClient extends ListenerAdapter
                         }
                     }
                 }
-                else if(messageContents.contains("!whitelist") && !userHasPerms && !messageReceivedEvent.getAuthor().isBot())
+                else if(messageContents.toLowerCase().contains("!whitelist") && !userHasPerms && !messageReceivedEvent.getAuthor().isBot())
                 {
                     channel.sendMessage(author.getAsMention() + ", you do not have permission to use this command").queue();
                 }
