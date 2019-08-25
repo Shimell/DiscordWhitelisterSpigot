@@ -23,6 +23,8 @@ import java.util.Arrays;
 // handles Discord interaction
 public class ServerDiscordClient extends ListenerAdapter
 {
+    public static String[] allowedToUseRoles;
+
     public void InitializeClient(String clientToken)
     {
         try
@@ -63,13 +65,6 @@ public class ServerDiscordClient extends ListenerAdapter
 
                 boolean userHasPerms = false;
 
-                String[] allowedToUseRoles = new String[DiscordWhitelister.getWhitelisterBotConfig().getList("allowed-to-use-roles").size()];
-
-                for(int roles = 0; roles < allowedToUseRoles.length; ++roles)
-                {
-                    allowedToUseRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("allowed-to-use-roles").get(roles).toString();
-                }
-
                 for(Role role : messageReceivedEvent.getGuild().getMember(messageReceivedEvent.getAuthor()).getRoles())
                 {
                     if(Arrays.stream(allowedToUseRoles).parallel().anyMatch(role.getName()::contains))
@@ -89,7 +84,9 @@ public class ServerDiscordClient extends ListenerAdapter
 
                     if(finalNameToWhitelist.isEmpty())
                     {
-                        channel.sendMessage(author.getAsMention() + ", please enter a valid Minecraft username").queue();
+                        channel.sendMessage(author.getAsMention() + ", Whitelist command usage:" + System.lineSeparator() +
+                                "```!whitelist <MinecraftUsername>" + System.lineSeparator() +
+                                "If you encounter an issue, please report it here: https://github.com/JoeShimo/DiscordWhitelisterBot-Spigot/issues```").queue();
                     }
                     else
                     {

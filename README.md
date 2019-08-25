@@ -3,7 +3,7 @@
 A simple spigot plugin which allows whitelisting through a discord text channel.
 
 Features:
-- use '!whitelist MinecraftUsername' in a valid channel to whitelist people on your minecraft server
+- use '!whitelist <MinecraftUsername>' in a valid channel to whitelist people on your minecraft server
 - only select Discord roles can whitelist through the bot
 - bot only listens for messages in select text channels
 - logs whitelist attempts from valid roles in the console

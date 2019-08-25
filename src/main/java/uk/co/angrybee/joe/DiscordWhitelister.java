@@ -1,5 +1,6 @@
 package uk.co.angrybee.joe;
 
+import org.bukkit.Server;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -47,6 +48,14 @@ public class DiscordWhitelister extends JavaPlugin
         {
             getLogger().info("Initializing Discord client");
             serverDiscordClient = new ServerDiscordClient();
+
+            serverDiscordClient.allowedToUseRoles = new String[DiscordWhitelister.getWhitelisterBotConfig().getList("allowed-to-use-roles").size()];
+
+            for(int roles = 0; roles < serverDiscordClient.allowedToUseRoles.length; ++roles)
+            {
+                serverDiscordClient.allowedToUseRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("allowed-to-use-roles").get(roles).toString();
+            }
+
             serverDiscordClient.InitializeClient(botToken);
             getLogger().info("Successfully initialized Discord client");
         }
