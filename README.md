@@ -1,9 +1,12 @@
 # DiscordWhitelisterBot-Spigot
 
 A simple spigot plugin which allows whitelisting through a discord text channel.
+This provides an easy way for staff members on a server to whitelist outside the server whilst not having full access to the console.
 
 Features:
-- use '!whitelist <MinecraftUsername>' in a valid channel to whitelist people on your minecraft server
+- use '!whitelist add <MinecraftUsername>' in a valid channel to whitelist people on your minecraft server
+- use '!whitelist remove <MinecraftUsername>' in a valid channel to remove people from the whitelist on your minecraft server
+- use '!whitelist' in a valid channel to get info about the bot and how to use it
 - only select Discord roles can whitelist through the bot
 - bot only listens for messages in select text channels
 - logs whitelist attempts from valid roles in the console

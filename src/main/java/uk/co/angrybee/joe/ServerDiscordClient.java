@@ -73,26 +73,41 @@ public class ServerDiscordClient extends ListenerAdapter
                     }
                 }
 
-                if(messageContents.toLowerCase().contains("!whitelist") && userHasPerms)
+                if(messageContents.toLowerCase().equals("!whitelist") && userHasPerms)
+                {
+                    channel.sendMessage("```Discord Whitelister Bot For Spigot" + System.lineSeparator() +
+                            "Version: 1.0.2" + System.lineSeparator() + "Links:" + System.lineSeparator() +
+                            "https://www.spigotmc.org/resources/discord-whitelister.69929/" + System.lineSeparator() + "https://github.com/JoeShimo/DiscordWhitelisterBot-Spigot" + System.lineSeparator() +
+                            "Commands:" + System.lineSeparator() + "Add:" + System.lineSeparator() +
+                            "!whitelist add <MinecraftUsername> -- Usage: Adds a user to the whitelist" + System.lineSeparator() +
+                            "Remove:" + System.lineSeparator() + "!whitelistremove <MinecraftUsername> -- Usage: Removes the target user from the whitelist" + System.lineSeparator() +
+                            "If you encounter an issue, please report it here: https://github.com/JoeShimo/DiscordWhitelisterBot-Spigot/issues```").queue();
+                }
+                else if(messageContents.toLowerCase().equals("!whitelist") && !userHasPerms && !author.isBot())
+                {
+                    channel.sendMessage(author.getAsMention() + ", you do not have permission to use this command").queue();
+                }
+
+                if(messageContents.toLowerCase().contains("!whitelist add") && userHasPerms)
                 {
                     String nameToWhitelist = messageContents;
                     nameToWhitelist = nameToWhitelist.toLowerCase();
-                    nameToWhitelist = nameToWhitelist.substring(nameToWhitelist.indexOf("!whitelist")+10); // get everything after !whitelist
+                    nameToWhitelist = nameToWhitelist.substring(nameToWhitelist.indexOf("!whitelist add")+14); // get everything after !whitelist add
                     nameToWhitelist = nameToWhitelist.replaceAll(" ", "");
 
                     final String finalNameToWhitelist = nameToWhitelist;
 
                     if(finalNameToWhitelist.isEmpty())
                     {
-                        channel.sendMessage(author.getAsMention() + ", Whitelist command usage:" + System.lineSeparator() +
-                                "```!whitelist <MinecraftUsername>" + System.lineSeparator() +
+                        channel.sendMessage(author.getAsMention() + ", ```Whitelist Command:" + System.lineSeparator() +
+                                "!whitelist add <MinecraftUsername>" + System.lineSeparator() + "Usage: Adds a user to the whitelist" + System.lineSeparator() +
                                 "If you encounter an issue, please report it here: https://github.com/JoeShimo/DiscordWhitelisterBot-Spigot/issues```").queue();
                     }
                     else
                     {
                         File whitelistJSON = (new File(".", "whitelist.json"));
 
-                        DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") attempted to whitelist " + nameToWhitelist);
+                        DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") attempted to whitelist " + finalNameToWhitelist);
 
                         if(checkWhitelistJSON(whitelistJSON, finalNameToWhitelist))
                         {
@@ -119,7 +134,57 @@ public class ServerDiscordClient extends ListenerAdapter
                         }
                     }
                 }
-                else if(messageContents.toLowerCase().contains("!whitelist") && !userHasPerms && !messageReceivedEvent.getAuthor().isBot())
+                else if(messageContents.toLowerCase().contains("!whitelist add") && !userHasPerms && !author.isBot())
+                {
+                    channel.sendMessage(author.getAsMention() + ", you do not have permission to use this command").queue();
+                }
+
+                if(messageContents.toLowerCase().contains("!whitelist remove") && userHasPerms)
+                {
+                    String nameToRemove = messageContents;
+                    nameToRemove = nameToRemove.toLowerCase();
+                    nameToRemove = nameToRemove.substring(nameToRemove.indexOf("!whitelist remove")+17); // get everything after !whitelist remove
+                    nameToRemove = nameToRemove.replaceAll(" ", "");
+
+                    final String finalNameToRemove = nameToRemove;
+
+                    if(finalNameToRemove.isEmpty())
+                    {
+                        channel.sendMessage(author.getAsMention() + ", ```Whitelist Remove Command:" + System.lineSeparator() +
+                                "!whitelist remove <MinecraftUsername>" + System.lineSeparator() + "Usage: Removes the target user from the whitelist" + System.lineSeparator() +
+                                "If you encounter an issue, please report it here: https://github.com/JoeShimo/DiscordWhitelisterBot-Spigot/issues```").queue();
+                    }
+                    else
+                    {
+                        File whitelistJSON = (new File(".", "whitelist.json"));
+
+                        DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") attempted to remove " + finalNameToRemove + " from the whitelist");
+
+                        if(!checkWhitelistJSON(whitelistJSON, finalNameToRemove))
+                        {
+                            channel.sendMessage(author.getAsMention() + ", user is not on the whitelist!").queue();
+                        }
+                        else
+                        {
+                            DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () -> DiscordWhitelister.getPlugin().getServer().dispatchCommand(DiscordWhitelister.getPlugin().getServer().getConsoleSender(),
+                                    "whitelist remove " + finalNameToRemove));
+
+                            DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () ->
+                            {
+                                if(!checkWhitelistJSON(whitelistJSON, finalNameToRemove))
+                                {
+                                    channel.sendMessage(author.getAsMention() + ", successfully removed **" + finalNameToRemove + "** from the whitelist").queue();
+                                }
+                                else
+                                {
+                                    channel.sendMessage(author.getAsMention() + ", failed to remove **" + finalNameToRemove + "** from the whitelist, this should never really happen, you may have to remove the player manually and report the issue.").queue();
+                                }
+                                return null;
+                            });
+                        }
+                    }
+                }
+                else if(messageContents.toLowerCase().contains("!whitelist remove") && !userHasPerms && !author.isBot())
                 {
                     channel.sendMessage(author.getAsMention() + ", you do not have permission to use this command").queue();
                 }
