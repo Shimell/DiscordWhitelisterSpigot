@@ -1,4 +1,6 @@
 out/
 target/
 .idea/
+classes/
 discordwhitelister.iml
+*.iml

@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,11 +50,18 @@ public class DiscordWhitelister extends JavaPlugin
             getLogger().info("Initializing Discord client");
             serverDiscordClient = new ServerDiscordClient();
 
-            serverDiscordClient.allowedToUseRoles = new String[DiscordWhitelister.getWhitelisterBotConfig().getList("allowed-to-use-roles").size()];
-
-            for(int roles = 0; roles < serverDiscordClient.allowedToUseRoles.length; ++roles)
+            // set add & remove roles
+            serverDiscordClient.allowedToAddRemoveRoles = new String[DiscordWhitelister.getWhitelisterBotConfig().getList("add-remove-roles").size()];
+            for(int roles = 0; roles < serverDiscordClient.allowedToAddRemoveRoles.length; ++roles)
             {
-                serverDiscordClient.allowedToUseRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("allowed-to-use-roles").get(roles).toString();
+                serverDiscordClient.allowedToAddRemoveRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("add-remove-roles").get(roles).toString();
+            }
+
+            // set add roles
+            serverDiscordClient.allowedToAddRoles = new String[DiscordWhitelister.getWhitelisterBotConfig().getList("add-roles").size()];
+            for(int roles = 0; roles < serverDiscordClient.allowedToAddRoles.length; ++roles)
+            {
+                serverDiscordClient.allowedToAddRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("add-roles").get(roles).toString();
             }
 
             serverDiscordClient.InitializeClient(botToken);
@@ -109,8 +117,13 @@ public class DiscordWhitelister extends JavaPlugin
             getWhitelisterBotConfig().set("discord-bot-token", "Discord bot token goes here, you can find it here: " +
                     "https://discordapp.com/developers/applications/");
 
-            List<String> tempSetupRoles = Arrays.asList("Owner", "Admin", "Mod");
-            getWhitelisterBotConfig().set("allowed-to-use-roles", tempSetupRoles);
+            // allowed to add and remove from the whitelist
+            List<String> tempAddRemoveRoles = Arrays.asList("Owner", "Admin");
+            getWhitelisterBotConfig().set("add-remove-roles", tempAddRemoveRoles);
+
+            // only allowed to add to the whitelist
+            List<String> tempAddRoles = Arrays.asList("Mod", "Whitelister");
+            getWhitelisterBotConfig().set("add-roles", tempAddRoles);
 
             List<String> tempChannelIds = Arrays.asList("445666834382061569", "488450157881327616");
             getWhitelisterBotConfig().set("target-text-channels", tempChannelIds);
