@@ -15,14 +15,10 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import javax.security.auth.login.LoginException;
-import java.io.DataInput;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 // handles Discord interaction
 public class ServerDiscordClient extends ListenerAdapter

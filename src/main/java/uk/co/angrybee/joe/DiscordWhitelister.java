@@ -1,7 +1,5 @@
 package uk.co.angrybee.joe;
 
-import net.dv8tion.jda.api.entities.ISnowflake;
-import org.bukkit.Server;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -9,7 +7,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class DiscordWhitelister extends JavaPlugin
@@ -24,8 +21,6 @@ public class DiscordWhitelister extends JavaPlugin
     private static FileConfiguration whitelisterBotConfig;
     private static FileConfiguration userList;
     private static FileConfiguration removedList;
-
-//    private LinkedHashMap<String, Integer> userInfo;
 
     private String botToken;
 
