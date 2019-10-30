@@ -73,7 +73,7 @@ public class ServerDiscordClient extends ListenerAdapter
 
                 for(Role role : messageReceivedEvent.getGuild().getMember(messageReceivedEvent.getAuthor()).getRoles())
                 {
-                    if(Arrays.stream(allowedToAddRemoveRoles).parallel().anyMatch(role.getName()::contains))
+                    if(Arrays.stream(allowedToAddRemoveRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase))
                     {
                         userCanAddRemove = true;
                     }
@@ -81,7 +81,7 @@ public class ServerDiscordClient extends ListenerAdapter
 
                 for(Role role : messageReceivedEvent.getGuild().getMember(messageReceivedEvent.getAuthor()).getRoles())
                 {
-                    if(Arrays.stream(allowedToAddRoles).parallel().anyMatch(role.getName()::contains))
+                    if(Arrays.stream(allowedToAddRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase))
                     {
                         userCanAdd = true;
                     }
@@ -93,7 +93,7 @@ public class ServerDiscordClient extends ListenerAdapter
                     // check if user is in a limited add role
                     for(Role role : messageReceivedEvent.getGuild().getMember(messageReceivedEvent.getAuthor()).getRoles())
                     {
-                        if(Arrays.stream(allowedToAddLimitedRoles).parallel().anyMatch(role.getName()::contains))
+                        if(Arrays.stream(allowedToAddLimitedRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase))
                         {
                             userHasLimitedAdd = true;
                         }
@@ -124,7 +124,7 @@ public class ServerDiscordClient extends ListenerAdapter
                     if(userCanAddRemove || userCanAdd)
                     {
                         channel.sendMessage("```Discord Whitelister Bot For Spigot" + System.lineSeparator() +
-                                "Version: 1.0.4" + System.lineSeparator() + "Links:" + System.lineSeparator() +
+                                "Version: 1.0.5" + System.lineSeparator() + "Links:" + System.lineSeparator() +
                                 "https://www.spigotmc.org/resources/discord-whitelister.69929/" + System.lineSeparator() + "https://github.com/JoeShimo/DiscordWhitelisterBot-Spigot" + System.lineSeparator() +
                                 "Commands:" + System.lineSeparator() + "Add:" + System.lineSeparator() +
                                 "!whitelist add <MinecraftUsername> -- Usage: Adds a user to the whitelist" + System.lineSeparator() +
