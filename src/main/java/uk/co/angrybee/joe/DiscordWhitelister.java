@@ -1,5 +1,6 @@
 package uk.co.angrybee.joe;
 
+import net.dv8tion.jda.api.entities.ISnowflake;
 import org.bukkit.Server;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -9,8 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class DiscordWhitelister extends JavaPlugin
 {
@@ -18,12 +18,23 @@ public class DiscordWhitelister extends JavaPlugin
     private ServerDiscordClient serverDiscordClient;
 
     private File whitelisterBotConfigFile;
-    private static FileConfiguration whitelisterBotConfig;
+    static private File userListFile;
+    private File removedListFile;
 
-    private boolean configCreated = false;
+    private static FileConfiguration whitelisterBotConfig;
+    private static FileConfiguration userList;
+    private static FileConfiguration removedList;
+
+//    private LinkedHashMap<String, Integer> userInfo;
 
     private String botToken;
-    private boolean botEnabled = true;
+
+    private boolean configCreated = false;
+    private boolean userListCreated = false;
+    private boolean removedListCreated = false;
+
+    private boolean botEnabled;
+    public boolean limitedAddRolesEnabled;
 
     private static JavaPlugin thisPlugin;
 
@@ -32,6 +43,8 @@ public class DiscordWhitelister extends JavaPlugin
     {
         thisPlugin = this;
         whitelisterBotConfig = new YamlConfiguration();
+        userList = new YamlConfiguration();
+        removedList = new YamlConfiguration();
 
         ConfigSetup();
 
@@ -64,6 +77,13 @@ public class DiscordWhitelister extends JavaPlugin
                 serverDiscordClient.allowedToAddRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("add-roles").get(roles).toString();
             }
 
+            // set limited add roles
+            serverDiscordClient.allowedToAddLimitedRoles = new String[DiscordWhitelister.getWhitelisterBotConfig().getList("limited-add-roles").size()];
+            for(int roles = 0; roles < serverDiscordClient.allowedToAddLimitedRoles.length; ++roles)
+            {
+                serverDiscordClient.allowedToAddLimitedRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("limited-add-roles").get(roles).toString();
+            }
+
             serverDiscordClient.InitializeClient(botToken);
             getLogger().info("Successfully initialized Discord client");
         }
@@ -79,16 +99,34 @@ public class DiscordWhitelister extends JavaPlugin
         return whitelisterBotConfig;
     }
 
+    public static FileConfiguration getUserList()
+    {
+        return userList;
+    }
+
+    public static File getUserListFile()
+    {
+        return userListFile;
+    }
+
+    public static FileConfiguration getRemovedList()
+    {
+        return  removedList;
+    }
+
     public void ConfigSetup()
     {
         whitelisterBotConfigFile = new File(getDataFolder(), "discord-whitelister.yml");
+        userListFile = new File(getDataFolder(), "user-list.yml");
+        removedListFile = new File(getDataFolder(), "removed-list");
+
+        if(!whitelisterBotConfigFile.getParentFile().exists())
+        {
+            whitelisterBotConfigFile.getParentFile().mkdirs();
+        }
 
         if(!whitelisterBotConfigFile.exists())
         {
-            whitelisterBotConfigFile.getParentFile().mkdirs();
-
-            //saveResource(fileString, false); // from example, doesn't seem to work?
-
             try
             {
                 whitelisterBotConfigFile.createNewFile();
@@ -98,7 +136,7 @@ public class DiscordWhitelister extends JavaPlugin
                 e.printStackTrace();
             }
 
-            getLogger().info("Configuration file created at " + whitelisterBotConfigFile.getPath() +
+            getLogger().info("Configuration file created at: " + whitelisterBotConfigFile.getPath() +
                     ", please edit this else the plugin will not work!");
             configCreated = true;
         }
@@ -108,6 +146,54 @@ public class DiscordWhitelister extends JavaPlugin
             getWhitelisterBotConfig().load(whitelisterBotConfigFile);
         }
         catch(IOException | InvalidConfigurationException e)
+        {
+            e.printStackTrace();
+        }
+
+        if(!userListFile.exists())
+        {
+            try
+            {
+                userListFile.createNewFile();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            getLogger().info("User list created at: " + userListFile.getPath());
+            userListCreated = true;
+        }
+
+        try
+        {
+            getUserList().load(userListFile);
+        }
+        catch (IOException | InvalidConfigurationException e)
+        {
+            e.printStackTrace();
+        }
+
+        if(!removedListFile.exists())
+        {
+            try
+            {
+                removedListFile.createNewFile();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            getLogger().info("Removed list created at: " + removedListFile.getPath());
+            removedListCreated = true;
+        }
+
+        try
+        {
+            getRemovedList().load(removedListFile);
+        }
+        catch (IOException | InvalidConfigurationException e)
         {
             e.printStackTrace();
         }
@@ -125,6 +211,16 @@ public class DiscordWhitelister extends JavaPlugin
             List<String> tempAddRoles = Arrays.asList("Mod", "Whitelister");
             getWhitelisterBotConfig().set("add-roles", tempAddRoles);
 
+            // if the limited whitelist feature should be enabled
+            getWhitelisterBotConfig().set("limited-whitelist-enabled", true);
+
+            // the amount of times a non-staff user is allowed to whitelist
+            getWhitelisterBotConfig().set("max-whitelist-amount", 3);
+
+            // roles that are allowed whitelist a limited amount of times
+            List<String> tempLimitedRoles = Arrays.asList("VIP", "LimitedWhitelister");
+            getWhitelisterBotConfig().set("limited-add-roles", tempLimitedRoles);
+
             List<String> tempChannelIds = Arrays.asList("445666834382061569", "488450157881327616");
             getWhitelisterBotConfig().set("target-text-channels", tempChannelIds);
 
@@ -139,11 +235,24 @@ public class DiscordWhitelister extends JavaPlugin
                 e.printStackTrace();
             }
         }
+
+        if(userListCreated)
+        {
+            try
+            {
+                getUserList().save(userListFile.getPath());
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void AssignVars()
     {
         botToken = getWhitelisterBotConfig().getString("discord-bot-token");
         botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
+        limitedAddRolesEnabled = getWhitelisterBotConfig().getBoolean("limited-whitelist-enabled");
     }
 }
