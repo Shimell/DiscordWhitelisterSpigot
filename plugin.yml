@@ -3,8 +3,3 @@ version: 1.0.5
 author: Joe Shimell
 main: uk.co.angrybee.joe.DiscordWhitelister
 description: Discord whitelister bot.
-
-permissions:
-  discordbot:
-    description: discordbot permission.
-    default: true
