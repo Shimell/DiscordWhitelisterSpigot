@@ -361,7 +361,7 @@ public class ServerDiscordClient extends ListenerAdapter
 
                             if(!checkWhitelistJSON(whitelistJSON, finalNameToRemove))
                             {
-                                channel.sendMessage(author.getAsMention() + ", user is not on the whitelist!").queue();
+                                channel.sendMessage(author.getAsMention() + ", `" + finalNameToRemove + "` is not on the whitelist!").queue();
                             }
                             else
                             {
@@ -380,8 +380,6 @@ public class ServerDiscordClient extends ListenerAdapter
                                             DiscordWhitelister.getRemovedList().set(finalNameToRemove, author.getId());
                                             DiscordWhitelister.getRemovedList().save(DiscordWhitelister.getRemovedListFile().getPath());
                                         }
-
-                                        //channel.sendMessage("test <@" + DiscordWhitelister.getRemovedList().get(finalNameToRemove) + ">").queue();
                                     }
                                     else
                                     {
