@@ -222,14 +222,14 @@ public class ServerDiscordClient extends ListenerAdapter
                                     channel.sendMessage(author.getAsMention() + ", ```Whitelist Command:" + System.lineSeparator() +
                                             "!whitelist add <MinecraftUsername>" + System.lineSeparator() + "Usage: Adds a user to the whitelist" + "```" + System.lineSeparator()
                                     + " **You have " + (whitelistLimit - timesWhitelisted)
-                                    + "out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + " whitelists remaining**").queue();
+                                    + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + " whitelists remaining**").queue();
                                 }
                                 else
                                 {
                                     File whitelistJSON = (new File(".", "whitelist.json"));
 
                                     DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") attempted to whitelist: " + finalNameToWhitelist
-                                            + ", " + (timesWhitelisted - whitelistLimit) + " whitelists remaining");
+                                            + ", " + (whitelistLimit - timesWhitelisted) + " whitelists remaining");
 
                                     if(checkWhitelistJSON(whitelistJSON, finalNameToWhitelist))
                                     {
@@ -271,6 +271,9 @@ public class ServerDiscordClient extends ListenerAdapter
                                                 {
                                                     e.printStackTrace();
                                                 }
+
+                                                DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") successfully added " + finalNameToWhitelist
+                                                        + " to the whitelist, " + successfulFinalTimesWhitelisted + " whitelists remaining");
                                             }
                                             else
                                             {
@@ -286,7 +289,7 @@ public class ServerDiscordClient extends ListenerAdapter
                         }
                         else if(userHasLimitedAdd && usedAllWhitelists)
                         {
-                            channel.sendMessage(author.getAsMention() + ", unable to whitelist. **You have used : " + Integer.parseInt(DiscordWhitelister.getUserList().getString(author.getId()))
+                            channel.sendMessage(author.getAsMention() + ", unable to whitelist. **You have used " + Integer.parseInt(DiscordWhitelister.getUserList().getString(author.getId()))
                             + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getInt("max-whitelist-amount") + " whitelists**").queue();
                         }
                     }
