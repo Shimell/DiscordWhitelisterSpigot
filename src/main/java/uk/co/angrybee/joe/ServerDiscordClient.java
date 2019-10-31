@@ -27,8 +27,6 @@ public class ServerDiscordClient extends ListenerAdapter
     public static String[] allowedToAddRoles;
     public static String[] allowedToAddLimitedRoles;
 
-    private boolean limitedAddRolesEnabled;
-
     public void InitializeClient(String clientToken)
     {
         try
@@ -190,6 +188,24 @@ public class ServerDiscordClient extends ListenerAdapter
                                 }
                                 else
                                 {
+                                    // remove from removed list
+                                    if(DiscordWhitelister.getRemovedList().get(finalNameToWhitelist) != null)
+                                    {
+                                        DiscordWhitelister.getRemovedList().set(finalNameToWhitelist, null);
+
+                                        try
+                                        {
+                                            DiscordWhitelister.getRemovedList().save(DiscordWhitelister.getRemovedListFile().getPath());
+                                        }
+                                        catch (IOException e)
+                                        {
+                                            e.printStackTrace();
+                                        }
+
+                                        DiscordWhitelister.getPlugin().getLogger().info(finalNameToWhitelist + " has been removed from the removed list by " + author.getName()
+                                                + "(" + author.getId() + ")");
+                                    }
+
                                     DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () -> DiscordWhitelister.getPlugin().getServer().dispatchCommand(DiscordWhitelister.getPlugin().getServer().getConsoleSender(),
                                             "whitelist add " + finalNameToWhitelist));
 
@@ -198,7 +214,7 @@ public class ServerDiscordClient extends ListenerAdapter
                                     {
                                         if(checkWhitelistJSON(whitelistJSON, finalNameToWhitelist))
                                         {
-                                            channel.sendMessage(author.getAsMention() + ", successfully added `" + finalNameToWhitelist + "` to the whitelist").queue();
+                                            channel.sendMessage(author.getAsMention() + ", successfully added `" + finalNameToWhitelist + "` to the whitelist.").queue();
                                         }
                                         else
                                         {
@@ -221,8 +237,8 @@ public class ServerDiscordClient extends ListenerAdapter
                                 {
                                     channel.sendMessage(author.getAsMention() + ", ```Whitelist Command:" + System.lineSeparator() +
                                             "!whitelist add <MinecraftUsername>" + System.lineSeparator() + "Usage: Adds a user to the whitelist" + "```" + System.lineSeparator()
-                                    + " **You have " + (whitelistLimit - timesWhitelisted)
-                                    + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + " whitelists remaining**").queue();
+                                    + " You have **" + (whitelistLimit - timesWhitelisted)
+                                    + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + "** whitelists remaining").queue();
                                 }
                                 else
                                 {
@@ -237,60 +253,70 @@ public class ServerDiscordClient extends ListenerAdapter
                                     }
                                     else
                                     {
-                                        DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () -> DiscordWhitelister.getPlugin().getServer().dispatchCommand(DiscordWhitelister.getPlugin().getServer().getConsoleSender(),
-                                                "whitelist add " + finalNameToWhitelist));
-
-                                        int tempFinal = timesWhitelisted;
-
-                                        if(tempFinal < 3)
+                                        if(DiscordWhitelister.getRemovedList().get(finalNameToWhitelist) != null)
                                         {
-                                            tempFinal = timesWhitelisted + 1;
+                                            channel.sendMessage(author.getAsMention() + ", cannot add `" + finalNameToWhitelist + "` as this user was previously removed by a staff member (<@"
+                                                    + DiscordWhitelister.getRemovedList().get(finalNameToWhitelist) + ">). Please ask a user with higher permissions to add this user."
+                                                    + " You have **" + (whitelistLimit - timesWhitelisted)
+                                                    + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + "** whitelists remaining.").queue();
                                         }
-
-                                        int finalTimesWhitelistedInc = tempFinal;
-
-                                        int successfulFinalTimesWhitelisted = whitelistLimit - finalTimesWhitelistedInc;
-                                        int failedFinalTimesWhitelisted = whitelistLimit - timesWhitelisted;
-
-                                        // run through the server so that the check doesn't execute before the server has had a chance to run the whitelist command -- unsure if this is the best way of doing this, but it works
-                                        DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () ->
+                                        else
                                         {
-                                            if(checkWhitelistJSON(whitelistJSON, finalNameToWhitelist))
+                                            DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () -> DiscordWhitelister.getPlugin().getServer().dispatchCommand(DiscordWhitelister.getPlugin().getServer().getConsoleSender(),
+                                                    "whitelist add " + finalNameToWhitelist));
+
+                                            int tempFinal = timesWhitelisted;
+
+                                            if(tempFinal < 3)
                                             {
-                                                channel.sendMessage(author.getAsMention() + ", successfully added `" + finalNameToWhitelist + "` to the whitelist"
-                                                        + " **You have " + successfulFinalTimesWhitelisted
-                                                        + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + " whitelists remaining**").queue();
-
-                                                DiscordWhitelister.getUserList().set(author.getId(), finalTimesWhitelistedInc);
-
-                                                try
-                                                {
-                                                    DiscordWhitelister.getUserList().save(DiscordWhitelister.getUserListFile().getPath());
-                                                }
-                                                catch (IOException e)
-                                                {
-                                                    e.printStackTrace();
-                                                }
-
-                                                DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") successfully added " + finalNameToWhitelist
-                                                        + " to the whitelist, " + successfulFinalTimesWhitelisted + " whitelists remaining");
+                                                tempFinal = timesWhitelisted + 1;
                                             }
-                                            else
+
+                                            int finalTimesWhitelistedInc = tempFinal;
+
+                                            int successfulFinalTimesWhitelisted = whitelistLimit - finalTimesWhitelistedInc;
+                                            int failedFinalTimesWhitelisted = whitelistLimit - timesWhitelisted;
+
+                                            // run through the server so that the check doesn't execute before the server has had a chance to run the whitelist command -- unsure if this is the best way of doing this, but it works
+                                            DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () ->
                                             {
-                                                channel.sendMessage(author.getAsMention() + ", failed to add `" + finalNameToWhitelist + "` to the whitelist, this is most likely due to an invalid Minecraft username"
-                                                        + " **You have " + failedFinalTimesWhitelisted
-                                                        + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + " whitelists remaining**").queue();
-                                            }
-                                            return null;
-                                        });
+                                                if(checkWhitelistJSON(whitelistJSON, finalNameToWhitelist))
+                                                {
+                                                    channel.sendMessage(author.getAsMention() + ", successfully added `" + finalNameToWhitelist + "` to the whitelist."
+                                                            + " You have **" + successfulFinalTimesWhitelisted
+                                                            + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + "** whitelists remaining").queue();
+
+                                                    DiscordWhitelister.getUserList().set(author.getId(), finalTimesWhitelistedInc);
+
+                                                    try
+                                                    {
+                                                        DiscordWhitelister.getUserList().save(DiscordWhitelister.getUserListFile().getPath());
+                                                    }
+                                                    catch (IOException e)
+                                                    {
+                                                        e.printStackTrace();
+                                                    }
+
+                                                    DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") successfully added " + finalNameToWhitelist
+                                                            + " to the whitelist, " + successfulFinalTimesWhitelisted + " whitelists remaining.");
+                                                }
+                                                else
+                                                {
+                                                    channel.sendMessage(author.getAsMention() + ", failed to add `" + finalNameToWhitelist + "` to the whitelist, this is most likely due to an invalid Minecraft username."
+                                                            + " You have **" + failedFinalTimesWhitelisted
+                                                            + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + "** whitelists remaining.").queue();
+                                                }
+                                                return null;
+                                            });
+                                        }
                                     }
                                 }
                             }
                         }
                         else if(userHasLimitedAdd && usedAllWhitelists)
                         {
-                            channel.sendMessage(author.getAsMention() + ", unable to whitelist. **You have used " + Integer.parseInt(DiscordWhitelister.getUserList().getString(author.getId()))
-                            + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getInt("max-whitelist-amount") + " whitelists**").queue();
+                            channel.sendMessage(author.getAsMention() + ", unable to whitelist. You have **" + (DiscordWhitelister.getWhitelisterBotConfig().getInt("max-whitelist-amount") - Integer.parseInt(DiscordWhitelister.getUserList().getString(author.getId())))
+                            + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getInt("max-whitelist-amount") + "** whitelists remaining.").queue();
                         }
                     }
 
@@ -346,7 +372,16 @@ public class ServerDiscordClient extends ListenerAdapter
                                 {
                                     if(!checkWhitelistJSON(whitelistJSON, finalNameToRemove))
                                     {
-                                        channel.sendMessage(author.getAsMention() + ", successfully removed `" + finalNameToRemove + "` from the whitelist").queue();
+                                        channel.sendMessage(author.getAsMention() + ", successfully removed `" + finalNameToRemove + "` from the whitelist.").queue();
+
+                                        // if the name is not on the list
+                                        if(DiscordWhitelister.getRemovedList().get(finalNameToRemove) == null)
+                                        {
+                                            DiscordWhitelister.getRemovedList().set(finalNameToRemove, author.getId());
+                                            DiscordWhitelister.getRemovedList().save(DiscordWhitelister.getRemovedListFile().getPath());
+                                        }
+
+                                        //channel.sendMessage("test <@" + DiscordWhitelister.getRemovedList().get(finalNameToRemove) + ">").queue();
                                     }
                                     else
                                     {

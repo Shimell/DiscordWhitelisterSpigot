@@ -14,9 +14,9 @@ public class DiscordWhitelister extends JavaPlugin
 
     private ServerDiscordClient serverDiscordClient;
 
-    private File whitelisterBotConfigFile;
+    static private File whitelisterBotConfigFile;
     static private File userListFile;
-    private File removedListFile;
+    static private File removedListFile;
 
     private static FileConfiguration whitelisterBotConfig;
     private static FileConfiguration userList;
@@ -29,7 +29,6 @@ public class DiscordWhitelister extends JavaPlugin
     private boolean removedListCreated = false;
 
     private boolean botEnabled;
-    public boolean limitedAddRolesEnabled;
 
     private static JavaPlugin thisPlugin;
 
@@ -109,11 +108,16 @@ public class DiscordWhitelister extends JavaPlugin
         return  removedList;
     }
 
+    public static File getRemovedListFile()
+    {
+        return removedListFile;
+    }
+
     public void ConfigSetup()
     {
         whitelisterBotConfigFile = new File(getDataFolder(), "discord-whitelister.yml");
         userListFile = new File(getDataFolder(), "user-list.yml");
-        removedListFile = new File(getDataFolder(), "removed-list");
+        removedListFile = new File(getDataFolder(), "removed-list.yml");
 
         if(!whitelisterBotConfigFile.getParentFile().exists())
         {
@@ -206,6 +210,8 @@ public class DiscordWhitelister extends JavaPlugin
             List<String> tempAddRoles = Arrays.asList("Mod", "Whitelister");
             getWhitelisterBotConfig().set("add-roles", tempAddRoles);
 
+            getWhitelisterBotConfig().set("removed-list-enabled", true);
+
             // if the limited whitelist feature should be enabled
             getWhitelisterBotConfig().set("limited-whitelist-enabled", true);
 
@@ -242,12 +248,24 @@ public class DiscordWhitelister extends JavaPlugin
                 e.printStackTrace();
             }
         }
+
+        if(removedListCreated)
+        {
+            //getRemovedList().set("minecraftUsername", "discordRemoverID");
+            try
+            {
+                getRemovedList().save(removedListFile.getPath());
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void AssignVars()
     {
         botToken = getWhitelisterBotConfig().getString("discord-bot-token");
         botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
-        limitedAddRolesEnabled = getWhitelisterBotConfig().getBoolean("limited-whitelist-enabled");
     }
 }
