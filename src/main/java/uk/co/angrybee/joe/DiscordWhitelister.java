@@ -78,8 +78,16 @@ public class DiscordWhitelister extends JavaPlugin
                 serverDiscordClient.allowedToAddLimitedRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("limited-add-roles").get(roles).toString();
             }
 
-            serverDiscordClient.InitializeClient(botToken);
-            getLogger().info("Successfully initialized Discord client");
+            int initializeSuccess = serverDiscordClient.InitializeClient(botToken);
+
+            if(initializeSuccess == 0)
+            {
+                getLogger().info("Successfully initialized Discord client");
+            }
+            else if(initializeSuccess == 1)
+            {
+                getLogger().severe("Discord Client failed to initialize, please check if your config file is valid");
+            }
         }
     }
 
@@ -197,37 +205,118 @@ public class DiscordWhitelister extends JavaPlugin
             e.printStackTrace();
         }
 
-        if(configCreated)
+        // check if entries exist in config file and add them if they are not. only log entry creation if it is not first time set up
+        if(whitelisterBotConfigFile.exists())
         {
-            getWhitelisterBotConfig().set("discord-bot-token", "Discord bot token goes here, you can find it here: " +
-                    "https://discordapp.com/developers/applications/");
+            if(getWhitelisterBotConfig().get("discord-bot-token") == null)
+            {
+                getWhitelisterBotConfig().set("discord-bot-token", "Discord bot token goes here, you can find it here: " +
+                        "https://discordapp.com/developers/applications/");
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'discord-bot-token' was not found, adding it to the config...");
+                }
+            }
 
             // allowed to add and remove from the whitelist
-            List<String> tempAddRemoveRoles = Arrays.asList("Owner", "Admin");
-            getWhitelisterBotConfig().set("add-remove-roles", tempAddRemoveRoles);
+            if(getWhitelisterBotConfig().get("add-remove-roles") == null)
+            {
+                List<String> tempAddRemoveRoles = Arrays.asList("Owner", "Admin");
+                getWhitelisterBotConfig().set("add-remove-roles", tempAddRemoveRoles);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'add-remove-roles' was not found, adding it to the config...");
+                }
+            }
 
             // only allowed to add to the whitelist
-            List<String> tempAddRoles = Arrays.asList("Mod", "Whitelister");
-            getWhitelisterBotConfig().set("add-roles", tempAddRoles);
+            if(getWhitelisterBotConfig().get("add-roles") == null)
+            {
+                List<String> tempAddRoles = Arrays.asList("Mod", "Whitelister");
+                getWhitelisterBotConfig().set("add-roles", tempAddRoles);
 
-            getWhitelisterBotConfig().set("username-validation", true);
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'add-roles' was not found, adding it to the config...");
+                }
+            }
 
-            getWhitelisterBotConfig().set("removed-list-enabled", true);
+            if(getWhitelisterBotConfig().get("username-validation") == null)
+            {
+                getWhitelisterBotConfig().set("username-validation", true);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'username-validation' was not found, adding it to the config...");
+                }
+            }
+
+            if(getWhitelisterBotConfig().get("removed-list-enabled") == null)
+            {
+                getWhitelisterBotConfig().set("removed-list-enabled", true);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'removed-list-enabled' was not found, adding it to the config...");
+                }
+            }
 
             // if the limited whitelist feature should be enabled
-            getWhitelisterBotConfig().set("limited-whitelist-enabled", true);
+            if(getWhitelisterBotConfig().get("limited-whitelist-enabled") == null)
+            {
+                getWhitelisterBotConfig().set("limited-whitelist-enabled", true);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'limited-whitelist-enabled' was not found, adding it to the config...");
+                }
+            }
 
             // the amount of times a non-staff user is allowed to whitelist
-            getWhitelisterBotConfig().set("max-whitelist-amount", 3);
+            if(getWhitelisterBotConfig().get("max-whitelist-amount") == null)
+            {
+                getWhitelisterBotConfig().set("max-whitelist-amount", 3);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'max-whitelist-amount' was not found, adding it to the config...");
+                }
+            }
 
             // roles that are allowed whitelist a limited amount of times
-            List<String> tempLimitedRoles = Arrays.asList("VIP", "LimitedWhitelister");
-            getWhitelisterBotConfig().set("limited-add-roles", tempLimitedRoles);
+            if(getWhitelisterBotConfig().get("limited-add-roles") == null)
+            {
+                List<String> tempLimitedRoles = Arrays.asList("VIP", "LimitedWhitelister");
+                getWhitelisterBotConfig().set("limited-add-roles", tempLimitedRoles);
 
-            List<String> tempChannelIds = Arrays.asList("445666834382061569", "488450157881327616");
-            getWhitelisterBotConfig().set("target-text-channels", tempChannelIds);
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'limited-add-roles' was not found, adding it to the config...");
+                }
+            }
 
-            getWhitelisterBotConfig().set("bot-enabled", true);
+            if(getWhitelisterBotConfig().get("target-text-channels") == null)
+            {
+                List<String> tempChannelIds = Arrays.asList("445666834382061569", "488450157881327616");
+                getWhitelisterBotConfig().set("target-text-channels", tempChannelIds);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'target-text-channels' was not found, adding it to the config...");
+                }
+            }
+
+            if(getWhitelisterBotConfig().get("bot-enabled") == null)
+            {
+                getWhitelisterBotConfig().set("bot-enabled", true);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'bot-enabled' was not found, adding it to the config...");
+                }
+            }
 
             try
             {

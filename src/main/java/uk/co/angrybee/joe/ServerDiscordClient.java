@@ -30,7 +30,7 @@ public class ServerDiscordClient extends ListenerAdapter
     final char[] validCharacters = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h',
     'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'};
 
-    public void InitializeClient(String clientToken)
+    public int InitializeClient(String clientToken)
     {
         try
         {
@@ -39,10 +39,12 @@ public class ServerDiscordClient extends ListenerAdapter
                     .addEventListeners(new ServerDiscordClient())
                     .build();
             javaDiscordAPI.awaitReady();
+            return 0;
         }
         catch(LoginException | InterruptedException e)
         {
             e.printStackTrace();
+            return 1;
         }
     }
 
