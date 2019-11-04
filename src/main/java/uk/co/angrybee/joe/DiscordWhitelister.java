@@ -210,6 +210,8 @@ public class DiscordWhitelister extends JavaPlugin
             List<String> tempAddRoles = Arrays.asList("Mod", "Whitelister");
             getWhitelisterBotConfig().set("add-roles", tempAddRoles);
 
+            getWhitelisterBotConfig().set("username-validation", true);
+
             getWhitelisterBotConfig().set("removed-list-enabled", true);
 
             // if the limited whitelist feature should be enabled

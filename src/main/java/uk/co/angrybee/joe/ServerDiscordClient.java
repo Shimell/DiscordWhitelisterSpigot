@@ -27,6 +27,9 @@ public class ServerDiscordClient extends ListenerAdapter
     public static String[] allowedToAddRoles;
     public static String[] allowedToAddLimitedRoles;
 
+    final char[] validCharacters = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h',
+    'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'};
+
     public void InitializeClient(String clientToken)
     {
         try
@@ -122,7 +125,7 @@ public class ServerDiscordClient extends ListenerAdapter
                     if(userCanAddRemove || userCanAdd)
                     {
                         channel.sendMessage("```Discord Whitelister Bot For Spigot" + System.lineSeparator() +
-                                "Version: 1.0.5" + System.lineSeparator() + "Links:" + System.lineSeparator() +
+                                "Version: 1.0.7" + System.lineSeparator() + "Links:" + System.lineSeparator() +
                                 "https://www.spigotmc.org/resources/discord-whitelister.69929/" + System.lineSeparator() + "https://github.com/JoeShimo/DiscordWhitelisterBot-Spigot" + System.lineSeparator() +
                                 "Commands:" + System.lineSeparator() + "Add:" + System.lineSeparator() +
                                 "!whitelist add <MinecraftUsername> -- Usage: Adds a user to the whitelist" + System.lineSeparator() +
@@ -168,6 +171,8 @@ public class ServerDiscordClient extends ListenerAdapter
 
                         final String finalNameToWhitelist = nameToWhitelist;
 
+                        final char[] finalNameToWhitelistChar = finalNameToWhitelist.toCharArray();
+
                         if(userCanAddRemove || userCanAdd)
                         {
                             if(finalNameToWhitelist.isEmpty())
@@ -178,6 +183,26 @@ public class ServerDiscordClient extends ListenerAdapter
                             }
                             else
                             {
+                                if(DiscordWhitelister.getWhitelisterBotConfig().getBoolean("username-validation"))
+                                {
+                                    // invalid char check
+                                    for(int a = 0; a < finalNameToWhitelistChar.length; ++a)
+                                    {
+                                        if(new String(validCharacters).indexOf(finalNameToWhitelistChar[a]) == -1)
+                                        {
+                                            channel.sendMessage(author.getAsMention() + ", the username you have specified contains invalid characters. **Only letters, numbers and underscores are allowed**.").queue();
+                                            return;
+                                        }
+                                    }
+
+                                    // length check
+                                    if(finalNameToWhitelist.length() < 3 || finalNameToWhitelist.length() > 16)
+                                    {
+                                        channel.sendMessage(author.getAsMention() + ", the username you have specified either contains too few or too many characters. **Usernames can only consist of 3-16 characters**.").queue();
+                                        return;
+                                    }
+                                }
+
                                 File whitelistJSON = (new File(".", "whitelist.json"));
 
                                 DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") attempted to whitelist: " + finalNameToWhitelist);
@@ -218,7 +243,7 @@ public class ServerDiscordClient extends ListenerAdapter
                                         }
                                         else
                                         {
-                                            channel.sendMessage(author.getAsMention() + ", failed to add `" + finalNameToWhitelist + "` to the whitelist, this is most likely due to an invalid Minecraft username").queue();
+                                            channel.sendMessage(author.getAsMention() + ", failed to add `" + finalNameToWhitelist + "` to the whitelist, this is most likely due to an invalid Minecraft username.").queue();
                                         }
                                         return null;
                                     });
@@ -242,6 +267,30 @@ public class ServerDiscordClient extends ListenerAdapter
                                 }
                                 else
                                 {
+                                    if(DiscordWhitelister.getWhitelisterBotConfig().getBoolean("username-validation"))
+                                    {
+                                        // invalid char check
+                                        for(int a = 0; a < finalNameToWhitelistChar.length; ++a)
+                                        {
+                                            if(new String(validCharacters).indexOf(finalNameToWhitelistChar[a]) == -1)
+                                            {
+                                                channel.sendMessage(author.getAsMention() + ", the username you have specified contains invalid characters. **Only letters, numbers and underscores are allowed**."
+                                                        + " You have **" + (whitelistLimit - timesWhitelisted)
+                                                        + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + "** whitelists remaining.").queue();
+                                                return;
+                                            }
+                                        }
+
+                                        // length check
+                                        if(finalNameToWhitelist.length() < 3 || finalNameToWhitelist.length() > 16)
+                                        {
+                                            channel.sendMessage(author.getAsMention() + ", the username you have specified either contains too few or too many characters. **Usernames can only consist of 3-16 characters**."
+                                                    + " You have **" + (whitelistLimit - timesWhitelisted)
+                                                    + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + "** whitelists remaining.").queue();
+                                            return;
+                                        }
+                                    }
+
                                     File whitelistJSON = (new File(".", "whitelist.json"));
 
                                     DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") attempted to whitelist: " + finalNameToWhitelist
