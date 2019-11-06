@@ -3,6 +3,7 @@ package uk.co.angrybee.joe;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -14,19 +15,25 @@ public class DiscordWhitelister extends JavaPlugin
 
     private ServerDiscordClient serverDiscordClient;
 
-    static private File whitelisterBotConfigFile;
-    static private File userListFile;
-    static private File removedListFile;
+    private static File whitelisterBotConfigFile;
+    private static File userListFile;
+    private static File removedListFile;
 
     private static FileConfiguration whitelisterBotConfig;
     private static FileConfiguration userList;
     private static FileConfiguration removedList;
+
+    // easy whitelist
+    public static Plugin easyWhitelist;
+
 
     private String botToken;
 
     private boolean configCreated = false;
     private boolean userListCreated = false;
     private boolean removedListCreated = false;
+
+    public static boolean useEasyWhitelist = false;
 
     private boolean botEnabled;
 
@@ -54,39 +61,56 @@ public class DiscordWhitelister extends JavaPlugin
         }
         else
         {
-            getLogger().info("Initializing Discord client");
+            getLogger().info("Initializing Discord client...");
             serverDiscordClient = new ServerDiscordClient();
 
             // set add & remove roles
-            serverDiscordClient.allowedToAddRemoveRoles = new String[DiscordWhitelister.getWhitelisterBotConfig().getList("add-remove-roles").size()];
+            serverDiscordClient.allowedToAddRemoveRoles = new String[getWhitelisterBotConfig().getList("add-remove-roles").size()];
             for(int roles = 0; roles < serverDiscordClient.allowedToAddRemoveRoles.length; ++roles)
             {
-                serverDiscordClient.allowedToAddRemoveRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("add-remove-roles").get(roles).toString();
+                serverDiscordClient.allowedToAddRemoveRoles[roles] = getWhitelisterBotConfig().getList("add-remove-roles").get(roles).toString();
             }
 
             // set add roles
-            serverDiscordClient.allowedToAddRoles = new String[DiscordWhitelister.getWhitelisterBotConfig().getList("add-roles").size()];
+            serverDiscordClient.allowedToAddRoles = new String[getWhitelisterBotConfig().getList("add-roles").size()];
             for(int roles = 0; roles < serverDiscordClient.allowedToAddRoles.length; ++roles)
             {
-                serverDiscordClient.allowedToAddRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("add-roles").get(roles).toString();
+                serverDiscordClient.allowedToAddRoles[roles] = getWhitelisterBotConfig().getList("add-roles").get(roles).toString();
             }
 
             // set limited add roles
-            serverDiscordClient.allowedToAddLimitedRoles = new String[DiscordWhitelister.getWhitelisterBotConfig().getList("limited-add-roles").size()];
+            serverDiscordClient.allowedToAddLimitedRoles = new String[getWhitelisterBotConfig().getList("limited-add-roles").size()];
             for(int roles = 0; roles < serverDiscordClient.allowedToAddLimitedRoles.length; ++roles)
             {
-                serverDiscordClient.allowedToAddLimitedRoles[roles] = DiscordWhitelister.getWhitelisterBotConfig().getList("limited-add-roles").get(roles).toString();
+                serverDiscordClient.allowedToAddLimitedRoles[roles] = getWhitelisterBotConfig().getList("limited-add-roles").get(roles).toString();
+            }
+
+            // easy whitelist check
+            if(getWhitelisterBotConfig().getBoolean("use-easy-whitelist"))
+            {
+                getLogger().info("Checking for Easy Whitelist...");
+                if(getServer().getPluginManager().getPlugin("EasyWhitelist") != null)
+                {
+                    getLogger().info("Easy Whitelist found! Will use over default whitelist command.");
+                    easyWhitelist = getServer().getPluginManager().getPlugin("EasyWhitelist");
+                    useEasyWhitelist = true;
+                }
+                else
+                {
+                    getLogger().warning("Easy Whitelist was not found but is enabled in the config. " +
+                            "Falling back to default whitelist command.");
+                }
             }
 
             int initializeSuccess = serverDiscordClient.InitializeClient(botToken);
 
             if(initializeSuccess == 0)
             {
-                getLogger().info("Successfully initialized Discord client");
+                getLogger().info("Successfully initialized Discord client.");
             }
             else if(initializeSuccess == 1)
             {
-                getLogger().severe("Discord Client failed to initialize, please check if your config file is valid");
+                getLogger().severe("Discord Client failed to initialize, please check if your config file is valid.");
             }
         }
     }
@@ -305,6 +329,16 @@ public class DiscordWhitelister extends JavaPlugin
                 if(!configCreated)
                 {
                     getPlugin().getLogger().warning("Entry 'target-text-channels' was not found, adding it to the config...");
+                }
+            }
+
+            // easy whitelist support
+            if(getWhitelisterBotConfig().get("use-easy-whitelist") == null)
+            {
+                getWhitelisterBotConfig().set("use-easy-whitelist", false);
+
+                if (!configCreated) {
+                    getPlugin().getLogger().warning("Entry 'use-easy-whitelist' was not found, adding it to the config...");
                 }
             }
 
