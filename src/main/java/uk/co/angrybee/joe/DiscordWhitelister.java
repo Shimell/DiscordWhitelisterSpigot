@@ -12,9 +12,6 @@ import java.util.*;
 
 public class DiscordWhitelister extends JavaPlugin
 {
-
-    private ServerDiscordClient serverDiscordClient;
-
     private static File whitelisterBotConfigFile;
     private static File userListFile;
     private static File removedListFile;
@@ -25,7 +22,6 @@ public class DiscordWhitelister extends JavaPlugin
 
     // easy whitelist
     public static Plugin easyWhitelist;
-
 
     private String botToken;
 
@@ -49,7 +45,8 @@ public class DiscordWhitelister extends JavaPlugin
 
         ConfigSetup();
 
-        AssignVars();
+        botToken = getWhitelisterBotConfig().getString("discord-bot-token");
+        botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
 
         if(!botEnabled)
         {
@@ -62,27 +59,26 @@ public class DiscordWhitelister extends JavaPlugin
         else
         {
             getLogger().info("Initializing Discord client...");
-            serverDiscordClient = new ServerDiscordClient();
 
             // set add & remove roles
-            serverDiscordClient.allowedToAddRemoveRoles = new String[getWhitelisterBotConfig().getList("add-remove-roles").size()];
-            for(int roles = 0; roles < serverDiscordClient.allowedToAddRemoveRoles.length; ++roles)
+            DiscordClient.allowedToAddRemoveRoles = new String[getWhitelisterBotConfig().getList("add-remove-roles").size()];
+            for(int roles = 0; roles < DiscordClient.allowedToAddRemoveRoles.length; ++roles)
             {
-                serverDiscordClient.allowedToAddRemoveRoles[roles] = getWhitelisterBotConfig().getList("add-remove-roles").get(roles).toString();
+                DiscordClient.allowedToAddRemoveRoles[roles] = getWhitelisterBotConfig().getList("add-remove-roles").get(roles).toString();
             }
 
             // set add roles
-            serverDiscordClient.allowedToAddRoles = new String[getWhitelisterBotConfig().getList("add-roles").size()];
-            for(int roles = 0; roles < serverDiscordClient.allowedToAddRoles.length; ++roles)
+            DiscordClient.allowedToAddRoles = new String[getWhitelisterBotConfig().getList("add-roles").size()];
+            for(int roles = 0; roles < DiscordClient.allowedToAddRoles.length; ++roles)
             {
-                serverDiscordClient.allowedToAddRoles[roles] = getWhitelisterBotConfig().getList("add-roles").get(roles).toString();
+                DiscordClient.allowedToAddRoles[roles] = getWhitelisterBotConfig().getList("add-roles").get(roles).toString();
             }
 
             // set limited add roles
-            serverDiscordClient.allowedToAddLimitedRoles = new String[getWhitelisterBotConfig().getList("limited-add-roles").size()];
-            for(int roles = 0; roles < serverDiscordClient.allowedToAddLimitedRoles.length; ++roles)
+            DiscordClient.allowedToAddLimitedRoles = new String[getWhitelisterBotConfig().getList("limited-add-roles").size()];
+            for(int roles = 0; roles < DiscordClient.allowedToAddLimitedRoles.length; ++roles)
             {
-                serverDiscordClient.allowedToAddLimitedRoles[roles] = getWhitelisterBotConfig().getList("limited-add-roles").get(roles).toString();
+                DiscordClient.allowedToAddLimitedRoles[roles] = getWhitelisterBotConfig().getList("limited-add-roles").get(roles).toString();
             }
 
             // easy whitelist check
@@ -102,7 +98,7 @@ public class DiscordWhitelister extends JavaPlugin
                 }
             }
 
-            int initializeSuccess = serverDiscordClient.InitializeClient(botToken);
+            int initializeSuccess = DiscordClient.InitializeClient(botToken);
 
             if(initializeSuccess == 0)
             {
@@ -386,11 +382,5 @@ public class DiscordWhitelister extends JavaPlugin
                 e.printStackTrace();
             }
         }
-    }
-
-    public void AssignVars()
-    {
-        botToken = getWhitelisterBotConfig().getString("discord-bot-token");
-        botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
     }
 }
