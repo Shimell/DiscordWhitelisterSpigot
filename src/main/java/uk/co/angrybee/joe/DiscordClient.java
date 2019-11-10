@@ -377,7 +377,7 @@ public class DiscordClient extends ListenerAdapter
 
                                 if(onlyHasLimitedAdd)
                                 {
-                                        if(tempTimesWhitelisted < 3)
+                                        if(tempTimesWhitelisted < maxWhitelistAmount)
                                         {
                                             tempTimesWhitelisted = timesWhitelisted + 1;
                                         }
