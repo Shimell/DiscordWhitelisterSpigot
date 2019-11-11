@@ -215,8 +215,7 @@ public class DiscordClient extends ListenerAdapter
 
                         final String finalNameToWhitelist = nameToWhitelist;
                         final char[] finalNameToWhitelistChar = finalNameToWhitelist.toCharArray();
-
-                        int whitelistLimit = maxWhitelistAmount;
+                        
                         int timesWhitelisted = 0;
 
                         boolean onlyHasLimitedAdd = limitedWhitelistEnabled && userHasLimitedAdd && !userCanAddRemove && !userCanAdd;
@@ -225,6 +224,12 @@ public class DiscordClient extends ListenerAdapter
                         if(onlyHasLimitedAdd)
                         {
                             timesWhitelisted = Integer.parseInt(DiscordWhitelister.getUserList().getString(author.getId()));
+
+                            // set to current max in case the max whitelist amount was changed
+                            if(timesWhitelisted > maxWhitelistAmount)
+                            {
+                                timesWhitelisted = maxWhitelistAmount;
+                            }
                         }
 
                         if(onlyHasLimitedAdd && usedAllWhitelists)
@@ -254,7 +259,7 @@ public class DiscordClient extends ListenerAdapter
                                         embedBuilderInvalidChar.addField("Invalid username", (author.getAsMention() + ", the username you have specified contains invalid characters. **Only letters, numbers and underscores are allowed**."), false);
                                         if(onlyHasLimitedAdd)
                                         {
-                                            embedBuilderInvalidChar.addField("Whitelists Remaining", ("You have **" + (whitelistLimit - timesWhitelisted) + " out of " + maxWhitelistAmount + "** whitelists remaining."), false);
+                                            embedBuilderInvalidChar.addField("Whitelists Remaining", ("You have **" + (maxWhitelistAmount - timesWhitelisted) + " out of " + maxWhitelistAmount + "** whitelists remaining."), false);
                                         }
                                         embedBuilderInvalidChar.setColor(new Color(231, 76, 60));
                                         channel.sendMessage(embedBuilderInvalidChar.build()).queue();
@@ -269,7 +274,7 @@ public class DiscordClient extends ListenerAdapter
                                     embedBuilderLengthInvalid.addField("Invalid username", (author.getAsMention() + ", the username you have specified either contains too few or too many characters. **Usernames can only consist of 3-16 characters**."), false);
                                     if(onlyHasLimitedAdd)
                                     {
-                                        embedBuilderLengthInvalid.addField("Whitelists Remaining", ("You have **" + (whitelistLimit - timesWhitelisted) + " out of " + maxWhitelistAmount + "** whitelists remaining."), false);
+                                        embedBuilderLengthInvalid.addField("Whitelists Remaining", ("You have **" + (maxWhitelistAmount - timesWhitelisted) + " out of " + maxWhitelistAmount + "** whitelists remaining."), false);
                                     }
                                     embedBuilderLengthInvalid.setColor(new Color(231, 76, 60));
                                     channel.sendMessage(embedBuilderLengthInvalid.build()).queue();
@@ -284,7 +289,7 @@ public class DiscordClient extends ListenerAdapter
 
                             if(onlyHasLimitedAdd)
                             {
-                                DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") attempted to whitelist: " + finalNameToWhitelist + ", " + (whitelistLimit - timesWhitelisted) + " whitelists remaining");
+                                DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "("  + author.getId() + ") attempted to whitelist: " + finalNameToWhitelist + ", " + (maxWhitelistAmount - timesWhitelisted) + " whitelists remaining");
                             }
                             else
                             {
@@ -325,7 +330,7 @@ public class DiscordClient extends ListenerAdapter
                                         EmbedBuilder embedBuilderRemovedByStaff = new EmbedBuilder();
                                         embedBuilderRemovedByStaff.addField("This user was previously removed by a staff member", (author.getAsMention() + ", this user was previously removed by a staff member (<@" + DiscordWhitelister.getRemovedList().get(finalNameToWhitelist) + ">)."
                                                         + System.lineSeparator() + "Please ask a user with higher permissions to add this user." + System.lineSeparator()), false);
-                                        embedBuilderRemovedByStaff.addField("Whitelists Remaining", ("You have **" + (whitelistLimit - timesWhitelisted)
+                                        embedBuilderRemovedByStaff.addField("Whitelists Remaining", ("You have **" + (maxWhitelistAmount - timesWhitelisted)
                                                 + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + "** whitelists remaining."), false);
                                         embedBuilderRemovedByStaff.setColor(new Color(231, 76, 60));
                                         channel.sendMessage(embedBuilderRemovedByStaff.build()).queue();
@@ -360,7 +365,7 @@ public class DiscordClient extends ListenerAdapter
                                 embedBuilderWhitelistSuccess.addField((finalNameToWhitelist + " is now whitelisted!"), (author.getAsMention() + " has added `" + finalNameToWhitelist + "` to the whitelist."), false);
                                 if(onlyHasLimitedAdd)
                                 {
-                                    embedBuilderWhitelistSuccess.addField("Whitelists Remaining", ("You have **" + (whitelistLimit - (timesWhitelisted + 1)) + " out of " + maxWhitelistAmount + "** whitelists remaining."), false);
+                                    embedBuilderWhitelistSuccess.addField("Whitelists Remaining", ("You have **" + (maxWhitelistAmount - (timesWhitelisted + 1)) + " out of " + maxWhitelistAmount + "** whitelists remaining."), false);
                                 }
                                 embedBuilderWhitelistSuccess.setColor(new Color(46, 204, 113));
                                 embedBuilderWhitelistSuccess.setThumbnail("https://minotar.net/bust/" + playerUUID + "/100.png");
@@ -369,7 +374,7 @@ public class DiscordClient extends ListenerAdapter
                                 embedBuilderWhitelistFailure.addField("Failed to Whitelist", (author.getAsMention() + ", failed to add `" + finalNameToWhitelist + "` to the whitelist. This is most likely due to an invalid Minecraft username."), false);
                                 if(onlyHasLimitedAdd)
                                 {
-                                    embedBuilderWhitelistFailure.addField("Whitelists Remaining", ("You have **" + (whitelistLimit - timesWhitelisted) + " out of " + maxWhitelistAmount + "** whitelists remaining."), false);
+                                    embedBuilderWhitelistFailure.addField("Whitelists Remaining", ("You have **" + (maxWhitelistAmount - timesWhitelisted) + " out of " + maxWhitelistAmount + "** whitelists remaining."), false);
                                 }
                                 embedBuilderWhitelistFailure.setColor(new Color(231, 76, 60));
 
@@ -384,8 +389,8 @@ public class DiscordClient extends ListenerAdapter
                                 }
 
                                 final int finalTimesWhitelisted = tempTimesWhitelisted;
-                                final int successfulTimesWhitelisted = whitelistLimit - finalTimesWhitelisted;
-                                final int failedTimesWhitelisted = whitelistLimit - timesWhitelisted;
+                                final int successfulTimesWhitelisted = maxWhitelistAmount - finalTimesWhitelisted;
+                                final int failedTimesWhitelisted = maxWhitelistAmount - timesWhitelisted;
 
                                 if(!DiscordWhitelister.useEasyWhitelist)
                                 {
