@@ -1,5 +1,14 @@
 name: DiscordWhitelister
-version: 1.1.0
+version: 1.2.0
 author: Joe Shimell
 main: uk.co.angrybee.joe.DiscordWhitelister
 description: Discord whitelister bot.
+commands:
+  discordwhitelister:
+    description: See VersionInfo and Discord status
+    usage: /<command>
+    aliases: [dw]
+  discordwhitelisterabout:
+    description: See VersionInfo and Discord status
+    usage: /<command>
+    aliases: [dwabout]

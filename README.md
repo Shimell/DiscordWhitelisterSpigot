@@ -2,6 +2,13 @@
 
 A simple spigot plugin which allows whitelisting through a discord text channel. This provides an easy way for users to whitelist without needing to be on the minecraft server.
 
+### Backwards compatibility
+
+Version 1.2.0 and greater are not compatible with version 1.1.x and lower.
+The layout of the internal user-list.yml got updated.
+You need to remove it manually and let the plugin on v1.2.x create a new one.
+If you upgrade without knowing what you are doing. Registration will not work correctly.
+
 ### Features:
 
 - 3 separate role groups:
