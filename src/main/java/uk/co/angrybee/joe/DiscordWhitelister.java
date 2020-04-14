@@ -5,6 +5,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import uk.co.angrybee.joe.Commands.CommandAbout;
+import uk.co.angrybee.joe.Commands.CommandStatus;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,9 +47,11 @@ public class DiscordWhitelister extends JavaPlugin
 
         ConfigSetup();
 
+        this.getCommand("discordwhitelister").setExecutor(new CommandStatus());
+        this.getCommand("discordwhitelisterabout").setExecutor(new CommandAbout());
+
         botToken = getWhitelisterBotConfig().getString("discord-bot-token");
         botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
-
         if(!botEnabled)
         {
             getLogger().info("Bot is disabled as per the config, doing nothing");
@@ -139,6 +143,32 @@ public class DiscordWhitelister extends JavaPlugin
     public static File getRemovedListFile()
     {
         return removedListFile;
+    }
+
+    public static List<?> getRegisteredUsers(String userId) { return userList.getList(userId); }
+
+    public static int getRegisteredUsersCount(String userId) {
+        try {
+            return getRegisteredUsers(userId).size();
+        } catch(NullPointerException ex) {
+            return 0;
+        }
+    }
+
+    public static void addRegisteredUser(String userId, String userToAdd) throws IOException {
+        List <?> x = getRegisteredUsers(userId);
+        List <String> newList = new ArrayList<>();
+        for (Object o: x) {
+            newList.add(o.toString());
+        }
+        newList.add(userToAdd);
+        getUserList().set(userId, newList);
+        getUserList().save(getUserListFile().getPath());
+    }
+
+    public static void resetRegisteredUsers(String userId) throws IOException {
+        getUserList().set(userId, new ArrayList<>());
+        getUserList().save(getUserListFile().getPath());
     }
 
     public void ConfigSetup()
