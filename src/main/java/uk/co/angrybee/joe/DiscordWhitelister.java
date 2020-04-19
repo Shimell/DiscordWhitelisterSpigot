@@ -5,6 +5,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import uk.co.angrybee.joe.Commands.CommandAbout;
 import uk.co.angrybee.joe.Commands.CommandStatus;
 
@@ -12,7 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class DiscordWhitelister extends JavaPlugin
+public class DiscordWhitelister extends JavaPlugin implements Listener
 {
     private static File whitelisterBotConfigFile;
     private static File userListFile;
@@ -113,6 +117,9 @@ public class DiscordWhitelister extends JavaPlugin
                 getLogger().severe("Discord Client failed to initialize, please check if your config file is valid.");
             }
         }
+
+        this.getServer().getPluginManager().registerEvents(this, this);
+
     }
 
     public static JavaPlugin getPlugin()
@@ -170,6 +177,20 @@ public class DiscordWhitelister extends JavaPlugin
         getUserList().set(userId, new ArrayList<>());
         getUserList().save(getUserListFile().getPath());
     }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        DiscordClient.onServerPlayerCountChange(getOnlineUsers());
+    }
+
+    @EventHandler
+    public void onPlayerLeave(PlayerQuitEvent event) {
+        DiscordClient.onServerPlayerCountChange(getOnlineUsers() - 1);
+    }
+
+    public static int getOnlineUsers() { return thisPlugin.getServer().getOnlinePlayers().size(); }
+
+    public static int getMaximumAllowedPlayers() { return thisPlugin.getServer().getMaxPlayers(); }
 
     public void ConfigSetup()
     {
