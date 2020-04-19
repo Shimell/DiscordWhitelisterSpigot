@@ -119,6 +119,7 @@ public class DiscordWhitelister extends JavaPlugin implements Listener
         }
 
         this.getServer().getPluginManager().registerEvents(this, this);
+        DiscordClient.onServerPlayerCountChange(getOnlineUsers());
 
     }
 
