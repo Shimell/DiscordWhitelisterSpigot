@@ -11,12 +11,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import uk.co.angrybee.joe.Commands.CommandAbout;
 import uk.co.angrybee.joe.Commands.CommandStatus;
+import uk.co.angrybee.joe.Events.JoinLeaveEvents;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class DiscordWhitelister extends JavaPlugin implements Listener
+public class DiscordWhitelister extends JavaPlugin
 {
     private static File whitelisterBotConfigFile;
     private static File userListFile;
@@ -118,9 +119,14 @@ public class DiscordWhitelister extends JavaPlugin implements Listener
             }
         }
 
-        this.getServer().getPluginManager().registerEvents(this, this);
-        DiscordClient.onServerPlayerCountChange(getOnlineUsers());
+        if(getWhitelisterBotConfig().getBoolean("show-player-count"))
+        {
+            // Register events if enabled
+            getServer().getPluginManager().registerEvents(new JoinLeaveEvents(), this);
 
+            // Set initial player count
+            DiscordClient.SetPlayerCountStatus(getOnlineUsers());
+        }
     }
 
     public static JavaPlugin getPlugin()
@@ -177,16 +183,6 @@ public class DiscordWhitelister extends JavaPlugin implements Listener
     public static void resetRegisteredUsers(String userId) throws IOException {
         getUserList().set(userId, new ArrayList<>());
         getUserList().save(getUserListFile().getPath());
-    }
-
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        DiscordClient.onServerPlayerCountChange(getOnlineUsers());
-    }
-
-    @EventHandler
-    public void onPlayerLeave(PlayerQuitEvent event) {
-        DiscordClient.onServerPlayerCountChange(getOnlineUsers() - 1);
     }
 
     public static int getOnlineUsers() { return thisPlugin.getServer().getOnlinePlayers().size(); }
@@ -397,6 +393,16 @@ public class DiscordWhitelister extends JavaPlugin implements Listener
                 if(!configCreated)
                 {
                     getPlugin().getLogger().warning("Entry 'bot-enabled' was not found, adding it to the config...");
+                }
+            }
+
+            if(getWhitelisterBotConfig().get("show-player-count") == null)
+            {
+                getWhitelisterBotConfig().set("show-player-count", true);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'show-player-count' was not found, adding it to the config...");
                 }
             }
 

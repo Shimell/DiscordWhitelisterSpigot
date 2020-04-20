@@ -102,15 +102,20 @@ public class DiscordClient extends ListenerAdapter {
         removeCommandInfo = embedBuilderInfo.build();
     }
 
-    public static String getOnlineStatus() {
-        try {
+    public static String getOnlineStatus()
+    {
+        try
+        {
             return javaDiscordAPI.getStatus().name();
-        } catch(NullPointerException ex) {
+        }
+        catch(NullPointerException ex)
+        {
             return "OFFLINE";
         }
     }
 
-    public static void onServerPlayerCountChange(int playerCount) {
+    public static void SetPlayerCountStatus(int playerCount)
+    {
         javaDiscordAPI.getPresence().setActivity(Activity.watching(playerCount + "/" + DiscordWhitelister.getMaximumAllowedPlayers() + " players."));
     }
 
