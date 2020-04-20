@@ -110,6 +110,10 @@ public class DiscordClient extends ListenerAdapter {
         }
     }
 
+    public static void onServerPlayerCountChange(int playerCount) {
+        javaDiscordAPI.getPresence().setActivity(Activity.watching(playerCount + "/" + DiscordWhitelister.getMaximumAllowedPlayers() + " players."));
+    }
+
     @Override
     public void onMessageReceived(MessageReceivedEvent messageReceivedEvent) {
         if (messageReceivedEvent.isFromType(ChannelType.TEXT)) {
