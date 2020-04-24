@@ -11,7 +11,7 @@ import uk.co.angrybee.joe.VersionInfo;
 public class CommandStatus implements CommandExecutor {
 
     // /dw
-    // version command
+    // version & status command
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         String discordOnlineStatus = DiscordClient.getOnlineStatus();
