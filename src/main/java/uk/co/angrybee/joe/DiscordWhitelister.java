@@ -376,6 +376,39 @@ public class DiscordWhitelister extends JavaPlugin
                 }
             }
 
+            // If adding the whitelisted role to the discord user is enabled
+            if(getWhitelisterBotConfig().get("whitelisted-role-auto-add") == null)
+            {
+                getWhitelisterBotConfig().set("whitelisted-role-auto-add", false);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'whitelisted-role-auto-add' was not found, adding it to the config...");
+                }
+            }
+
+            // If removing the whitelisted role from the discord user is enabled
+            if(getWhitelisterBotConfig().get("whitelisted-role-auto-remove") == null)
+            {
+                getWhitelisterBotConfig().set("whitelisted-role-auto-remove", false);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'whitelisted-role-auto-remove' was not found, adding it to the config...");
+                }
+            }
+
+            // The name of the role to add/remove to the user
+            if(getWhitelisterBotConfig().get("whitelisted-role") == null)
+            {
+                getWhitelisterBotConfig().set("whitelisted-role", "Whitelisted");
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'whitelisted-role' was not found, adding it to the config...");
+                }
+            }
+
             // easy whitelist support
             if(getWhitelisterBotConfig().get("use-easy-whitelist") == null)
             {

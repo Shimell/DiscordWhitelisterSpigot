@@ -11,7 +11,7 @@ import uk.co.angrybee.joe.VersionInfo;
 public class CommandAbout implements CommandExecutor {
 
     // /dw
-    // version command
+    // about command
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         sender.sendMessage("[DW] DiscordWhiteLister by JoeShimell\nhttps://github.com/JoeShimell/DiscordWhitelisterSpigot");

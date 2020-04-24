@@ -17,19 +17,29 @@ If you upgrade without knowing what you are doing. Registration will not work co
 	- **limited-add group**: allows the user to whitelist a limited amount of times (recommended for users, default amount is 3)
 	- limited-add group can be disabled in the config (enabled by default)
 	
-- removed list:
-	- this list removes the ability for limited-add users to add back users that have been removed by the add-remove group
-	- can be disabled in the config (enabled by default)
+- Removed list:
+	- This list removes the ability for limited-add users to add back users that have been removed by the add-remove group
+	- Can be disabled in the config (enabled by default)
 
-- use '!whitelist add "minecraftUsername"' in a valid channel to whitelist people on your minecraft server
-- use '!whitelist remove "minecraftUsername"' in a valid channel to remove people from the whitelist on your minecraft server
-- use '!whitelist' in a valid channel to get info about the bot and how to use it
+- Discord commands:
+    - Use `!whitelist add "minecraftUsername"` in a valid channel to whitelist people on your minecraft server
+    - Use `!whitelist remove "minecraftUsername"` in a valid channel to remove people from the whitelist on your minecraft server
+    - Use `!whitelist` in a valid channel to get info about the bot and how to use it
 
-- only select Discord roles can whitelist through the bot
-- bot only listens for messages in select text channels
-- logs whitelist attempts from valid roles in the console
+- Automatically add/remove a role when adding/removing to/from the whitelist
+    - This feature is meant to be used when users can add themselves to the whitelist.
+    - If `whitelisted-role-auto-add` is set to true (false by default), the Discord role with the name defined by `whitelisted-role` ("Whitelisted" by default) will be added to that user when they successfully add (themselves) to the whitelist.
+    - If `whitelisted-role-auto-remove` is set to true (false by default), that role will be removed from that user when they successfully remove (themselves) from the whitelist.
+    - This requires:
+        - The bot to have the `Manage Roles` permission in Discord
+        - Setting up a Discord role with the same name (case sensitive) as the config
+        - The bot's role must be higher than the whitelist role 
+
+- Only select Discord roles can whitelist through the bot
+- Bot only listens for messages in select text channels
+- Logs whitelist attempts from valid roles in the console
 
 ### Set Up:
 
-Config file is located at: (server-root)/plugins/DiscordWhitelister - this needs a valid bot token and valid channel ids to work.
+Config file is located at: (server-root)/plugins/DiscordWhitelister - this needs a valid bot token and valid channel id(s) to work.
 To create a Discord application and/or find your discord bot token, follow this link: https://discordapp.com/developers/applications/
