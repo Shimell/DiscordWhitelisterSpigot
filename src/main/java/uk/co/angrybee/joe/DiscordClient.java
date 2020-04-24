@@ -5,7 +5,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.DisconnectEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -44,6 +43,10 @@ public class DiscordClient extends ListenerAdapter {
     private static boolean limitedWhitelistEnabled;
     private static boolean usernameValidation;
 
+    private static boolean whitelistedRoleAutoAdd;
+    private static boolean whitelistedRoleAutoRemove;
+    private static String whitelistedRoleName;
+
     private final char[] validCharacters = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h',
             'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'};
 
@@ -76,6 +79,11 @@ public class DiscordClient extends ListenerAdapter {
         maxWhitelistAmount = DiscordWhitelister.getWhitelisterBotConfig().getInt("max-whitelist-amount");
         limitedWhitelistEnabled = DiscordWhitelister.getWhitelisterBotConfig().getBoolean("limited-whitelist-enabled");
         usernameValidation = DiscordWhitelister.getWhitelisterBotConfig().getBoolean("username-validation");
+
+        // Set the name of the role to add/remove to/from the user after they have been added/removed to/from the whitelist and if this feature is enabled
+        whitelistedRoleAutoAdd = DiscordWhitelister.getWhitelisterBotConfig().getBoolean("whitelisted-role-auto-add");
+        whitelistedRoleAutoRemove = DiscordWhitelister.getWhitelisterBotConfig().getBoolean("whitelisted-role-auto-remove");
+        whitelistedRoleName = DiscordWhitelister.getWhitelisterBotConfig().getString("whitelisted-role");
     }
 
     private static void BuildStrings() {
@@ -371,6 +379,18 @@ public class DiscordClient extends ListenerAdapter {
                                 if (!invalidMinecraftName && tempFileConfiguration.getStringList("whitelisted").contains(finalNameToAdd)) {
                                     channel.sendMessage(embedBuilderWhitelistSuccess.build()).queue();
 
+                                    // Add role to user when they have been added to the whitelist if need be
+                                    if(whitelistedRoleAutoAdd) {
+                                        Role whitelistRole = null;
+                                        try {
+                                            whitelistRole = javaDiscordAPI.getRolesByName(whitelistedRoleName, false).get(0);
+                                            Member member = messageReceivedEvent.getMember();
+                                            messageReceivedEvent.getGuild().addRoleToMember(member, whitelistRole).queue();
+                                        } catch (Exception e) {
+                                            DiscordWhitelister.getPlugin().getLogger().severe("Could not add role with name " + whitelistedRoleName + " to " + author.getName() + ", check that it has the correct name in the config");
+                                        }
+                                    }
+
                                     if (onlyHasLimitedAdd) {
 
                                         DiscordWhitelister.addRegisteredUser(author.getId(), finalNameToAdd);
@@ -387,6 +407,18 @@ public class DiscordClient extends ListenerAdapter {
                             {
                                 if (checkWhitelistJSON(whitelistJSON, finalNameToAdd)) {
                                     channel.sendMessage(embedBuilderWhitelistSuccess.build()).queue();
+
+                                    // Add role to user when they have been added to the whitelist if need be
+                                    if(whitelistedRoleAutoAdd) {
+                                        Role whitelistRole = null;
+                                        try {
+                                            whitelistRole = javaDiscordAPI.getRolesByName(whitelistedRoleName, false).get(0);
+                                            Member member = messageReceivedEvent.getMember();
+                                            messageReceivedEvent.getGuild().addRoleToMember(member, whitelistRole).queue();
+                                        } catch (Exception e) {
+                                            DiscordWhitelister.getPlugin().getLogger().severe("Could not add role with name " + whitelistedRoleName + " to " + author.getName() + ", check that it has the correct name in the config");
+                                        }
+                                    }
 
                                     if (onlyHasLimitedAdd) {
 
@@ -490,6 +522,18 @@ public class DiscordClient extends ListenerAdapter {
                                     if (!tempFileConfiguration.getStringList("whitelisted").contains(finalNameToRemove)) {
                                         channel.sendMessage(embedBuilderSuccess.build()).queue();
 
+                                        // Remove role from user when they have been removed from the whitelist if need be
+                                        if(whitelistedRoleAutoRemove) {
+                                            Role whitelistRole = null;
+                                            try {
+                                                whitelistRole = javaDiscordAPI.getRolesByName(whitelistedRoleName, false).get(0);
+                                                Member member = messageReceivedEvent.getMember();
+                                                messageReceivedEvent.getGuild().removeRoleFromMember(member, whitelistRole).queue();
+                                            } catch (Exception e) {
+                                                DiscordWhitelister.getPlugin().getLogger().severe("Could not remove role with name " + whitelistedRoleName + " from " + author.getName() + ", check that it has the correct name in the config");
+                                            }
+                                        }
+
                                         // if the name is not on the list
                                         if (DiscordWhitelister.getRemovedList().get(finalNameToRemove) == null) {
                                             DiscordWhitelister.getRemovedList().set(finalNameToRemove, author.getId());
@@ -505,6 +549,18 @@ public class DiscordClient extends ListenerAdapter {
                                 {
                                     if (!checkWhitelistJSON(whitelistJSON, finalNameToRemove)) {
                                         channel.sendMessage(embedBuilderSuccess.build()).queue();
+
+                                        // Remove role from user when they have been removed from the whitelist if need be
+                                        if(whitelistedRoleAutoRemove) {
+                                            Role whitelistRole = null;
+                                            try {
+                                                whitelistRole = javaDiscordAPI.getRolesByName(whitelistedRoleName, false).get(0);
+                                                Member member = messageReceivedEvent.getMember();
+                                                messageReceivedEvent.getGuild().removeRoleFromMember(member, whitelistRole).queue();
+                                            } catch (Exception e) {
+                                                DiscordWhitelister.getPlugin().getLogger().severe("Could not remove role with name " + whitelistedRoleName + " from " + author.getName() + ", check that it has the correct name in the config");
+                                            }
+                                        }
 
                                         // if the name is not on the list
                                         if (DiscordWhitelister.getRemovedList().get(finalNameToRemove) == null) {
