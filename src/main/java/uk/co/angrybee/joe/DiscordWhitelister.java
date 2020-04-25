@@ -112,20 +112,21 @@ public class DiscordWhitelister extends JavaPlugin
             if(initializeSuccess == 0)
             {
                 getLogger().info("Successfully initialized Discord client.");
+
+                // Only attempt to set player count if the bot successfully initialized
+                if(getWhitelisterBotConfig().getBoolean("show-player-count"))
+                {
+                    // Register events if enabled
+                    getServer().getPluginManager().registerEvents(new JoinLeaveEvents(), this);
+
+                    // Set initial player count
+                    DiscordClient.SetPlayerCountStatus(getOnlineUsers());
+                }
             }
             else if(initializeSuccess == 1)
             {
                 getLogger().severe("Discord Client failed to initialize, please check if your config file is valid.");
             }
-        }
-
-        if(getWhitelisterBotConfig().getBoolean("show-player-count"))
-        {
-            // Register events if enabled
-            getServer().getPluginManager().registerEvents(new JoinLeaveEvents(), this);
-
-            // Set initial player count
-            DiscordClient.SetPlayerCountStatus(getOnlineUsers());
         }
     }
 
