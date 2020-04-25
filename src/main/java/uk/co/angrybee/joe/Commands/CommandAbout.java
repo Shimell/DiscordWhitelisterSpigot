@@ -10,11 +10,11 @@ import uk.co.angrybee.joe.VersionInfo;
 
 public class CommandAbout implements CommandExecutor {
 
-    // /dw
+    // /dwabout
     // about command
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        sender.sendMessage("[DW] DiscordWhiteLister by JoeShimell\nhttps://github.com/JoeShimell/DiscordWhitelisterSpigot");
+        sender.sendMessage("[DW] DiscordWhiteLister by JoeShimell\n" + ChatColor.GREEN + "https://github.com/JoeShimell/DiscordWhitelisterSpigot");
         return true;
     }
 }

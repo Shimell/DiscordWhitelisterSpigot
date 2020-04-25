@@ -9,5 +9,5 @@ public class VersionInfo {
         return "v." + getVersion();
     }
 
-    private static String version = "1.2.0";
+    private static String version = "1.3.1";
 }

@@ -157,7 +157,7 @@ public class DiscordClient extends ListenerAdapter {
                 }
             }
 
-            if (messageContents.toLowerCase().contains("!whitelist add")) {
+            if (messageContents.toLowerCase().startsWith("!whitelist add")) {
                 // add command
 
                 // permissions
@@ -197,11 +197,10 @@ public class DiscordClient extends ListenerAdapter {
                 }
 
                 if (authorPermissions.isUserCanAddRemove() || authorPermissions.isUserCanAdd() || limitedWhitelistEnabled && authorPermissions.isUserHasLimitedAdd()) {
-                    String nameToWhitelist = messageContents.toLowerCase();
-                    nameToWhitelist = nameToWhitelist.substring(nameToWhitelist.indexOf("!whitelist add") + 14); // get everything after !whitelist add
-                    nameToWhitelist = nameToWhitelist.replaceAll(" ", "");
+                    messageContents = messageContents.toLowerCase();
+                    String messageContentsAfterCommand = messageContents.substring("!whitelist add".length() + 1); // get everything after !whitelist add[space]
+                    final String finalNameToAdd = messageContentsAfterCommand.replaceAll(" .*", ""); // The name is everything up to the first space
 
-                    final String finalNameToAdd = nameToWhitelist;
                     final char[] finalNameToWhitelistChar = finalNameToAdd.toCharArray();
 
                     int timesWhitelisted = 0;
@@ -438,13 +437,11 @@ public class DiscordClient extends ListenerAdapter {
                 }
             }
 
-            if (messageContents.toLowerCase().contains("!whitelist remove")) {
+            if (messageContents.toLowerCase().startsWith("!whitelist remove")) {
                 if (authorPermissions.isUserCanAddRemove()) {
-                    String nameToRemove = messageContents.toLowerCase();
-                    nameToRemove = nameToRemove.substring(nameToRemove.indexOf("!whitelist remove") + 17); // get everything after !whitelist remove
-                    nameToRemove = nameToRemove.replaceAll(" ", "");
-
-                    final String finalNameToRemove = nameToRemove;
+                    messageContents = messageContents.toLowerCase();
+                    String messageContentsAfterCommand = messageContents.substring("!whitelist remove".length() + 1); // get everything after !whitelist add[space]
+                    final String finalNameToRemove = messageContentsAfterCommand.replaceAll(" .*", ""); // The name is everything up to the first space
 
                     if (finalNameToRemove.isEmpty()) {
                         channel.sendMessage(removeCommandInfo).queue();
@@ -596,7 +593,6 @@ public class DiscordClient extends ListenerAdapter {
                 embedBuilderFailure.setColor(new Color(231, 76, 60));
                 embedBuilderFailure.addField("Insufficient Permissions", (author.getAsMention() + ", you do not have permission to use this command."), false);
                 channel.sendMessage(embedBuilderFailure.build()).queue();
-                return;
             }
         }
     }
@@ -604,24 +600,31 @@ public class DiscordClient extends ListenerAdapter {
     @Override
     public void onGuildMemberLeave(@Nonnull GuildMemberLeaveEvent event) {
         String discordUserToRemove = event.getMember().getId();
-        DiscordWhitelister.getPlugin().getLogger().info(discordUserToRemove + " left. Removing his whitelisted entries.");
+        DiscordWhitelister.getPlugin().getLogger().info(discordUserToRemove + " left. Removing their whitelisted entries...");
         List<?> ls =  DiscordWhitelister.getRegisteredUsers(discordUserToRemove);
-        for (Object minecraftNameToRemove: ls) {
-            DiscordWhitelister.getPlugin().getLogger().info(minecraftNameToRemove.toString() + " left. Removing his whitelisted entries.");
-            if (DiscordWhitelister.useEasyWhitelist) {
-                executeServerCommand("easywl remove " + minecraftNameToRemove.toString());
-            } else {
-                executeServerCommand("whitelist remove " + minecraftNameToRemove.toString());
+
+        if(ls != null) {
+
+            for (Object minecraftNameToRemove : ls) {
+                DiscordWhitelister.getPlugin().getLogger().info(minecraftNameToRemove.toString() + " left. Removing their whitelisted entries.");
+                if (DiscordWhitelister.useEasyWhitelist) {
+                    executeServerCommand("easywl remove " + minecraftNameToRemove.toString());
+                } else {
+                    executeServerCommand("whitelist remove " + minecraftNameToRemove.toString());
+                }
             }
+            try {
+                DiscordWhitelister.resetRegisteredUsers(discordUserToRemove);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            DiscordWhitelister.getPlugin().getLogger().info(discordUserToRemove + " left. Successfully removed their whitelisted entries.");
+
         }
-        try {
-            DiscordWhitelister.resetRegisteredUsers(discordUserToRemove);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
+        else {
+            DiscordWhitelister.getPlugin().getLogger().warning(discordUserToRemove + " left. Could not removed their whitelisted entries as they did not whitelist through this plugin.");
         }
-        DiscordWhitelister.getPlugin().getLogger().info(discordUserToRemove + " left. Successfully removed his whitelisted entries.");
-        return;
     }
 
     private boolean checkWhitelistJSON(File whitelistFile, String minecraftUsername) {
