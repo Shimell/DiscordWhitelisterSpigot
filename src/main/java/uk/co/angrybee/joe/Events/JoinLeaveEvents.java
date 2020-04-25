@@ -14,12 +14,24 @@ public class JoinLeaveEvents implements Listener
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event)
     {
+        if(event.getPlayer().hasPermission("discordsrv.silentjoin") ||
+                event.getPlayer().hasPermission("discordsrv.silentquit") ||
+                event.getPlayer().hasPermission("sv.joinvanished")) {
+            DiscordWhitelister.getPlugin().getLogger().info("Player " + event.getPlayer().getDisplayName() + " joined with silent joining/quitting permission, not incrementing player count");
+            return;
+        }
         DiscordClient.SetPlayerCountStatus(DiscordWhitelister.getOnlineUsers());
     }
 
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event)
     {
+        if(event.getPlayer().hasPermission("discordsrv.silentjoin") ||
+                event.getPlayer().hasPermission("discordsrv.silentquit") ||
+                event.getPlayer().hasPermission("sv.joinvanished")) {
+            DiscordWhitelister.getPlugin().getLogger().info("Player " + event.getPlayer().getDisplayName() + " quit with silent joining/quitting permission, not decrementing player count");
+            return;
+        }
         DiscordClient.SetPlayerCountStatus(DiscordWhitelister.getOnlineUsers() - 1);
     }
 }
