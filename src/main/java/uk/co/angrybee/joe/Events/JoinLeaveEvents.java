@@ -18,6 +18,7 @@ public class JoinLeaveEvents implements Listener
                 event.getPlayer().hasPermission("discordsrv.silentquit") ||
                 event.getPlayer().hasPermission("sv.joinvanished")) {
             DiscordWhitelister.getPlugin().getLogger().info("Player " + event.getPlayer().getDisplayName() + " joined with silent joining/quitting permission, not incrementing player count");
+            DiscordWhitelister.addVanishedPlayer();
             return;
         }
         DiscordClient.SetPlayerCountStatus(DiscordWhitelister.getOnlineUsers());
@@ -30,6 +31,7 @@ public class JoinLeaveEvents implements Listener
                 event.getPlayer().hasPermission("discordsrv.silentquit") ||
                 event.getPlayer().hasPermission("sv.joinvanished")) {
             DiscordWhitelister.getPlugin().getLogger().info("Player " + event.getPlayer().getDisplayName() + " quit with silent joining/quitting permission, not decrementing player count");
+            DiscordWhitelister.removeVanishedPlayer();
             return;
         }
         DiscordClient.SetPlayerCountStatus(DiscordWhitelister.getOnlineUsers() - 1);

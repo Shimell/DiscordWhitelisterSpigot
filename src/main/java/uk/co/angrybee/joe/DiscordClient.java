@@ -386,7 +386,7 @@ public class DiscordClient extends ListenerAdapter {
                                             Member member = messageReceivedEvent.getMember();
                                             messageReceivedEvent.getGuild().addRoleToMember(member, whitelistRole).queue();
                                         } catch (Exception e) {
-                                            DiscordWhitelister.getPlugin().getLogger().severe("Could not add role with name " + whitelistedRoleName + " to " + author.getName() + ", check that it has the correct name in the config");
+                                            DiscordWhitelister.getPlugin().getLogger().severe("Could not add role with name " + whitelistedRoleName + " to " + author.getName() + ", check that it has the correct name in the config and the bot has the Manage Roles permission");
                                         }
                                     }
 
@@ -415,7 +415,7 @@ public class DiscordClient extends ListenerAdapter {
                                             Member member = messageReceivedEvent.getMember();
                                             messageReceivedEvent.getGuild().addRoleToMember(member, whitelistRole).queue();
                                         } catch (Exception e) {
-                                            DiscordWhitelister.getPlugin().getLogger().severe("Could not add role with name " + whitelistedRoleName + " to " + author.getName() + ", check that it has the correct name in the config");
+                                            DiscordWhitelister.getPlugin().getLogger().severe("Could not add role with name " + whitelistedRoleName + " to " + author.getName() + ", check that it has the correct name in the config and the bot has the Manage Roles permission");
                                         }
                                     }
 
@@ -527,7 +527,7 @@ public class DiscordClient extends ListenerAdapter {
                                                 Member member = messageReceivedEvent.getMember();
                                                 messageReceivedEvent.getGuild().removeRoleFromMember(member, whitelistRole).queue();
                                             } catch (Exception e) {
-                                                DiscordWhitelister.getPlugin().getLogger().severe("Could not remove role with name " + whitelistedRoleName + " from " + author.getName() + ", check that it has the correct name in the config");
+                                                DiscordWhitelister.getPlugin().getLogger().severe("Could not remove role with name " + whitelistedRoleName + " from " + author.getName() + ", check that it has the correct name in the config and the bot has the Manage Roles permission");
                                             }
                                         }
 
@@ -555,7 +555,7 @@ public class DiscordClient extends ListenerAdapter {
                                                 Member member = messageReceivedEvent.getMember();
                                                 messageReceivedEvent.getGuild().removeRoleFromMember(member, whitelistRole).queue();
                                             } catch (Exception e) {
-                                                DiscordWhitelister.getPlugin().getLogger().severe("Could not remove role with name " + whitelistedRoleName + " from " + author.getName() + ", check that it has the correct name in the config");
+                                                DiscordWhitelister.getPlugin().getLogger().severe("Could not remove role with name " + whitelistedRoleName + " from " + author.getName() + ", check that it has the correct name in the config and the bot has the Manage Roles permission");
                                             }
                                         }
 
