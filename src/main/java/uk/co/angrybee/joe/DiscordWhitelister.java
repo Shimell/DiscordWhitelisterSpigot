@@ -42,6 +42,9 @@ public class DiscordWhitelister extends JavaPlugin
 
     private static JavaPlugin thisPlugin;
 
+    // For not counting vanished players when other players join/leave
+    private static int vanishedPlayersCount;
+
     @Override
     public void onEnable()
     {
@@ -49,6 +52,7 @@ public class DiscordWhitelister extends JavaPlugin
         whitelisterBotConfig = new YamlConfiguration();
         userList = new YamlConfiguration();
         removedList = new YamlConfiguration();
+        vanishedPlayersCount = 0;
 
         ConfigSetup();
 
@@ -186,7 +190,11 @@ public class DiscordWhitelister extends JavaPlugin
         getUserList().save(getUserListFile().getPath());
     }
 
-    public static int getOnlineUsers() { return thisPlugin.getServer().getOnlinePlayers().size(); }
+    public static void addVanishedPlayer() { vanishedPlayersCount++; }
+
+    public static void removeVanishedPlayer() { vanishedPlayersCount--; }
+
+    public static int getOnlineUsers() { return thisPlugin.getServer().getOnlinePlayers().size() - vanishedPlayersCount; }
 
     public static int getMaximumAllowedPlayers() { return thisPlugin.getServer().getMaxPlayers(); }
 
