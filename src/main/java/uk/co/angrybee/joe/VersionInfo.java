@@ -1,6 +1,7 @@
 package uk.co.angrybee.joe;
 
-public class VersionInfo {
+public class VersionInfo
+{
     public static String getVersion() {
         return version;
     }
@@ -9,5 +10,5 @@ public class VersionInfo {
         return "v." + getVersion();
     }
 
-    private static String version = "1.3.3";
+    private static String version = "1.3.4";
 }

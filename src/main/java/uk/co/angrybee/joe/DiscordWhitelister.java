@@ -22,10 +22,12 @@ public class DiscordWhitelister extends JavaPlugin
     private static File whitelisterBotConfigFile;
     private static File userListFile;
     private static File removedListFile;
+    private static File customMessagesFile;
 
     private static FileConfiguration whitelisterBotConfig;
     private static FileConfiguration userList;
     private static FileConfiguration removedList;
+    private static FileConfiguration customMessagesConfig;
 
     // easy whitelist
     public static Plugin easyWhitelist;
@@ -35,8 +37,10 @@ public class DiscordWhitelister extends JavaPlugin
     private boolean configCreated = false;
     private boolean userListCreated = false;
     private boolean removedListCreated = false;
+    private boolean customMessagesCreated = false;
 
     public static boolean useEasyWhitelist = false;
+    public static boolean useCustomMessages = false;
 
     private boolean botEnabled;
 
@@ -52,6 +56,7 @@ public class DiscordWhitelister extends JavaPlugin
         whitelisterBotConfig = new YamlConfiguration();
         userList = new YamlConfiguration();
         removedList = new YamlConfiguration();
+        customMessagesConfig = new YamlConfiguration();
         vanishedPlayersCount = 0;
 
         ConfigSetup();
@@ -111,6 +116,12 @@ public class DiscordWhitelister extends JavaPlugin
                 }
             }
 
+            // Custom messages check
+            if(getWhitelisterBotConfig().getBoolean("use-custom-messages"))
+            {
+                useCustomMessages = true;
+            }
+
             int initializeSuccess = DiscordClient.InitializeClient(botToken);
 
             if(initializeSuccess == 0)
@@ -154,15 +165,16 @@ public class DiscordWhitelister extends JavaPlugin
         return userListFile;
     }
 
-    public static FileConfiguration getRemovedList()
-    {
-        return  removedList;
-    }
+    public static FileConfiguration getRemovedList() { return removedList; }
 
     public static File getRemovedListFile()
     {
         return removedListFile;
     }
+
+    //public static File getCustomMessagesFile() { return customMessagesFile; }
+
+    public  static FileConfiguration getCustomMessagesConfig() { return customMessagesConfig; }
 
     public static List<?> getRegisteredUsers(String userId) { return userList.getList(userId); }
 
@@ -203,6 +215,8 @@ public class DiscordWhitelister extends JavaPlugin
         whitelisterBotConfigFile = new File(getDataFolder(), "discord-whitelister.yml");
         userListFile = new File(getDataFolder(), "user-list.yml");
         removedListFile = new File(getDataFolder(), "removed-list.yml");
+        customMessagesFile = new File(getDataFolder(), "custom-messages.yml");
+
 
         if(!whitelisterBotConfigFile.getParentFile().exists())
         {
@@ -278,6 +292,30 @@ public class DiscordWhitelister extends JavaPlugin
             getRemovedList().load(removedListFile);
         }
         catch (IOException | InvalidConfigurationException e)
+        {
+            e.printStackTrace();
+        }
+
+        if(!customMessagesFile.exists())
+        {
+            try
+            {
+                customMessagesFile.createNewFile();
+            }
+            catch(IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            getLogger().info("Custom messages file has been created at: " + customMessagesFile.getPath());
+            customMessagesCreated = true;
+        }
+
+        try
+        {
+            getCustomMessagesConfig().load(customMessagesFile);
+        }
+        catch(IOException | InvalidConfigurationException e)
         {
             e.printStackTrace();
         }
@@ -448,9 +486,277 @@ public class DiscordWhitelister extends JavaPlugin
                 }
             }
 
+            if(getWhitelisterBotConfig().get("use-custom-messages") == null)
+            {
+                getWhitelisterBotConfig().set("use-custom-messages", false);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'use-custom-messages' was not found, adding it to the config...");
+                }
+            }
+
             try
             {
                 getWhitelisterBotConfig().save((whitelisterBotConfigFile.getPath()));
+            }
+            catch(IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        if(customMessagesFile.exists())
+        {
+            /* TODO: add a YAML comment (#) explaining the config file params
+            NOTE: only {params} in the original messages will be evaluated. For example: using {MaxWhitelistAmount} in the "insufficient-permissions" String will not work as it was never in the original message.
+            {Sender} == author.getAsMention(), {RemainingWhitelists} == (maxWhitelistAmount - timesWhitelisted), {MaxWhitelistAmount} == maxWhitelistAmount,
+            {MinecraftUsername} == finalNameToAdd/Remove, {StaffMember} == DiscordWhitelister.getRemovedList().get(finalNameToAdd), {AddRemoveRoles} = DiscordWhitelister.getWhitelisterBotConfig().getList("add-remove-roles")
+            Internal error messages & info messages will remain uneditable. No need to add custom remove failure messages as it should never happen */
+
+            if(getCustomMessagesConfig().getString("insufficient-permissions-title") == null)
+            {
+                getCustomMessagesConfig().set("insufficient-permissions-title", "Insufficient Permissions");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'insufficient-permissions-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("insufficient-permissions") == null)
+            {
+                getCustomMessagesConfig().set("insufficient-permissions", "{Sender}, you do not have permission to use this command.");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'insufficient-permissions' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("insufficient-permissions-remove-title") == null)
+            {
+                getCustomMessagesConfig().set("insufficient-permissions-remove-title", "Insufficient Permissions");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'insufficient-permissions-remove-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("insufficient-permissions-remove") == null)
+            {
+                getCustomMessagesConfig().set("insufficient-permissions-remove", "{Sender}, you only have permission to add people to the whitelist. To remove people from the whitelist you must be moved to the following roles: {AddRemoveRoles}; or get the owner to move your role to 'add-remove-roles' in the config.");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'insufficient-permissions-remove' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("no-whitelists-remaining-title") == null)
+            {
+                getCustomMessagesConfig().set("no-whitelists-remaining-title", "No Whitelists Remaining");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'no-whitelists-remaining-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("no-whitelists-remaining") == null)
+            {
+                getCustomMessagesConfig().set("no-whitelists-remaining", "{Sender}, unable to whitelist. You have **{RemainingWhitelists} out of {MaxWhitelistAmount}** whitelists remaining.");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'insufficient-permissions' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("invalid-characters-warning-title") == null)
+            {
+                getCustomMessagesConfig().set("invalid-characters-warning-title", "Invalid Username");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'invalid-characters-warning-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("invalid-characters-warning") == null)
+            {
+                getCustomMessagesConfig().set("invalid-characters-warning", "{Sender}, the username you have specified contains invalid characters. **Only letters, numbers and underscores are allowed**.");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'invalid-characters-warning' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("invalid-length-warning-title") == null)
+            {
+                getCustomMessagesConfig().set("invalid-length-warning-title", "Invalid Username");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'invalid-length-warning-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("invalid-length-warning") == null)
+            {
+                getCustomMessagesConfig().set("invalid-length-warning", "{Sender}, the username you have specified either contains too few or too many characters. **Usernames can only consist of 3-16 characters**.");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'invalid-length-warning' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("already-on-whitelist-title") == null)
+            {
+                getCustomMessagesConfig().set("already-on-whitelist-title", "User already on the whitelist");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'already-on-whitelist-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("already-on-whitelist") == null)
+            {
+                getCustomMessagesConfig().set("already-on-whitelist", "{Sender}, cannot add user as `{MinecraftUsername}` is already on the whitelist!");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'already-on-whitelist' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("user-was-removed-title") == null)
+            {
+                getCustomMessagesConfig().set("user-was-removed-title", "This user was previously removed by a staff member");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'user-was-removed-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("user-was-removed") == null)
+            {
+                getCustomMessagesConfig().set("user-was-removed", "{Sender}, this user was previously removed by a staff member ({StaffMember}). Please ask a user with higher permissions to add this user.");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'user-was-removed' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("whitelists-remaining-title") == null)
+            {
+                getCustomMessagesConfig().set("whitelists-remaining-title", "Whitelists Remaining");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'whitelists-remaining-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("whitelists-remaining") == null)
+            {
+                getCustomMessagesConfig().set("whitelists-remaining", "You have **{RemainingWhitelists} out of {MaxWhitelistAmount}** whitelists remaining.");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'whitelists-remaining' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("whitelist-success-title") == null)
+            {
+                getCustomMessagesConfig().set("whitelist-success-title", "{MinecraftUsername} is now whitelisted!");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'whitelist-success-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("whitelist-success") == null)
+            {
+                getCustomMessagesConfig().set("whitelist-success", "{Sender} has added `{MinecraftUsername}` to the whitelist.");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'whitelist-success' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("whitelist-failure-title") == null)
+            {
+                getCustomMessagesConfig().set("whitelist-failure-title", "Failed to whitelist");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'whitelist-failure-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("whitelist-failure") == null)
+            {
+                getCustomMessagesConfig().set("whitelist-failure", "{Sender}, failed to add `{MinecraftUsername}` to the whitelist. This is most likely due to an invalid Minecraft username.");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'whitelist-failure' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("user-not-on-whitelist-title") == null)
+            {
+                getCustomMessagesConfig().set("user-not-on-whitelist-title", "This user is not on the whitelist");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'user-not-on-whitelist-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("user-not-on-whitelist") == null)
+            {
+                getCustomMessagesConfig().set("user-not-on-whitelist", "{Sender}, cannot remove user as `{MinecraftUsername}` is not on the whitelist!");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'user-not-on-whitelist' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("remove-success-title") == null)
+            {
+                getCustomMessagesConfig().set("remove-success-title", "{MinecraftUsername} has been removed");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'remove-success-title' was not found, adding it to the config...");
+                }
+            }
+
+            if(getCustomMessagesConfig().getString("remove-success") == null)
+            {
+                getCustomMessagesConfig().set("remove-success", "{Sender} has removed {MinecraftUsername} from the whitelist");
+
+                if(!customMessagesCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'remove-success' was not found, adding it to the config...");
+                }
+            }
+
+            try
+            {
+                getCustomMessagesConfig().save((customMessagesFile.getPath()));
             }
             catch(IOException e)
             {
