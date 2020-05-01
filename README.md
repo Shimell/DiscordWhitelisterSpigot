@@ -2,13 +2,6 @@
 
 A simple spigot plugin which allows whitelisting through a discord text channel. This provides an easy way for users to whitelist without needing to be on the minecraft server.
 
-### Backwards compatibility
-
-Version 1.2.0 and greater are not compatible with version 1.1.x and lower.
-The layout of the internal user-list.yml got updated.
-You need to remove it manually and let the plugin on v1.2.x create a new one.
-If you upgrade without knowing what you are doing. Registration will not work correctly.
-
 ### Features:
 
 - 3 separate role groups:
@@ -25,6 +18,11 @@ If you upgrade without knowing what you are doing. Registration will not work co
     - Use `!whitelist add "minecraftUsername"` in a valid channel to whitelist people on your minecraft server
     - Use `!whitelist remove "minecraftUsername"` in a valid channel to remove people from the whitelist on your minecraft server
     - Use `!whitelist` in a valid channel to get info about the bot and how to use it
+    
+- Custom Message Support:
+    - Allows editing of server response messages (file is located at `(server-root)/plugins/DiscordWhitelister/custom-messages.yml)`
+    - This feature is disabled by default and can be enabled in the config file (`use-custom-messages`)
+    - Note: Only message variables ({Sender} for example) in the original messages will be evaluated. For example: using {MaxWhitelistAmount} in the "insufficient-permissions" string/message will not work as it was never in the original string/message.
 
 - Automatically add/remove a role when adding/removing to/from the whitelist
     - This feature is meant to be used when users can add themselves to the whitelist.
@@ -41,5 +39,12 @@ If you upgrade without knowing what you are doing. Registration will not work co
 
 ### Set Up:
 
-Config file is located at: (server-root)/plugins/DiscordWhitelister - this needs a valid bot token and valid channel id(s) to work.
+Config file is located at: `(server-root)/plugins/DiscordWhitelister/discord-whitelister.yml`, **this needs a valid bot token and valid channel id(s) to work**.
 To create a Discord application and/or find your discord bot token, follow this link: https://discordapp.com/developers/applications/
+
+Here is a short video showing all the steps needed to configure the bot: https://youtu.be/OqaeItuLefU
+
+### Backwards compatibility (Only applies to versions lower than v1.2.0)
+
+Version 1.2.0 onwards are not compatible with version 1.1.x and lower. This is due to the layout of user-list.yml being changed. You will need to remove user-list.yml manually and let the plugin create a new one.
+If you upgrade without doing so, registration will not work correctly.

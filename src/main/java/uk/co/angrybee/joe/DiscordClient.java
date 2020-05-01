@@ -386,10 +386,14 @@ public class DiscordClient extends ListenerAdapter {
                             DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "(" + author.getId() + ") attempted to whitelist: " + finalNameToAdd);
                         }
 
-                        if (DiscordWhitelister.useEasyWhitelist) {
-                            try {
+                        if (DiscordWhitelister.useEasyWhitelist)
+                        {
+                            try
+                            {
                                 tempFileConfiguration.load(new File(DiscordWhitelister.easyWhitelist.getDataFolder(), "config.yml"));
-                            } catch (IOException | InvalidConfigurationException e) {
+                            }
+                            catch (IOException | InvalidConfigurationException e)
+                            {
                                 EmbedBuilder failure = new EmbedBuilder();
                                 failure.setColor(new Color(231, 76, 60));
                                 failure.addField("Internal Error", (author.getAsMention() + ", something went wrong while accessing EasyWhitelist file. Please contact a staff member."), false);
@@ -399,30 +403,41 @@ public class DiscordClient extends ListenerAdapter {
                             }
                         }
 
-                        if (DiscordWhitelister.useEasyWhitelist || checkWhitelistJSON(whitelistJSON, finalNameToAdd))
+                        boolean alreadyOnWhitelist = false;
+
+                        if(DiscordWhitelister.useEasyWhitelist)
                         {
                             if (tempFileConfiguration.getStringList("whitelisted").contains(finalNameToAdd))
                             {
-                                EmbedBuilder embedBuilderAlreadyWhitelisted = new EmbedBuilder();
-                                embedBuilderAlreadyWhitelisted.setColor(new Color(104, 109, 224));
-
-                                if(!DiscordWhitelister.useCustomMessages)
-                                {
-                                    embedBuilderAlreadyWhitelisted.addField("User already on the whitelist", (author.getAsMention() + ", cannot add user as `" + finalNameToAdd + "` is already on the whitelist!"), false);
-                                }
-                                else
-                                {
-                                    String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("already-on-whitelist-title");
-                                    String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("already-on-whitelist");
-                                    customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
-                                    customMessage = customMessage.replaceAll("\\{MinecraftUsername}", finalNameToAdd);
-
-                                    embedBuilderAlreadyWhitelisted.addField(customTitle, customMessage, false);
-                                }
-
-                                channel.sendMessage(embedBuilderAlreadyWhitelisted.build()).queue();
-                                return;
+                                alreadyOnWhitelist = true;
                             }
+                        }
+                        else if (checkWhitelistJSON(whitelistJSON, finalNameToAdd))
+                        {
+                            alreadyOnWhitelist = true;
+                        }
+
+                        if(alreadyOnWhitelist)
+                        {
+                            EmbedBuilder embedBuilderAlreadyWhitelisted = new EmbedBuilder();
+                            embedBuilderAlreadyWhitelisted.setColor(new Color(104, 109, 224));
+
+                            if(!DiscordWhitelister.useCustomMessages)
+                            {
+                                embedBuilderAlreadyWhitelisted.addField("User already on the whitelist", (author.getAsMention() + ", cannot add user as `" + finalNameToAdd + "` is already on the whitelist!"), false);
+                            }
+                            else
+                            {
+                                String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("already-on-whitelist-title");
+                                String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("already-on-whitelist");
+                                customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
+                                customMessage = customMessage.replaceAll("\\{MinecraftUsername}", finalNameToAdd);
+
+                                embedBuilderAlreadyWhitelisted.addField(customTitle, customMessage, false);
+                            }
+
+                            channel.sendMessage(embedBuilderAlreadyWhitelisted.build()).queue();
+                            return;
                         }
 
                         if (DiscordWhitelister.getRemovedList().get(finalNameToAdd) != null) // If the user has been removed before
