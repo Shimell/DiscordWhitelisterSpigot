@@ -69,7 +69,8 @@ public class DiscordClient extends ListenerAdapter {
         }
     }
 
-    private static void AssignVars() {
+    private static void AssignVars()
+    {
         // assign vars here instead of every time a message is received, as they do not change
         targetTextChannels = new String[DiscordWhitelister.getWhitelisterBotConfig().getList("target-text-channels").size()];
         for (int i = 0; i < targetTextChannels.length; ++i) {
@@ -86,7 +87,8 @@ public class DiscordClient extends ListenerAdapter {
         whitelistedRoleName = DiscordWhitelister.getWhitelisterBotConfig().getString("whitelisted-role");
     }
 
-    private static void BuildStrings() {
+    private static void BuildStrings()
+    {
         // build here instead of every time a message is received, as they do not change
         EmbedBuilder embedBuilderBotInfo = new EmbedBuilder();
         embedBuilderBotInfo.setTitle("Discord Whitelister Bot for Spigot");
@@ -128,14 +130,18 @@ public class DiscordClient extends ListenerAdapter {
     }
 
     @Override
-    public void onMessageReceived(MessageReceivedEvent messageReceivedEvent) {
-        if (messageReceivedEvent.isFromType(ChannelType.TEXT)) {
+    public void onMessageReceived(MessageReceivedEvent messageReceivedEvent)
+    {
+        if (messageReceivedEvent.isFromType(ChannelType.TEXT))
+        {
             // Check if message should be handled
-            if (!Arrays.asList(targetTextChannels).contains(messageReceivedEvent.getTextChannel().getId())) {
+            if (!Arrays.asList(targetTextChannels).contains(messageReceivedEvent.getTextChannel().getId()))
+            {
                 return;
             }
 
-            if (messageReceivedEvent.getAuthor().isBot()) {
+            if (messageReceivedEvent.getAuthor().isBot())
+            {
                 return;
             }
 
@@ -817,7 +823,8 @@ public class DiscordClient extends ListenerAdapter {
                                         }
 
                                         // if the name is not on the list
-                                        if (DiscordWhitelister.getRemovedList().get(finalNameToRemove) == null) {
+                                        if (DiscordWhitelister.getRemovedList().get(finalNameToRemove) == null)
+                                        {
                                             DiscordWhitelister.getRemovedList().set(finalNameToRemove, author.getId());
                                             DiscordWhitelister.getRemovedList().save(DiscordWhitelister.getRemovedListFile().getPath());
                                         }

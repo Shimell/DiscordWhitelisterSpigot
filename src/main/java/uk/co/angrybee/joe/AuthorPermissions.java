@@ -22,29 +22,70 @@ public class AuthorPermissions {
         return userHasLimitedAdd;
     }
 
-    public boolean isUserCanUseCommand() {
+    public boolean isUserCanUseCommand()
+    {
         return userCanAdd || userCanAddRemove || userHasLimitedAdd;
     }
 
-    public AuthorPermissions(MessageReceivedEvent event) {
-        for (Role role : event.getGuild().getMember(event.getAuthor()).getRoles()) {
-            if (Arrays.stream(DiscordClient.allowedToAddRemoveRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase)) {
-                userCanAddRemove = true;
-                break;
+    public AuthorPermissions(MessageReceivedEvent event)
+    {
+        for (Role role : event.getGuild().getMember(event.getAuthor()).getRoles())
+        {
+            if(!DiscordWhitelister.useIdForRoles)
+            {
+                if (Arrays.stream(DiscordClient.allowedToAddRemoveRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase))
+                {
+                    userCanAddRemove = true;
+                    break;
+                }
+            }
+            else
+            {
+                if (Arrays.stream(DiscordClient.allowedToAddRemoveRoles).parallel().anyMatch(role.getId()::equalsIgnoreCase))
+                {
+                    userCanAddRemove = true;
+                    break;
+                }
             }
         }
 
-        for (Role role : event.getGuild().getMember(event.getAuthor()).getRoles()) {
-            if (Arrays.stream(DiscordClient.allowedToAddRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase)) {
-                userCanAdd = true;
-                break;
+        for (Role role : event.getGuild().getMember(event.getAuthor()).getRoles())
+        {
+            if (!DiscordWhitelister.useIdForRoles)
+            {
+                if (Arrays.stream(DiscordClient.allowedToAddRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase))
+                {
+                    userCanAdd = true;
+                    break;
+                }
+            }
+            else
+            {
+                if (Arrays.stream(DiscordClient.allowedToAddRoles).parallel().anyMatch(role.getId()::equalsIgnoreCase))
+                {
+                    userCanAdd = true;
+                    break;
+                }
             }
         }
 
-        for (Role role : event.getGuild().getMember(event.getAuthor()).getRoles()) {
-            if (Arrays.stream(DiscordClient.allowedToAddLimitedRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase)) {
-                userHasLimitedAdd = true;
-                break;
+        for (Role role : event.getGuild().getMember(event.getAuthor()).getRoles())
+        {
+            if(!DiscordWhitelister.useIdForRoles)
+            {
+                if (Arrays.stream(DiscordClient.allowedToAddLimitedRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase))
+                {
+                    userHasLimitedAdd = true;
+                    break;
+                }
+            }
+            else
+            {
+                if (Arrays.stream(DiscordClient.allowedToAddLimitedRoles).parallel().anyMatch(role.getId()::equalsIgnoreCase))
+                {
+                    userHasLimitedAdd = true;
+                    break;
+                }
             }
         }
     }

@@ -41,6 +41,7 @@ public class DiscordWhitelister extends JavaPlugin
 
     public static boolean useEasyWhitelist = false;
     public static boolean useCustomMessages = false;
+    public static boolean useIdForRoles = false;
 
     private boolean botEnabled;
 
@@ -77,6 +78,9 @@ public class DiscordWhitelister extends JavaPlugin
         else
         {
             getLogger().info("Initializing Discord client...");
+
+            if(getWhitelisterBotConfig().getBoolean("use-id-for-roles"))
+                useIdForRoles = true;
 
             // set add & remove roles
             DiscordClient.allowedToAddRemoveRoles = new String[getWhitelisterBotConfig().getList("add-remove-roles").size()];
@@ -493,6 +497,16 @@ public class DiscordWhitelister extends JavaPlugin
                 if(!configCreated)
                 {
                     getPlugin().getLogger().warning("Entry 'use-custom-messages' was not found, adding it to the config...");
+                }
+            }
+
+            if(getWhitelisterBotConfig().get("use-id-for-roles") == null)
+            {
+                getWhitelisterBotConfig().set("use-id-for-roles", false);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'use-id-for-roles' was not found, adding it to the config...");
                 }
             }
 
