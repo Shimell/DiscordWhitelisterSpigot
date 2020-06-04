@@ -33,7 +33,7 @@ public class CommandReload implements CommandExecutor
         }
 
         // initializes client
-        int initSuccess = DiscordWhitelister.InitBot();
+        int initSuccess = DiscordWhitelister.InitBot(false);
 
         if(initSuccess == 1)
         {

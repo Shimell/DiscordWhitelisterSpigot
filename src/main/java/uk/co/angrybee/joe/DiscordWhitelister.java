@@ -58,7 +58,7 @@ public class DiscordWhitelister extends JavaPlugin
         thisServer = thisPlugin.getServer();
         pluginLogger = thisPlugin.getLogger();
 
-        int initSuccess = InitBot();
+        int initSuccess = InitBot(true);
 
         if(initSuccess == 0)
         {
@@ -137,13 +137,15 @@ public class DiscordWhitelister extends JavaPlugin
 
     public static int getMaximumAllowedPlayers() { return thisPlugin.getServer().getMaxPlayers(); }
 
-    public static int InitBot()
+    public static int InitBot(boolean firstInit)
     {
         whitelisterBotConfig = new YamlConfiguration();
         userList = new YamlConfiguration();
         removedList = new YamlConfiguration();
         customMessagesConfig = new YamlConfiguration();
-        vanishedPlayersCount = 0; // TODO: check if this messes up when reloading the bot
+
+        if(firstInit)
+            vanishedPlayersCount = 0;
 
         ConfigSetup();
 
@@ -204,9 +206,7 @@ public class DiscordWhitelister extends JavaPlugin
 
             // Custom messages check
             if(getWhitelisterBotConfig().getBoolean("use-custom-messages"))
-            {
                 useCustomMessages = true;
-            }
 
             int initSuccess = DiscordClient.InitializeClient(botToken);
 
@@ -239,7 +239,6 @@ public class DiscordWhitelister extends JavaPlugin
         userListFile = new File(dataFolder, "user-list.yml");
         removedListFile = new File(dataFolder, "removed-list.yml");
         customMessagesFile = new File(dataFolder, "custom-messages.yml");
-
 
         if(!whitelisterBotConfigFile.getParentFile().exists())
         {
