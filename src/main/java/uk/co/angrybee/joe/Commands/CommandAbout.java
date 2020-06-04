@@ -5,8 +5,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-import uk.co.angrybee.joe.DiscordClient;
-import uk.co.angrybee.joe.VersionInfo;
 
 public class CommandAbout implements CommandExecutor {
 

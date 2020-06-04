@@ -1,17 +1,11 @@
 package uk.co.angrybee.joe;
 
-import com.sun.org.apache.xml.internal.security.Init;
 import org.bukkit.Server;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.event.Listener;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.jetbrains.annotations.NotNull;
 import uk.co.angrybee.joe.Commands.CommandAbout;
 import uk.co.angrybee.joe.Commands.CommandReload;
 import uk.co.angrybee.joe.Commands.CommandStatus;
@@ -48,7 +42,7 @@ public class DiscordWhitelister extends JavaPlugin
     public static boolean useCustomMessages = false;
     public static boolean useIdForRoles = false;
 
-    private static boolean botEnabled;
+    public static boolean botEnabled;
 
     private static JavaPlugin thisPlugin;
     private static Server thisServer;

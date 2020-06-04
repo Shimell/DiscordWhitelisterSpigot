@@ -20,14 +20,14 @@ public class CommandReload implements CommandExecutor
         Logger pluginLogger = DiscordWhitelister.getPlugin().getLogger();
 
         sender.sendMessage("[DW] Attempting to reload...");
-        pluginLogger.info("[DW] " + sender.getName() + " has requested a hot reload");
+        pluginLogger.info(sender.getName() + " has requested a hot reload");
 
-        pluginLogger.info("[DW] Shutting down client...");
+        pluginLogger.info("Shutting down client...");
         boolean shutDownTriggerSuccessful = DiscordClient.ShutdownClient();
 
         if(!shutDownTriggerSuccessful)
         {
-            pluginLogger.info("[DW] Failed to trigger shutdown on client");
+            pluginLogger.info("Failed to trigger shutdown on client");
             sender.sendMessage("[DW] Failed to reload Discord client (Reason: Failed to trigger shutdown on client)");
             return false;
         }
@@ -37,13 +37,21 @@ public class CommandReload implements CommandExecutor
 
         if(initSuccess == 1)
         {
-            pluginLogger.info("[DW] Failed to re-initialize client");
+            pluginLogger.info("Failed to re-initialize client");
             sender.sendMessage("[DW] Failed to reload Discord client (Reason: Failed to re-initialize client)");
             return false;
         }
 
-        pluginLogger.info("[DW] Successfully restarted Discord client");
-        sender.sendMessage("[DW] Successfully restarted Discord client");
+        if(!DiscordWhitelister.botEnabled)
+        {
+            pluginLogger.info("Successfully reloaded configuration file. Bot is disabled as per the config, will not re-initialize");
+            sender.sendMessage("[DW] Successfully reloaded configuration file. Bot is disabled as per the config, will not re-initialize");
+        }
+        else
+        {
+            pluginLogger.info("Successfully restarted Discord client");
+            sender.sendMessage("[DW] Successfully restarted Discord client");
+        }
         return true;
     }
 }
