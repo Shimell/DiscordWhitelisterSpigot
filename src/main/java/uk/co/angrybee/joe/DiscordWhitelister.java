@@ -1,5 +1,7 @@
 package uk.co.angrybee.joe;
 
+import com.sun.org.apache.xml.internal.security.Init;
+import org.bukkit.Server;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -9,13 +11,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.jetbrains.annotations.NotNull;
 import uk.co.angrybee.joe.Commands.CommandAbout;
+import uk.co.angrybee.joe.Commands.CommandReload;
 import uk.co.angrybee.joe.Commands.CommandStatus;
 import uk.co.angrybee.joe.Events.JoinLeaveEvents;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class DiscordWhitelister extends JavaPlugin
 {
@@ -32,20 +37,22 @@ public class DiscordWhitelister extends JavaPlugin
     // easy whitelist
     public static Plugin easyWhitelist;
 
-    private String botToken;
+    public static String botToken;
 
-    private boolean configCreated = false;
-    private boolean userListCreated = false;
-    private boolean removedListCreated = false;
-    private boolean customMessagesCreated = false;
+    private static boolean configCreated = false;
+    private static boolean userListCreated = false;
+    private static boolean removedListCreated = false;
+    private static boolean customMessagesCreated = false;
 
     public static boolean useEasyWhitelist = false;
     public static boolean useCustomMessages = false;
     public static boolean useIdForRoles = false;
 
-    private boolean botEnabled;
+    private static boolean botEnabled;
 
     private static JavaPlugin thisPlugin;
+    private static Server thisServer;
+    private static Logger pluginLogger;
 
     // For not counting vanished players when other players join/leave
     private static int vanishedPlayersCount;
@@ -54,99 +61,23 @@ public class DiscordWhitelister extends JavaPlugin
     public void onEnable()
     {
         thisPlugin = this;
-        whitelisterBotConfig = new YamlConfiguration();
-        userList = new YamlConfiguration();
-        removedList = new YamlConfiguration();
-        customMessagesConfig = new YamlConfiguration();
-        vanishedPlayersCount = 0;
+        thisServer = thisPlugin.getServer();
+        pluginLogger = thisPlugin.getLogger();
 
-        ConfigSetup();
+        int initSuccess = InitBot();
+
+        if(initSuccess == 0)
+        {
+            pluginLogger.info("Successfully initialized Discord client");
+        }
+        else if(initSuccess == 1)
+        {
+            pluginLogger.severe("Discord Client failed to initialize, please check if your config file is valid");
+        }
 
         this.getCommand("discordwhitelister").setExecutor(new CommandStatus());
         this.getCommand("discordwhitelisterabout").setExecutor(new CommandAbout());
-
-        botToken = getWhitelisterBotConfig().getString("discord-bot-token");
-        botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
-        if(!botEnabled)
-        {
-            getLogger().info("Bot is disabled as per the config, doing nothing");
-        }
-        else if(configCreated)
-        {
-            getLogger().info("Config newly created, please paste your bot token into the config file, doing nothing until next server start");
-        }
-        else
-        {
-            getLogger().info("Initializing Discord client...");
-
-            if(getWhitelisterBotConfig().getBoolean("use-id-for-roles"))
-                useIdForRoles = true;
-
-            // set add & remove roles
-            DiscordClient.allowedToAddRemoveRoles = new String[getWhitelisterBotConfig().getList("add-remove-roles").size()];
-            for(int roles = 0; roles < DiscordClient.allowedToAddRemoveRoles.length; ++roles)
-            {
-                DiscordClient.allowedToAddRemoveRoles[roles] = getWhitelisterBotConfig().getList("add-remove-roles").get(roles).toString();
-            }
-
-            // set add roles
-            DiscordClient.allowedToAddRoles = new String[getWhitelisterBotConfig().getList("add-roles").size()];
-            for(int roles = 0; roles < DiscordClient.allowedToAddRoles.length; ++roles)
-            {
-                DiscordClient.allowedToAddRoles[roles] = getWhitelisterBotConfig().getList("add-roles").get(roles).toString();
-            }
-
-            // set limited add roles
-            DiscordClient.allowedToAddLimitedRoles = new String[getWhitelisterBotConfig().getList("limited-add-roles").size()];
-            for(int roles = 0; roles < DiscordClient.allowedToAddLimitedRoles.length; ++roles)
-            {
-                DiscordClient.allowedToAddLimitedRoles[roles] = getWhitelisterBotConfig().getList("limited-add-roles").get(roles).toString();
-            }
-
-            // easy whitelist check
-            if(getWhitelisterBotConfig().getBoolean("use-easy-whitelist"))
-            {
-                getLogger().info("Checking for Easy Whitelist...");
-                if(getServer().getPluginManager().getPlugin("EasyWhitelist") != null)
-                {
-                    getLogger().info("Easy Whitelist found! Will use over default whitelist command.");
-                    easyWhitelist = getServer().getPluginManager().getPlugin("EasyWhitelist");
-                    useEasyWhitelist = true;
-                }
-                else
-                {
-                    getLogger().warning("Easy Whitelist was not found but is enabled in the config. " +
-                            "Falling back to default whitelist command.");
-                }
-            }
-
-            // Custom messages check
-            if(getWhitelisterBotConfig().getBoolean("use-custom-messages"))
-            {
-                useCustomMessages = true;
-            }
-
-            int initializeSuccess = DiscordClient.InitializeClient(botToken);
-
-            if(initializeSuccess == 0)
-            {
-                getLogger().info("Successfully initialized Discord client.");
-
-                // Only attempt to set player count if the bot successfully initialized
-                if(getWhitelisterBotConfig().getBoolean("show-player-count"))
-                {
-                    // Register events if enabled
-                    getServer().getPluginManager().registerEvents(new JoinLeaveEvents(), this);
-
-                    // Set initial player count
-                    DiscordClient.SetPlayerCountStatus(getOnlineUsers());
-                }
-            }
-            else if(initializeSuccess == 1)
-            {
-                getLogger().severe("Discord Client failed to initialize, please check if your config file is valid.");
-            }
-        }
+        this.getCommand("discordwhitelisterreload").setExecutor(new CommandReload());
     }
 
     public static JavaPlugin getPlugin()
@@ -175,8 +106,6 @@ public class DiscordWhitelister extends JavaPlugin
     {
         return removedListFile;
     }
-
-    //public static File getCustomMessagesFile() { return customMessagesFile; }
 
     public  static FileConfiguration getCustomMessagesConfig() { return customMessagesConfig; }
 
@@ -214,12 +143,108 @@ public class DiscordWhitelister extends JavaPlugin
 
     public static int getMaximumAllowedPlayers() { return thisPlugin.getServer().getMaxPlayers(); }
 
-    public void ConfigSetup()
+    public static int InitBot()
     {
-        whitelisterBotConfigFile = new File(getDataFolder(), "discord-whitelister.yml");
-        userListFile = new File(getDataFolder(), "user-list.yml");
-        removedListFile = new File(getDataFolder(), "removed-list.yml");
-        customMessagesFile = new File(getDataFolder(), "custom-messages.yml");
+        whitelisterBotConfig = new YamlConfiguration();
+        userList = new YamlConfiguration();
+        removedList = new YamlConfiguration();
+        customMessagesConfig = new YamlConfiguration();
+        vanishedPlayersCount = 0; // TODO: check if this messes up when reloading the bot
+
+        ConfigSetup();
+
+        botToken = getWhitelisterBotConfig().getString("discord-bot-token");
+        botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
+
+        if(!botEnabled)
+        {
+            pluginLogger.info("Bot is disabled as per the config, doing nothing");
+        }
+        else if(configCreated)
+        {
+            pluginLogger.info("Config newly created, please paste your bot token into the config file, doing nothing until next server start");
+        }
+        else
+        {
+            pluginLogger.info("Initializing Discord client...");
+
+            useIdForRoles = getWhitelisterBotConfig().getBoolean("use-id-for-roles");
+
+            // set add & remove roles
+            DiscordClient.allowedToAddRemoveRoles = new String[getWhitelisterBotConfig().getList("add-remove-roles").size()];
+            for(int roles = 0; roles < DiscordClient.allowedToAddRemoveRoles.length; ++roles)
+            {
+                DiscordClient.allowedToAddRemoveRoles[roles] = getWhitelisterBotConfig().getList("add-remove-roles").get(roles).toString();
+            }
+
+            // set add roles
+            DiscordClient.allowedToAddRoles = new String[getWhitelisterBotConfig().getList("add-roles").size()];
+            for(int roles = 0; roles < DiscordClient.allowedToAddRoles.length; ++roles)
+            {
+                DiscordClient.allowedToAddRoles[roles] = getWhitelisterBotConfig().getList("add-roles").get(roles).toString();
+            }
+
+            // set limited add roles
+            DiscordClient.allowedToAddLimitedRoles = new String[getWhitelisterBotConfig().getList("limited-add-roles").size()];
+            for(int roles = 0; roles < DiscordClient.allowedToAddLimitedRoles.length; ++roles)
+            {
+                DiscordClient.allowedToAddLimitedRoles[roles] = getWhitelisterBotConfig().getList("limited-add-roles").get(roles).toString();
+            }
+
+            // easy whitelist check
+            if(getWhitelisterBotConfig().getBoolean("use-easy-whitelist"))
+            {
+                pluginLogger.info("Checking for Easy Whitelist...");
+                if(thisServer.getPluginManager().getPlugin("EasyWhitelist") != null)
+                {
+                    pluginLogger.info("Easy Whitelist found! Will use over default whitelist command.");
+                    easyWhitelist = thisServer.getPluginManager().getPlugin("EasyWhitelist");
+                    useEasyWhitelist = true;
+                }
+                else
+                {
+                    pluginLogger.warning("Easy Whitelist was not found but is enabled in the config. " +
+                            "Falling back to default whitelist command.");
+                }
+            }
+
+            // Custom messages check
+            if(getWhitelisterBotConfig().getBoolean("use-custom-messages"))
+            {
+                useCustomMessages = true;
+            }
+
+            int initSuccess = DiscordClient.InitializeClient(botToken);
+
+            if(initSuccess == 1)
+                return 1;
+
+            // No need for an if here statement anymore as this code will not run if the client has not been initialized
+            // Only attempt to set player count if the bot successfully initialized
+            if(getWhitelisterBotConfig().getBoolean("show-player-count"))
+            {
+                // Register events if enabled
+                thisServer.getPluginManager().registerEvents(new JoinLeaveEvents(), thisPlugin);
+
+                // Set initial player count
+                DiscordClient.SetPlayerCountStatus(getOnlineUsers());
+            }
+
+            return 0;
+        }
+
+        return 0;
+    }
+
+    public static void ConfigSetup()
+    {
+        File dataFolder = thisPlugin.getDataFolder();
+        Logger pluginLogger = thisPlugin.getLogger();
+
+        whitelisterBotConfigFile = new File(dataFolder, "discord-whitelister.yml");
+        userListFile = new File(dataFolder, "user-list.yml");
+        removedListFile = new File(dataFolder, "removed-list.yml");
+        customMessagesFile = new File(dataFolder, "custom-messages.yml");
 
 
         if(!whitelisterBotConfigFile.getParentFile().exists())
@@ -238,7 +263,7 @@ public class DiscordWhitelister extends JavaPlugin
                 e.printStackTrace();
             }
 
-            getLogger().info("Configuration file created at: " + whitelisterBotConfigFile.getPath() +
+            pluginLogger.info("Configuration file created at: " + whitelisterBotConfigFile.getPath() +
                     ", please edit this else the plugin will not work!");
             configCreated = true;
         }
@@ -263,7 +288,7 @@ public class DiscordWhitelister extends JavaPlugin
                 e.printStackTrace();
             }
 
-            getLogger().info("User list created at: " + userListFile.getPath());
+            pluginLogger.info("User list created at: " + userListFile.getPath());
             userListCreated = true;
         }
 
@@ -287,7 +312,7 @@ public class DiscordWhitelister extends JavaPlugin
                 e.printStackTrace();
             }
 
-            getLogger().info("Removed list created at: " + removedListFile.getPath());
+            pluginLogger.info("Removed list created at: " + removedListFile.getPath());
             removedListCreated = true;
         }
 
@@ -311,7 +336,7 @@ public class DiscordWhitelister extends JavaPlugin
                 e.printStackTrace();
             }
 
-            getLogger().info("Custom messages file has been created at: " + customMessagesFile.getPath());
+            pluginLogger.info("Custom messages file has been created at: " + customMessagesFile.getPath());
             customMessagesCreated = true;
         }
 

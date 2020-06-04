@@ -1,5 +1,5 @@
 name: DiscordWhitelister
-version: 1.3.4
+version: 1.3.5
 author: Joe Shimell
 main: uk.co.angrybee.joe.DiscordWhitelister
 description: Discord whitelister bot.
@@ -12,3 +12,7 @@ commands:
     description: See plugin version and Discord connection status
     usage: /<command>
     aliases: [dwabout]
+  discordwhitelisterreload:
+    description: Hot reload Discord client
+    usage: /<command>
+    aliases: [dwreload]

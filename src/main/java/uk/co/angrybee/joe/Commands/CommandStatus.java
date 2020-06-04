@@ -13,7 +13,8 @@ public class CommandStatus implements CommandExecutor {
     // /dw
     // version & status command
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args)
+    {
         String discordOnlineStatus = DiscordClient.getOnlineStatus();
         if (discordOnlineStatus.toLowerCase().equals("connected")) {
             discordOnlineStatus = ChatColor.GREEN + discordOnlineStatus;

@@ -27,10 +27,11 @@ import java.util.Arrays;
 import java.util.List;
 
 // handles Discord interaction
-public class DiscordClient extends ListenerAdapter {
-    static String[] allowedToAddRemoveRoles;
-    static String[] allowedToAddRoles;
-    static String[] allowedToAddLimitedRoles;
+public class DiscordClient extends ListenerAdapter
+{
+    public static String[] allowedToAddRemoveRoles;
+    public static String[] allowedToAddRoles;
+    public static String[] allowedToAddLimitedRoles;
 
     private static String[] targetTextChannels;
 
@@ -52,21 +53,30 @@ public class DiscordClient extends ListenerAdapter {
 
     private static JDA javaDiscordAPI;
 
-    public static int InitializeClient(String clientToken) {
+    public static int InitializeClient(String clientToken)
+    {
         AssignVars();
         BuildStrings();
 
-        try {
-            javaDiscordAPI = new JDABuilder(AccountType.BOT)
-                    .setToken(clientToken)
-                    .addEventListeners(new DiscordClient())
-                    .build();
+        try
+        {
+            javaDiscordAPI = new JDABuilder(AccountType.BOT).setToken(clientToken).addEventListeners(new DiscordClient()).build();
             javaDiscordAPI.awaitReady();
+
             return 0;
-        } catch (LoginException | InterruptedException e) {
+        }
+        catch (LoginException | InterruptedException e)
+        {
             e.printStackTrace();
             return 1;
         }
+    }
+
+    public static boolean ShutdownClient()
+    {
+        javaDiscordAPI.shutdownNow();
+
+        return javaDiscordAPI.getStatus() == JDA.Status.SHUTTING_DOWN || javaDiscordAPI.getStatus() == JDA.Status.SHUTDOWN;
     }
 
     private static void AssignVars()
