@@ -24,6 +24,23 @@ A simple spigot plugin which allows whitelisting through a discord text channel.
     - This feature is disabled by default and can be enabled in the config file (`use-custom-messages`)
     - Note: Only message variables ({Sender} for example) in the original messages will be evaluated. For example: using {MaxWhitelistAmount} in the "insufficient-permissions" string/message will not work as it was never in the original string/message.
 
+- Use Discord server/guild role ids instead of role names:
+	- Allows the use of ids of roles instead of names, for example: `445666895333687347` instead of `Admin`
+	- To enable this set '`use-id-for-roles`' to `true`
+	- Example of relevant fields changed in the config to use ids:
+		``` yaml
+		add-remove-roles:
+		- 446223693887176704
+		add-roles:
+		- 485463455940214794
+		limited-add-roles:
+		- 639221397981233162
+		use-id-for-roles: true
+		```
+		
+- Reload command:
+	- Use the command '`dwreload`' or '`discordwhitelisterreload`' to reload the config and re-initialize the bot without having to restart the Minecraft server
+
 - Automatically add/remove a role when adding/removing to/from the whitelist
     - This feature is meant to be used when users can add themselves to the whitelist.
     - If `whitelisted-role-auto-add` is set to true (false by default), the Discord role with the name defined by `whitelisted-role` ("Whitelisted" by default) will be added to that user when they successfully add (themselves) to the whitelist.
