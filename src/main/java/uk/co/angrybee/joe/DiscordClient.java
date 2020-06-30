@@ -624,13 +624,19 @@ public class DiscordClient extends ListenerAdapter
                                     channel.sendMessage(embedBuilderWhitelistSuccess.build()).queue();
 
                                     // Add role to user when they have been added to the whitelist if need be
-                                    if(whitelistedRoleAutoAdd) {
+                                    if(whitelistedRoleAutoAdd)
+                                    {
                                         Role whitelistRole = null;
-                                        try {
-                                            whitelistRole = javaDiscordAPI.getRolesByName(whitelistedRoleName, false).get(0);
+                                        try
+                                        {
+                                            //whitelistRole = javaDiscordAPI.getRolesByName(whitelistedRoleName, false).get(0);
+                                            // Multiple server fix
+                                            whitelistRole = channel.getGuild().getRolesByName(whitelistedRoleName, false).get(0);
                                             Member member = messageReceivedEvent.getMember();
                                             messageReceivedEvent.getGuild().addRoleToMember(member, whitelistRole).queue();
-                                        } catch (Exception e) {
+                                        }
+                                        catch (Exception e)
+                                        {
                                             DiscordWhitelister.getPlugin().getLogger().severe("Could not add role with name " + whitelistedRoleName + " to " + author.getName() + ", check that it has the correct name in the config and the bot has the Manage Roles permission");
                                         }
                                     }
@@ -653,13 +659,19 @@ public class DiscordClient extends ListenerAdapter
                                     channel.sendMessage(embedBuilderWhitelistSuccess.build()).queue();
 
                                     // Add role to user when they have been added to the whitelist if need be
-                                    if(whitelistedRoleAutoAdd) {
+                                    if(whitelistedRoleAutoAdd)
+                                    {
                                         Role whitelistRole = null;
-                                        try {
-                                            whitelistRole = javaDiscordAPI.getRolesByName(whitelistedRoleName, false).get(0);
+                                        try
+                                        {
+                                            //whitelistRole = javaDiscordAPI.getRolesByName(whitelistedRoleName, false).get(0);
+                                            // Multiple server fix
+                                            whitelistRole = channel.getGuild().getRolesByName(whitelistedRoleName, false).get(0);
                                             Member member = messageReceivedEvent.getMember();
                                             messageReceivedEvent.getGuild().addRoleToMember(member, whitelistRole).queue();
-                                        } catch (Exception e) {
+                                        }
+                                        catch (Exception e)
+                                        {
                                             DiscordWhitelister.getPlugin().getLogger().severe("Could not add role with name " + whitelistedRoleName + " to " + author.getName() + ", check that it has the correct name in the config and the bot has the Manage Roles permission");
                                         }
                                     }
@@ -982,7 +994,8 @@ public class DiscordClient extends ListenerAdapter
         return correctUsername;
     }
 
-    private String minecraftUsernameToUUID(String minecraftUsername) {
+    private String minecraftUsernameToUUID(String minecraftUsername)
+    {
         URL playerURL;
         String inputStream;
         BufferedReader bufferedReader;
@@ -1005,7 +1018,8 @@ public class DiscordClient extends ListenerAdapter
         return playerUUID;
     }
 
-    private void executeServerCommand(String command) {
+    private void executeServerCommand(String command)
+      {
         DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), ()
                 -> DiscordWhitelister.getPlugin().getServer().dispatchCommand(
                 DiscordWhitelister.getPlugin().getServer().getConsoleSender(), command));

@@ -205,8 +205,7 @@ public class DiscordWhitelister extends JavaPlugin
             }
 
             // Custom messages check
-            if(getWhitelisterBotConfig().getBoolean("use-custom-messages"))
-                useCustomMessages = true;
+            useCustomMessages = getWhitelisterBotConfig().getBoolean("use-custom-messages");
 
             int initSuccess = DiscordClient.InitializeClient(botToken);
 
