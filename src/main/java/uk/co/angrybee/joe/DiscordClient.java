@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.internal.requests.Route;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -16,6 +17,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import uk.co.angrybee.joe.Configs.CustomPrefixConfig;
 
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
@@ -191,7 +193,8 @@ public class DiscordClient extends ListenerAdapter
             }
 
             // Add Command
-            if (messageContents.toLowerCase().startsWith("!whitelist add"))
+            if (messageContents.toLowerCase().startsWith("!whitelist add") && !DiscordWhitelister.getUseCustomPrefixes()
+                    || DiscordWhitelister.getUseCustomPrefixes() && messageContents.toLowerCase().startsWith(CustomPrefixConfig.whitelistAddPrefix))
             {
                 // Permission check
                 if (!(authorPermissions.isUserCanAddRemove() || authorPermissions.isUserCanAdd() || limitedWhitelistEnabled && authorPermissions.isUserHasLimitedAdd()))
@@ -253,7 +256,17 @@ public class DiscordClient extends ListenerAdapter
                 if (authorPermissions.isUserCanAddRemove() || authorPermissions.isUserCanAdd() || limitedWhitelistEnabled && authorPermissions.isUserHasLimitedAdd())
                 {
                     messageContents = messageContents.toLowerCase();
-                    String messageContentsAfterCommand = messageContents.substring("!whitelist add".length() + 1); // get everything after !whitelist add[space]
+
+                    String messageContentsAfterCommand = "";
+                    if(!DiscordWhitelister.getUseCustomPrefixes())
+                    {
+                        messageContentsAfterCommand = messageContents.substring("!whitelist add".length() + 1); // get everything after !whitelist add[space]
+                    }
+                    else
+                    {
+                        messageContentsAfterCommand = messageContents.substring(CustomPrefixConfig.whitelistAddPrefix.length() + 1); // get everything after whitelistAddPrefix[space]
+                    }
+
                     final String finalNameToAdd = messageContentsAfterCommand.replaceAll(" .*", ""); // The name is everything up to the first space
 
                     final char[] finalNameToWhitelistChar = finalNameToAdd.toCharArray();
@@ -515,7 +528,10 @@ public class DiscordClient extends ListenerAdapter
                         this will run even if the message is never sent, but is a good trade off */
                         EmbedBuilder embedBuilderWhitelistSuccess = new EmbedBuilder();
                         embedBuilderWhitelistSuccess.setColor(new Color(46, 204, 113));
-                        embedBuilderWhitelistSuccess.setThumbnail("https://minotar.net/bust/" + playerUUID + "/100.png");
+                        if(DiscordWhitelister.showPlayerSkin)
+                        {
+                            embedBuilderWhitelistSuccess.setThumbnail("https://minotar.net/bust/" + playerUUID + "/100.png");
+                        }
 
                         if(!DiscordWhitelister.useCustomMessages)
                         {
@@ -694,10 +710,22 @@ public class DiscordClient extends ListenerAdapter
                 }
             }
 
-            if (messageContents.toLowerCase().startsWith("!whitelist remove")) {
+            if (messageContents.toLowerCase().startsWith("!whitelist remove") && !DiscordWhitelister.getUseCustomPrefixes()
+                    || DiscordWhitelister.getUseCustomPrefixes() && messageContents.toLowerCase().startsWith(CustomPrefixConfig.whitelistRemovePrefix))
+            {
                 if (authorPermissions.isUserCanAddRemove()) {
                     messageContents = messageContents.toLowerCase();
-                    String messageContentsAfterCommand = messageContents.substring("!whitelist remove".length() + 1); // get everything after !whitelist add[space]
+
+                    String messageContentsAfterCommand = "";
+                    if(!DiscordWhitelister.useCustomPrefixes)
+                    {
+                        messageContentsAfterCommand = messageContents.substring("!whitelist remove".length() + 1); // get everything after !whitelist remove[space]
+                    }
+                    else
+                    {
+                        messageContentsAfterCommand = messageContents.substring(CustomPrefixConfig.whitelistRemovePrefix.length() + 1); // get everything after whitelistRemovePrefix[space]
+                    }
+
                     final String finalNameToRemove = messageContentsAfterCommand.replaceAll(" .*", ""); // The name is everything up to the first space
 
                     if (finalNameToRemove.isEmpty()) {

@@ -9,6 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import uk.co.angrybee.joe.Commands.CommandAbout;
 import uk.co.angrybee.joe.Commands.CommandReload;
 import uk.co.angrybee.joe.Commands.CommandStatus;
+import uk.co.angrybee.joe.Configs.CustomPrefixConfig;
 import uk.co.angrybee.joe.Events.JoinLeaveEvents;
 
 import java.io.File;
@@ -23,10 +24,12 @@ public class DiscordWhitelister extends JavaPlugin
     private static File removedListFile;
     private static File customMessagesFile;
 
+
     private static FileConfiguration whitelisterBotConfig;
     private static FileConfiguration userList;
     private static FileConfiguration removedList;
     private static FileConfiguration customMessagesConfig;
+
 
     // easy whitelist
     public static Plugin easyWhitelist;
@@ -41,6 +44,8 @@ public class DiscordWhitelister extends JavaPlugin
     public static boolean useEasyWhitelist = false;
     public static boolean useCustomMessages = false;
     public static boolean useIdForRoles = false;
+    public static boolean useCustomPrefixes = false;
+    public static boolean showPlayerSkin = true;
 
     public static boolean botEnabled;
 
@@ -101,7 +106,9 @@ public class DiscordWhitelister extends JavaPlugin
         return removedListFile;
     }
 
-    public  static FileConfiguration getCustomMessagesConfig() { return customMessagesConfig; }
+    public static FileConfiguration getCustomMessagesConfig() { return customMessagesConfig; }
+
+    public static Logger getPluginLogger() { return pluginLogger; }
 
     public static List<?> getRegisteredUsers(String userId) { return userList.getList(userId); }
 
@@ -112,6 +119,8 @@ public class DiscordWhitelister extends JavaPlugin
             return 0;
         }
     }
+
+    public static boolean getUseCustomPrefixes() { return useCustomPrefixes; }
 
     public static void addRegisteredUser(String userId, String userToAdd) throws IOException {
         List <?> x = getRegisteredUsers(userId);
@@ -151,6 +160,7 @@ public class DiscordWhitelister extends JavaPlugin
 
         botToken = getWhitelisterBotConfig().getString("discord-bot-token");
         botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
+        showPlayerSkin = getWhitelisterBotConfig().getBoolean("show-player-skin-on-whitelist");
 
         if(!botEnabled)
         {
@@ -206,6 +216,7 @@ public class DiscordWhitelister extends JavaPlugin
 
             // Custom messages check
             useCustomMessages = getWhitelisterBotConfig().getBoolean("use-custom-messages");
+            useCustomPrefixes = getWhitelisterBotConfig().getBoolean("use-custom-prefixes");
 
             int initSuccess = DiscordClient.InitializeClient(botToken);
 
@@ -527,6 +538,26 @@ public class DiscordWhitelister extends JavaPlugin
                 }
             }
 
+            if(getWhitelisterBotConfig().get("use-custom-prefixes") == null)
+            {
+                getWhitelisterBotConfig().set("use-custom-prefixes", false);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'use-custom-prefixes' was not found, adding it to the config...");
+                }
+            }
+
+            if(getWhitelisterBotConfig().get("show-player-skin-on-whitelist") == null)
+            {
+                getWhitelisterBotConfig().set("show-player-skin-on-whitelist", true);
+
+                if(!configCreated)
+                {
+                    getPlugin().getLogger().warning("Entry 'show-player-skin-on-whitelist' was not found, adding it to the config...");
+                }
+            }
+
             try
             {
                 getWhitelisterBotConfig().save((whitelisterBotConfigFile.getPath()));
@@ -794,6 +825,8 @@ public class DiscordWhitelister extends JavaPlugin
                 e.printStackTrace();
             }
         }
+
+        CustomPrefixConfig.ConfigSetup();
 
         if(userListCreated)
         {
