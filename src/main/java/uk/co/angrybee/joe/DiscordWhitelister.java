@@ -478,13 +478,63 @@ public class DiscordWhitelister extends JavaPlugin
             }
 
             // The name of the role to add/remove to the user
-            if(getWhitelisterBotConfig().get("whitelisted-role") == null)
+            if(getWhitelisterBotConfig().get("whitelisted-roles") == null)
             {
-                getWhitelisterBotConfig().set("whitelisted-role", "Whitelisted");
+                //getWhitelisterBotConfig().set("whitelisted-role", "Whitelisted");
+                // Change to array format to allow multiple whitelisted roles / role ids
+                List<String> tempLimitedRoles = Collections.singletonList("Whitelisted");
+                getWhitelisterBotConfig().set("whitelisted-roles", tempLimitedRoles);
 
                 if(!configCreated)
                 {
-                    getPlugin().getLogger().warning("Entry 'whitelisted-role' was not found, adding it to the config...");
+                    getPlugin().getLogger().warning("Entry 'whitelisted-roles' was not found, adding it to the config...");
+                }
+
+                // Save early for check below
+//                try
+//                {
+//                    getWhitelisterBotConfig().save((whitelisterBotConfigFile.getPath()));
+//                }
+//                catch(IOException e)
+//                {
+//                    e.printStackTrace();
+//                }
+            }
+
+            // remove old role, add to new array
+            if(getWhitelisterBotConfig().get("whitelisted-role") != null)
+            {
+                /*
+                ().warning("whitelist-role has changed to whitelist-roles to allow for multiple roles, moving over role...");
+                String whitelistedRoleTemp = getWhitelisterBotConfig().getString("whitelisted-role");
+                List<String> finalRoles = null;
+
+                if(getWhitelisterBotConfig().getList("whitelisted-roles") != null)
+                {
+                    getWhitelisterBotConfig().getList("whitelisted-roles").forEach(role ->
+                    {
+                        finalRoles.add(role.toString());
+                    });
+                }
+
+                finalRoles.add(whitelistedRoleTemp);
+
+                getWhitelisterBotConfig().set("whitelisted-roles", finalRoles);
+                getPluginLogger().info("Role successfully moved to whitelisted-roles, please check the config to make sure it is correct.");
+                */
+
+                getPluginLogger().warning("Found whitelisted-role entry, moving over to whitelisted-roles. Please check your config to make sure the change is correct");
+                String whitelistedRoleTemp = getWhitelisterBotConfig().getString("whitelisted-role");
+                // For now just assign it to whitelisted-roles instead of the default
+                List<String> tempLimitedRoles = Collections.singletonList(whitelistedRoleTemp);
+                getWhitelisterBotConfig().set("whitelisted-roles", tempLimitedRoles);
+
+                // Remove now un-used entry
+                getWhitelisterBotConfig().set("whitelisted-role", null);
+
+                if(getWhitelisterBotConfig().getBoolean("use-id-for-roles"))
+                {
+                    getPluginLogger().severe("You have 'use-id-for-roles' enabled please change the whitelisted-roles to ids as they now follow this setting");
                 }
             }
 
