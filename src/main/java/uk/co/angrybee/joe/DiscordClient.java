@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.internal.requests.Route;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -530,7 +529,7 @@ public class DiscordClient extends ListenerAdapter
                         embedBuilderWhitelistSuccess.setColor(new Color(46, 204, 113));
                         if(DiscordWhitelister.showPlayerSkin)
                         {
-                            embedBuilderWhitelistSuccess.setThumbnail("https://minotar.net/bust/" + playerUUID + "/100.png");
+                            embedBuilderWhitelistSuccess.setThumbnail("https://minotar.net/armor/bust/" + playerUUID + "/100.png");
                         }
 
                         if(!DiscordWhitelister.useCustomMessages)
