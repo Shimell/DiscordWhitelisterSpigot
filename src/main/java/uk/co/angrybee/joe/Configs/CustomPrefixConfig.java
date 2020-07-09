@@ -8,15 +8,15 @@ import uk.co.angrybee.joe.DiscordWhitelister;
 import java.io.File;
 import java.io.IOException;
 
+// custom-prefixes.yml
 public class CustomPrefixConfig
 {
-    static File customPrefixesFile;
-    static FileConfiguration customPrefixesConfig;
+    private static File customPrefixesFile;
+    private static FileConfiguration customPrefixesConfig;
 
-    static boolean customPrefixesFileCreated = false;
+    public static FileConfiguration getCustomPrefixesConfig() { return customPrefixesConfig; }
 
-    public static String whitelistAddPrefix;
-    public static String whitelistRemovePrefix;
+    private static boolean customPrefixesFileCreated = false;
 
     public static void ConfigSetup()
     {
@@ -24,14 +24,11 @@ public class CustomPrefixConfig
         customPrefixesConfig = new YamlConfiguration();
 
         if(!customPrefixesFile.exists())
-        {
             CreateConfig();
-        }
 
-        LoadConfig();
+        LoadConfigFile();
         CheckEntries();
         SaveConfig();
-        AssignStrings();
     }
 
     private static void CreateConfig()
@@ -49,7 +46,7 @@ public class CustomPrefixConfig
         customPrefixesFileCreated = true;
     }
 
-    private static void LoadConfig()
+    private static void LoadConfigFile()
     {
         try
         {
@@ -65,25 +62,9 @@ public class CustomPrefixConfig
     {
         if(customPrefixesFile.exists())
         {
-            if(customPrefixesConfig.getString("whitelist-add-prefix") == null)
-            {
-                customPrefixesConfig.set("whitelist-add-prefix", "!whitelist add");
+            CheckEntry("whitelist-add-prefix", "!whitelist add");
 
-                if(!customPrefixesFileCreated)
-                {
-                    DiscordWhitelister.getPluginLogger().warning("Entry 'whitelist-add-prefix' was not found, adding it to the config...");
-                }
-            }
-
-            if(customPrefixesConfig.getString("whitelist-remove-prefix") == null)
-            {
-                customPrefixesConfig.set("whitelist-remove-prefix", "!whitelist remove");
-
-                if(!customPrefixesFileCreated)
-                {
-                    DiscordWhitelister.getPluginLogger().warning("Entry 'whitelist-remove-prefix' was not found, adding it to the config...");
-                }
-            }
+            CheckEntry("whitelist-remove-prefix", "!whitelist remove");
         }
     }
 
@@ -99,9 +80,14 @@ public class CustomPrefixConfig
         }
     }
 
-    private static void AssignStrings()
+    private static void CheckEntry(String entryName, Object passedValue)
     {
-        whitelistAddPrefix = customPrefixesConfig.getString("whitelist-add-prefix");
-        whitelistRemovePrefix = customPrefixesConfig.getString("whitelist-remove-prefix");
+        if(customPrefixesConfig.get(entryName) == null)
+        {
+            customPrefixesConfig.set(entryName, passedValue);
+
+            if(!customPrefixesFileCreated)
+                DiscordWhitelister.getPluginLogger().warning("Entry '" + entryName + "' was not found, adding it to custom-prefixes.yml...");
+        }
     }
 }

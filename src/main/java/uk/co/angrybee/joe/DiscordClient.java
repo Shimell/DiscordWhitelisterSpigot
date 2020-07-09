@@ -34,6 +34,9 @@ public class DiscordClient extends ListenerAdapter
 
     private static String[] targetTextChannels;
 
+    public static String whitelistAddPrefix;
+    public static String whitelistRemovePrefix;
+
     private static MessageEmbed botInfo;
     private static MessageEmbed addCommandInfo;
     private static MessageEmbed removeCommandInfo;
@@ -197,7 +200,7 @@ public class DiscordClient extends ListenerAdapter
 
             // Add Command
             if (messageContents.toLowerCase().startsWith("!whitelist add") && !DiscordWhitelister.getUseCustomPrefixes()
-                    || DiscordWhitelister.getUseCustomPrefixes() && messageContents.toLowerCase().startsWith(CustomPrefixConfig.whitelistAddPrefix))
+                    || DiscordWhitelister.getUseCustomPrefixes() && messageContents.toLowerCase().startsWith(whitelistAddPrefix))
             {
                 // Permission check
                 if (!(authorPermissions.isUserCanAddRemove() || authorPermissions.isUserCanAdd() || limitedWhitelistEnabled && authorPermissions.isUserHasLimitedAdd()))
@@ -267,7 +270,7 @@ public class DiscordClient extends ListenerAdapter
                     }
                     else
                     {
-                        messageContentsAfterCommand = messageContents.substring(CustomPrefixConfig.whitelistAddPrefix.length() + 1); // get everything after whitelistAddPrefix[space]
+                        messageContentsAfterCommand = messageContents.substring(whitelistAddPrefix.length() + 1); // get everything after whitelistAddPrefix[space]
                     }
 
                     final String finalNameToAdd = messageContentsAfterCommand.replaceAll(" .*", ""); // The name is everything up to the first space
@@ -760,7 +763,7 @@ public class DiscordClient extends ListenerAdapter
             }
 
             if (messageContents.toLowerCase().startsWith("!whitelist remove") && !DiscordWhitelister.getUseCustomPrefixes()
-                    || DiscordWhitelister.getUseCustomPrefixes() && messageContents.toLowerCase().startsWith(CustomPrefixConfig.whitelistRemovePrefix))
+                    || DiscordWhitelister.getUseCustomPrefixes() && messageContents.toLowerCase().startsWith(whitelistRemovePrefix))
             {
                 if (authorPermissions.isUserCanAddRemove()) {
                     messageContents = messageContents.toLowerCase();
@@ -772,7 +775,7 @@ public class DiscordClient extends ListenerAdapter
                     }
                     else
                     {
-                        messageContentsAfterCommand = messageContents.substring(CustomPrefixConfig.whitelistRemovePrefix.length() + 1); // get everything after whitelistRemovePrefix[space]
+                        messageContentsAfterCommand = messageContents.substring(whitelistRemovePrefix.length() + 1); // get everything after whitelistRemovePrefix[space]
                     }
 
                     final String finalNameToRemove = messageContentsAfterCommand.replaceAll(" .*", ""); // The name is everything up to the first space
