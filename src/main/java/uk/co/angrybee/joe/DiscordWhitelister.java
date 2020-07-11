@@ -35,7 +35,6 @@ public class DiscordWhitelister extends JavaPlugin
     private static boolean configCreated = false;
     private static boolean userListCreated = false;
     private static boolean removedListCreated = false;
-    private static boolean customMessagesCreated = false;
 
     public static boolean useEasyWhitelist = false;
     public static boolean useCustomMessages = false;
@@ -43,6 +42,7 @@ public class DiscordWhitelister extends JavaPlugin
     public static boolean useCustomPrefixes = false;
     public static boolean showPlayerSkin = true;
     public static boolean addInGameRemovesToList = true;
+    public static boolean showVanishedPlayersInCount = false;
 
     public static boolean botEnabled;
 
@@ -154,6 +154,8 @@ public class DiscordWhitelister extends JavaPlugin
         botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
         showPlayerSkin = getWhitelisterBotConfig().getBoolean("show-player-skin-on-whitelist");
         configCreated = MainConfig.configCreated;
+        showVanishedPlayersInCount = MainConfig.getMainConfig().getBoolean("show-vanished-players-in-player-count");
+
 
         DiscordClient.whitelistAddPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix");
         DiscordClient.whitelistRemovePrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-remove-prefix");
@@ -241,16 +243,13 @@ public class DiscordWhitelister extends JavaPlugin
         File dataFolder = thisPlugin.getDataFolder();
         Logger pluginLogger = thisPlugin.getLogger();
 
-        // Run this first as it creates the root folder if it does not exist
+        // Run this first, as it creates the root folder if it does not exist
         MainConfig.ConfigSetup();
         CustomPrefixConfig.ConfigSetup();
         CustomMessagesConfig.ConfigSetup();
 
         userListFile = new File(dataFolder, "user-list.yml");
         removedListFile = new File(dataFolder, "removed-list.yml");
-
-
-
 
         if(!userListFile.exists())
         {
