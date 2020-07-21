@@ -18,6 +18,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import uk.co.angrybee.joe.Configs.CustomPrefixConfig;
 import uk.co.angrybee.joe.Stores.InGameRemovedList;
+import uk.co.angrybee.joe.Stores.WhitelistedPlayers;
 
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
@@ -411,44 +412,22 @@ public class DiscordClient extends ListenerAdapter
                             }
                         }
 
-                        // EasyWhitelist username store
-                        FileConfiguration tempFileConfiguration = new YamlConfiguration();
-                        // Default Minecraft username store
-                        File whitelistJSON = (new File(".", "whitelist.json"));
-
                         if (onlyHasLimitedAdd) {
                             DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "(" + author.getId() + ") attempted to whitelist: " + finalNameToAdd + ", " + (maxWhitelistAmount - timesWhitelisted) + " whitelists remaining");
                         } else {
                             DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "(" + author.getId() + ") attempted to whitelist: " + finalNameToAdd);
                         }
 
-                        if (DiscordWhitelister.useEasyWhitelist)
-                        {
-                            try
-                            {
-                                tempFileConfiguration.load(new File(DiscordWhitelister.easyWhitelist.getDataFolder(), "config.yml"));
-                            }
-                            catch (IOException | InvalidConfigurationException e)
-                            {
-                                EmbedBuilder failure = new EmbedBuilder();
-                                failure.setColor(new Color(231, 76, 60));
-                                failure.addField("Internal Error", (author.getAsMention() + ", something went wrong while accessing EasyWhitelist file. Please contact a staff member."), false);
-                                channel.sendMessage(failure.build()).queue();
-                                e.printStackTrace();
-                                return;
-                            }
-                        }
-
                         boolean alreadyOnWhitelist = false;
 
-                        if(DiscordWhitelister.useEasyWhitelist)
+                        if(WhitelistedPlayers.usingEasyWhitelist)
                         {
-                            if (tempFileConfiguration.getStringList("whitelisted").contains(finalNameToAdd))
+                            if (WhitelistedPlayers.CheckForPlayerEasyWhitelist(finalNameToAdd))
                             {
                                 alreadyOnWhitelist = true;
                             }
                         }
-                        else if (checkWhitelistJSON(whitelistJSON, finalNameToAdd))
+                        else if (WhitelistedPlayers.CheckForPlayer(finalNameToAdd))
                         {
                             alreadyOnWhitelist = true;
                         }
@@ -666,30 +645,25 @@ public class DiscordClient extends ListenerAdapter
                         final int successfulTimesWhitelisted = maxWhitelistAmount - finalTimesWhitelisted;
                         final int failedTimesWhitelisted = maxWhitelistAmount - timesWhitelisted;
 
-                        if (!DiscordWhitelister.useEasyWhitelist) {
-                            if (authorPermissions.isUserCanUseCommand()) {
+                        if (!WhitelistedPlayers.usingEasyWhitelist)
+                        {
+                            if (authorPermissions.isUserCanUseCommand())
                                 executeServerCommand("whitelist add " + finalNameToAdd);
-                            }
                         }
 
-                        if (DiscordWhitelister.useEasyWhitelist) {
+                        if (WhitelistedPlayers.usingEasyWhitelist)
+                        {
                             if (!invalidMinecraftName) // have to do this else the easy whitelist plugin will add the name regardless of whether it is valid on not
                             {
-                                if (authorPermissions.isUserCanUseCommand()) {
+                                if (authorPermissions.isUserCanUseCommand())
                                     executeServerCommand("easywl add " + finalNameToAdd);
-                                }
                             }
 
                             // run through the server so that the check doesn't execute before the server has had a chance to run the whitelist command -- unsure if this is the best way of doing this, but it works
                             DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () ->
                             {
-                                try {
-                                    tempFileConfiguration.load(new File(DiscordWhitelister.easyWhitelist.getDataFolder(), "config.yml"));
-                                } catch (IOException | InvalidConfigurationException e) {
-                                    e.printStackTrace();
-                                }
-
-                                if (!invalidMinecraftName && tempFileConfiguration.getStringList("whitelisted").contains(finalNameToAdd)) {
+                                if (!invalidMinecraftName && WhitelistedPlayers.CheckForPlayerEasyWhitelist(finalNameToAdd))
+                                {
                                     channel.sendMessage(embedBuilderWhitelistSuccess.build()).queue();
 
                                     // Add role to user when they have been added to the whitelist if need be
@@ -744,10 +718,13 @@ public class DiscordClient extends ListenerAdapter
                                 }
                                 return null;
                             });
-                        } else {
+                        }
+                        else
+                        {
                             DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () ->
                             {
-                                if (checkWhitelistJSON(whitelistJSON, finalNameToAdd)) {
+                                if (WhitelistedPlayers.CheckForPlayer(finalNameToAdd))
+                                {
                                     channel.sendMessage(embedBuilderWhitelistSuccess.build()).queue();
 
                                     // Add role to user when they have been added to the whitelist if need be
@@ -827,30 +804,20 @@ public class DiscordClient extends ListenerAdapter
 
                     final String finalNameToRemove = messageContentsAfterCommand.replaceAll(" .*", ""); // The name is everything up to the first space
 
-                    if (finalNameToRemove.isEmpty()) {
+                    if (finalNameToRemove.isEmpty())
+                    {
                         channel.sendMessage(removeCommandInfo).queue();
                         return;
-                    } else {
-                        // easy whitelist
-                        FileConfiguration tempFileConfiguration = new YamlConfiguration();
-                        // default whitelist
-                        File whitelistJSON = (new File(".", "whitelist.json"));
-
+                    }
+                    else
+                    {
                         DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "(" + author.getId() + ") attempted to remove " + finalNameToRemove + " from the whitelist");
-
-                        if (DiscordWhitelister.useEasyWhitelist) {
-                            try {
-                                tempFileConfiguration.load(new File(DiscordWhitelister.easyWhitelist.getDataFolder(), "config.yml"));
-                            } catch (IOException | InvalidConfigurationException e) {
-                                e.printStackTrace();
-                            }
-                        }
 
                         boolean notOnWhitelist = false;
 
-                        if (DiscordWhitelister.useEasyWhitelist)
+                        if (WhitelistedPlayers.usingEasyWhitelist)
                         {
-                            if (!tempFileConfiguration.getStringList("whitelisted").contains(finalNameToRemove))
+                            if (!WhitelistedPlayers.CheckForPlayerEasyWhitelist(finalNameToRemove))
                             {
                                 notOnWhitelist = true;
 
@@ -875,7 +842,7 @@ public class DiscordClient extends ListenerAdapter
                             }
                         }
 
-                        if (!DiscordWhitelister.useEasyWhitelist && !checkWhitelistJSON(whitelistJSON, finalNameToRemove))
+                        if (!WhitelistedPlayers.usingEasyWhitelist && !WhitelistedPlayers.CheckForPlayer(finalNameToRemove))
                         {
                             notOnWhitelist = true;
 
@@ -901,23 +868,10 @@ public class DiscordClient extends ListenerAdapter
 
                         if (!notOnWhitelist)
                         {
-                            if (DiscordWhitelister.useEasyWhitelist)
-                            {
-                                try
-                                {
-                                    tempFileConfiguration.load(new File(DiscordWhitelister.easyWhitelist.getDataFolder(), "config.yml"));
-                                }
-                                catch (IOException | InvalidConfigurationException e)
-                                {
-                                    e.printStackTrace();
-                                }
-
+                            if (WhitelistedPlayers.usingEasyWhitelist)
                                 executeServerCommand("easywl remove " + finalNameToRemove);
-                            }
                             else
-                            {
                                 executeServerCommand("whitelist remove " + finalNameToRemove);
-                            }
 
                             // Configure message here instead of on the main thread - this means this will run even if the message is never sent, but is a good trade off (I think)
                             EmbedBuilder embedBuilderSuccess = new EmbedBuilder();
@@ -947,16 +901,12 @@ public class DiscordClient extends ListenerAdapter
                                     "This should never happen, you may have to remove the player manually and report the issue."), false);
 
 
-                            if (DiscordWhitelister.useEasyWhitelist) {
+                            if (WhitelistedPlayers.usingEasyWhitelist)
+                            {
                                 DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () ->
                                 {
-                                    try {
-                                        tempFileConfiguration.load(new File(DiscordWhitelister.easyWhitelist.getDataFolder(), "config.yml"));
-                                    } catch (IOException | InvalidConfigurationException e) {
-                                        e.printStackTrace();
-                                    }
-
-                                    if (!tempFileConfiguration.getStringList("whitelisted").contains(finalNameToRemove)) {
+                                    if (!WhitelistedPlayers.CheckForPlayerEasyWhitelist(finalNameToRemove))
+                                    {
                                         channel.sendMessage(embedBuilderSuccess.build()).queue();
 
                                         // Remove role from user when they have been removed from the whitelist if need be
@@ -1014,7 +964,7 @@ public class DiscordClient extends ListenerAdapter
                             } else {
                                 DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () ->
                                 {
-                                    if (!checkWhitelistJSON(whitelistJSON, finalNameToRemove)) {
+                                    if (!WhitelistedPlayers.CheckForPlayer(finalNameToRemove)) {
                                         channel.sendMessage(embedBuilderSuccess.build()).queue();
 
                                         // Remove role from user when they have been removed from the whitelist if need be
@@ -1129,11 +1079,12 @@ public class DiscordClient extends ListenerAdapter
         DiscordWhitelister.getPlugin().getLogger().info(discordUserToRemove + " left. Removing their whitelisted entries...");
         List<?> ls =  DiscordWhitelister.getRegisteredUsers(discordUserToRemove);
 
-        if(ls != null) {
-
+        if(ls != null)
+        {
             for (Object minecraftNameToRemove : ls) {
                 DiscordWhitelister.getPlugin().getLogger().info(minecraftNameToRemove.toString() + " left. Removing their whitelisted entries.");
-                if (DiscordWhitelister.useEasyWhitelist) {
+                if (WhitelistedPlayers.usingEasyWhitelist)
+                {
                     executeServerCommand("easywl remove " + minecraftNameToRemove.toString());
                 } else {
                     executeServerCommand("whitelist remove " + minecraftNameToRemove.toString());
@@ -1146,40 +1097,11 @@ public class DiscordClient extends ListenerAdapter
                 return;
             }
             DiscordWhitelister.getPlugin().getLogger().info(discordUserToRemove + " left. Successfully removed their whitelisted entries.");
-
         }
-        else {
+        else
+        {
             DiscordWhitelister.getPlugin().getLogger().warning(discordUserToRemove + " left. Could not removed their whitelisted entries as they did not whitelist through this plugin.");
         }
-    }
-
-    // Input name should always be set to lower case
-    public static boolean checkWhitelistJSON(File whitelistFile, String minecraftUsername)
-    {
-        boolean correctUsername = false;
-
-        try
-        {
-            JSONParser jsonParser = new JSONParser();
-            JSONArray jsonArray = (JSONArray) jsonParser.parse(new FileReader(whitelistFile));
-
-            for (Object object : jsonArray)
-            {
-                JSONObject player = (JSONObject) object;
-
-                String userName = (String) player.get("name");
-                userName = userName.toLowerCase();
-
-                if (userName.equals(minecraftUsername))
-                    correctUsername = true;
-            }
-        }
-        catch (IOException | ParseException e)
-        {
-            e.printStackTrace();
-        }
-
-        return correctUsername;
     }
 
     private String minecraftUsernameToUUID(String minecraftUsername)
