@@ -17,6 +17,7 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import uk.co.angrybee.joe.Configs.CustomPrefixConfig;
+import uk.co.angrybee.joe.Stores.InGameRemovedList;
 
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
@@ -53,7 +54,7 @@ public class DiscordClient extends ListenerAdapter
     private final char[] validCharacters = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h',
             'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'};
 
-    private static JDA javaDiscordAPI;
+    public static JDA javaDiscordAPI;
 
     public static int InitializeClient(String clientToken)
     {
@@ -522,6 +523,52 @@ public class DiscordClient extends ListenerAdapter
 
                                 DiscordWhitelister.getPlugin().getLogger().info(finalNameToAdd + " has been removed from the removed list by " + author.getName()
                                         + "(" + author.getId() + ")");
+                            }
+                        }
+
+                        // In-game list check
+                        if(DiscordWhitelister.useInGameAddRemoves)
+                        {
+                            if(InGameRemovedList.CheckStoreForPlayer(finalNameToAdd))
+                            {
+                                if(onlyHasLimitedAdd)
+                                {
+                                    EmbedBuilder embedBuilderRemovedByStaff = new EmbedBuilder();
+                                    embedBuilderRemovedByStaff.setColor(new Color(231, 76, 60));
+
+                                    if(!DiscordWhitelister.useCustomMessages)
+                                    {
+                                        embedBuilderRemovedByStaff.addField("This user was previously removed by a staff member", (author.getAsMention() + ", this user was previously removed by a staff member in-game (" + InGameRemovedList.getRemovedPlayers().get(finalNameToAdd) + ")."
+                                                + System.lineSeparator() + "Please ask a user with higher permissions to add this user." + System.lineSeparator()), false);
+                                        embedBuilderRemovedByStaff.addField("Whitelists Remaining", ("You have **" + (maxWhitelistAmount - timesWhitelisted)
+                                                + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + "** whitelists remaining."), false);
+                                    }
+                                    else
+                                    {
+                                        String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("user-was-removed-in-game-title");
+                                        String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("user-was-removed-in-game");
+                                        String customWhitelistsRemaining = DiscordWhitelister.getCustomMessagesConfig().getString("whitelists-remaining");
+                                        String inGameStaffMember = InGameRemovedList.getRemovedPlayers().getString(finalNameToAdd);
+
+                                        customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
+                                        customMessage = customMessage.replaceAll("\\{StaffMember}", inGameStaffMember);
+
+                                        customWhitelistsRemaining = customWhitelistsRemaining.replaceAll("\\{RemainingWhitelists}", String.valueOf((maxWhitelistAmount - timesWhitelisted)));
+                                        customWhitelistsRemaining = customWhitelistsRemaining.replaceAll("\\{MaxWhitelistAmount}", String.valueOf(maxWhitelistAmount));
+
+                                        embedBuilderRemovedByStaff.addField(customTitle, customMessage + " " + customWhitelistsRemaining, false);
+                                    }
+
+                                    channel.sendMessage(embedBuilderRemovedByStaff.build()).queue();
+                                    return;
+                                }
+                                else // Remove from in-game removed list
+                                {
+                                    InGameRemovedList.RemoveUserFromStore(finalNameToAdd);
+
+                                    DiscordWhitelister.getPlugin().getLogger().info(finalNameToAdd + " has been removed from in-game-removed-list.yml by " + author.getName()
+                                            + "(" + author.getId() + ")");
+                                }
                             }
                         }
 
@@ -1106,24 +1153,29 @@ public class DiscordClient extends ListenerAdapter
         }
     }
 
-    private boolean checkWhitelistJSON(File whitelistFile, String minecraftUsername) {
+    // Input name should always be set to lower case
+    public static boolean checkWhitelistJSON(File whitelistFile, String minecraftUsername)
+    {
         boolean correctUsername = false;
 
-        try {
+        try
+        {
             JSONParser jsonParser = new JSONParser();
             JSONArray jsonArray = (JSONArray) jsonParser.parse(new FileReader(whitelistFile));
 
-            for (Object object : jsonArray) {
+            for (Object object : jsonArray)
+            {
                 JSONObject player = (JSONObject) object;
 
                 String userName = (String) player.get("name");
                 userName = userName.toLowerCase();
 
-                if (userName.equals(minecraftUsername)) {
+                if (userName.equals(minecraftUsername))
                     correctUsername = true;
-                }
             }
-        } catch (IOException | ParseException e) {
+        }
+        catch (IOException | ParseException e)
+        {
             e.printStackTrace();
         }
 

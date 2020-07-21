@@ -13,6 +13,8 @@ import uk.co.angrybee.joe.Configs.CustomMessagesConfig;
 import uk.co.angrybee.joe.Configs.CustomPrefixConfig;
 import uk.co.angrybee.joe.Configs.MainConfig;
 import uk.co.angrybee.joe.Events.JoinLeaveEvents;
+import uk.co.angrybee.joe.Events.OnWhitelistEvents;
+import uk.co.angrybee.joe.Stores.InGameRemovedList;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +45,7 @@ public class DiscordWhitelister extends JavaPlugin
     public static boolean showPlayerSkin = true;
     public static boolean addInGameRemovesToList = true;
     public static boolean showVanishedPlayersInCount = false;
+    public static boolean useInGameAddRemoves = true;
 
     public static boolean botEnabled;
 
@@ -74,6 +77,12 @@ public class DiscordWhitelister extends JavaPlugin
         this.getCommand("discordwhitelister").setExecutor(new CommandStatus());
         this.getCommand("discordwhitelisterabout").setExecutor(new CommandAbout());
         this.getCommand("discordwhitelisterreload").setExecutor(new CommandReload());
+    }
+
+    @Override
+    public void onDisable()
+    {
+        DiscordClient.javaDiscordAPI.shutdownNow();
     }
 
     public static JavaPlugin getPlugin()
@@ -155,6 +164,7 @@ public class DiscordWhitelister extends JavaPlugin
         showPlayerSkin = getWhitelisterBotConfig().getBoolean("show-player-skin-on-whitelist");
         configCreated = MainConfig.configCreated;
         showVanishedPlayersInCount = MainConfig.getMainConfig().getBoolean("show-vanished-players-in-player-count");
+        useInGameAddRemoves = MainConfig.getMainConfig().getBoolean("add-in-game-adds-and-removes-to-list");
 
 
         DiscordClient.whitelistAddPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix");
@@ -221,6 +231,7 @@ public class DiscordWhitelister extends JavaPlugin
             if(initSuccess == 1)
                 return 1;
 
+
             // No need for an if here statement anymore as this code will not run if the client has not been initialized
             // Only attempt to set player count if the bot successfully initialized
             if(getWhitelisterBotConfig().getBoolean("show-player-count"))
@@ -231,6 +242,10 @@ public class DiscordWhitelister extends JavaPlugin
                 // Set initial player count
                 DiscordClient.SetPlayerCountStatus(getOnlineUsers());
             }
+
+            // Register whitelist events
+            if(useInGameAddRemoves)
+                thisServer.getPluginManager().registerEvents(new OnWhitelistEvents(), thisPlugin);
 
             return 0;
         }
@@ -247,6 +262,9 @@ public class DiscordWhitelister extends JavaPlugin
         MainConfig.ConfigSetup();
         CustomPrefixConfig.ConfigSetup();
         CustomMessagesConfig.ConfigSetup();
+
+        // Init Stores
+        InGameRemovedList.StoreSetup();
 
         userListFile = new File(dataFolder, "user-list.yml");
         removedListFile = new File(dataFolder, "removed-list.yml");

@@ -107,6 +107,8 @@ public class MainConfig
 
         CheckEntry("removed-list-enabled", true);
 
+        CheckEntry("add-in-game-adds-and-removes-to-list", true);
+
         CheckEntry("use-custom-messages", false);
 
         CheckEntry("use-custom-prefixes", false);
