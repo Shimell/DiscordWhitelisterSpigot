@@ -7,9 +7,6 @@ import uk.co.angrybee.joe.DiscordWhitelister;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 // Stores removed players that were removed in-game
 // in-game-removed-list.yml
@@ -101,6 +98,7 @@ public class InGameRemovedList
     // Returns true if the player is in the store/list
     public static boolean CheckStoreForPlayer(String nameToCheck)
     {
+        LoadStore();
         return removedPlayersConfig.get(nameToCheck) != null;
     }
 }

@@ -12,10 +12,9 @@ import uk.co.angrybee.joe.DiscordWhitelister;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.logging.Logger;
 
-// TODO: 1 File to access Vanilla & EWhitelist whitelisted players
+// For accessing whitelisted players
 public class WhitelistedPlayers
 {
     private static Plugin easyWhitelist;

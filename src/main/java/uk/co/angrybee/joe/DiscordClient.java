@@ -8,16 +8,11 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import uk.co.angrybee.joe.Configs.CustomPrefixConfig;
 import uk.co.angrybee.joe.Stores.InGameRemovedList;
+import uk.co.angrybee.joe.Stores.RemovedList;
 import uk.co.angrybee.joe.Stores.WhitelistedPlayers;
 
 import javax.annotation.Nonnull;
@@ -455,7 +450,7 @@ public class DiscordClient extends ListenerAdapter
                             return;
                         }
 
-                        if (DiscordWhitelister.getRemovedList().get(finalNameToAdd) != null) // If the user has been removed before
+                        if (RemovedList.CheckStoreForPlayer(finalNameToAdd)) // If the user has been removed before
                         {
                             if (onlyHasLimitedAdd)
                             {
@@ -464,7 +459,7 @@ public class DiscordClient extends ListenerAdapter
 
                                 if(!DiscordWhitelister.useCustomMessages)
                                 {
-                                    embedBuilderRemovedByStaff.addField("This user was previously removed by a staff member", (author.getAsMention() + ", this user was previously removed by a staff member (<@" + DiscordWhitelister.getRemovedList().get(finalNameToAdd) + ">)."
+                                    embedBuilderRemovedByStaff.addField("This user was previously removed by a staff member", (author.getAsMention() + ", this user was previously removed by a staff member (<@" + RemovedList.getRemovedPlayers().get(finalNameToAdd) + ">)."
                                             + System.lineSeparator() + "Please ask a user with higher permissions to add this user." + System.lineSeparator()), false);
                                     embedBuilderRemovedByStaff.addField("Whitelists Remaining", ("You have **" + (maxWhitelistAmount - timesWhitelisted)
                                             + " out of " + DiscordWhitelister.getWhitelisterBotConfig().getString("max-whitelist-amount") + "** whitelists remaining."), false);
@@ -474,7 +469,7 @@ public class DiscordClient extends ListenerAdapter
                                     String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("user-was-removed-title");
                                     String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("user-was-removed");
                                     String customWhitelistsRemaining = DiscordWhitelister.getCustomMessagesConfig().getString("whitelists-remaining");
-                                    String staffMemberMention = "<@" + DiscordWhitelister.getRemovedList().get(finalNameToAdd) + ">";
+                                    String staffMemberMention = "<@" + RemovedList.getRemovedPlayers().get(finalNameToAdd) + ">";
 
                                     customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
                                     customMessage = customMessage.replaceAll("\\{StaffMember}", staffMemberMention);
@@ -490,15 +485,8 @@ public class DiscordClient extends ListenerAdapter
                             }
                             else // Remove from removed list
                             {
-                                DiscordWhitelister.getRemovedList().set(finalNameToAdd, null);
-
-                                try
-                                {
-                                    DiscordWhitelister.getRemovedList().save(DiscordWhitelister.getRemovedListFile().getPath());
-                                } catch (IOException e)
-                                {
-                                    e.printStackTrace();
-                                }
+                                RemovedList.getRemovedPlayers().set(finalNameToAdd, null);
+                                RemovedList.SaveStore();
 
                                 DiscordWhitelister.getPlugin().getLogger().info(finalNameToAdd + " has been removed from the removed list by " + author.getName()
                                         + "(" + author.getId() + ")");
@@ -951,10 +939,10 @@ public class DiscordClient extends ListenerAdapter
                                         }
 
                                         // if the name is not on the list
-                                        if (DiscordWhitelister.getRemovedList().get(finalNameToRemove) == null)
+                                        if (RemovedList.getRemovedPlayers().get(finalNameToRemove) == null)
                                         {
-                                            DiscordWhitelister.getRemovedList().set(finalNameToRemove, author.getId());
-                                            DiscordWhitelister.getRemovedList().save(DiscordWhitelister.getRemovedListFile().getPath());
+                                            RemovedList.getRemovedPlayers().set(finalNameToRemove, author.getId());
+                                            RemovedList.SaveStore();
                                         }
                                     } else {
                                         channel.sendMessage(embedBuilderFailure.build()).queue();
@@ -1007,9 +995,10 @@ public class DiscordClient extends ListenerAdapter
                                         }
 
                                         // if the name is not on the list
-                                        if (DiscordWhitelister.getRemovedList().get(finalNameToRemove) == null) {
-                                            DiscordWhitelister.getRemovedList().set(finalNameToRemove, author.getId());
-                                            DiscordWhitelister.getRemovedList().save(DiscordWhitelister.getRemovedListFile().getPath());
+                                        if (RemovedList.CheckStoreForPlayer(finalNameToRemove))
+                                        {
+                                            RemovedList.getRemovedPlayers().set(finalNameToRemove, author.getId());
+                                            RemovedList.SaveStore();
                                         }
                                     } else {
                                         channel.sendMessage(embedBuilderFailure.build()).queue();

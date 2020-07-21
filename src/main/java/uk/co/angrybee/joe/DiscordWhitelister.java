@@ -4,7 +4,6 @@ import org.bukkit.Server;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import uk.co.angrybee.joe.Commands.CommandAbout;
 import uk.co.angrybee.joe.Commands.CommandReload;
@@ -15,6 +14,7 @@ import uk.co.angrybee.joe.Configs.MainConfig;
 import uk.co.angrybee.joe.Events.JoinLeaveEvents;
 import uk.co.angrybee.joe.Events.OnWhitelistEvents;
 import uk.co.angrybee.joe.Stores.InGameRemovedList;
+import uk.co.angrybee.joe.Stores.RemovedList;
 import uk.co.angrybee.joe.Stores.WhitelistedPlayers;
 
 import java.io.File;
@@ -25,16 +25,13 @@ import java.util.logging.Logger;
 public class DiscordWhitelister extends JavaPlugin
 {
     private static File userListFile;
-    private static File removedListFile;
 
     private static FileConfiguration userList;
-    private static FileConfiguration removedList;
 
     public static String botToken;
 
     private static boolean configCreated = false;
     private static boolean userListCreated = false;
-    private static boolean removedListCreated = false;
 
     public static boolean useCustomMessages = false;
     public static boolean useIdForRoles = false;
@@ -98,13 +95,6 @@ public class DiscordWhitelister extends JavaPlugin
         return userListFile;
     }
 
-    public static FileConfiguration getRemovedList() { return removedList; }
-
-    public static File getRemovedListFile()
-    {
-        return removedListFile;
-    }
-
     public static FileConfiguration getCustomMessagesConfig() { return CustomMessagesConfig.getCustomMessagesConfig(); }
 
     public static Logger getPluginLogger() { return pluginLogger; }
@@ -148,7 +138,6 @@ public class DiscordWhitelister extends JavaPlugin
     public static int InitBot(boolean firstInit)
     {
         userList = new YamlConfiguration();
-        removedList = new YamlConfiguration();
 
         if(firstInit)
             vanishedPlayersCount = 0;
@@ -201,23 +190,6 @@ public class DiscordWhitelister extends JavaPlugin
                 DiscordClient.allowedToAddLimitedRoles[roles] = getWhitelisterBotConfig().getList("limited-add-roles").get(roles).toString();
             }
 
-//            // easy whitelist check
-//            if(getWhitelisterBotConfig().getBoolean("use-easy-whitelist"))
-//            {
-//                pluginLogger.info("Checking for Easy Whitelist...");
-//                if(thisServer.getPluginManager().getPlugin("EasyWhitelist") != null)
-//                {
-//                    pluginLogger.info("Easy Whitelist found! Will use over default whitelist command.");
-//                    easyWhitelist = thisServer.getPluginManager().getPlugin("EasyWhitelist");
-//                    useEasyWhitelist = true;
-//                }
-//                else
-//                {
-//                    pluginLogger.warning("Easy Whitelist was not found but is enabled in the config. " +
-//                            "Falling back to default whitelist command");
-//                }
-//            }
-
             // Custom messages check
             useCustomMessages = getWhitelisterBotConfig().getBoolean("use-custom-messages");
             useCustomPrefixes = getWhitelisterBotConfig().getBoolean("use-custom-prefixes");
@@ -261,11 +233,11 @@ public class DiscordWhitelister extends JavaPlugin
 
         // Init Stores
         InGameRemovedList.StoreSetup();
+        RemovedList.StoreSetup();
 
         WhitelistedPlayers.Setup();
 
         userListFile = new File(dataFolder, "user-list.yml");
-        removedListFile = new File(dataFolder, "removed-list.yml");
 
         if(!userListFile.exists())
         {
@@ -291,48 +263,11 @@ public class DiscordWhitelister extends JavaPlugin
             e.printStackTrace();
         }
 
-        if(!removedListFile.exists())
-        {
-            try
-            {
-                removedListFile.createNewFile();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            pluginLogger.info("Removed list created at: " + removedListFile.getPath());
-            removedListCreated = true;
-        }
-
-        try
-        {
-            getRemovedList().load(removedListFile);
-        }
-        catch (IOException | InvalidConfigurationException e)
-        {
-            e.printStackTrace();
-        }
-
         if(userListCreated)
         {
             try
             {
                 getUserList().save(userListFile.getPath());
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-        }
-
-        if(removedListCreated)
-        {
-            //getRemovedList().set("minecraftUsername", "discordRemoverID");
-            try
-            {
-                getRemovedList().save(removedListFile.getPath());
             }
             catch (IOException e)
             {

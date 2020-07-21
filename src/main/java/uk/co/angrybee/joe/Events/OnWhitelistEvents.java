@@ -4,10 +4,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.jetbrains.annotations.NotNull;
-import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
 import uk.co.angrybee.joe.Stores.InGameRemovedList;
+import uk.co.angrybee.joe.Stores.RemovedList;
 import uk.co.angrybee.joe.Stores.WhitelistedPlayers;
 
 import java.io.File;
@@ -89,23 +88,14 @@ public class OnWhitelistEvents implements Listener
 
     private static void ClearPlayerFromRemovedLists(String playerName, Player commandCaller)
     {
-        // TODO: change when removed list is moved to stores folder
-        if(DiscordWhitelister.getRemovedList().get(playerName) != null)
+        if(RemovedList.CheckStoreForPlayer(playerName))
         {
             DiscordWhitelister.getPluginLogger().info(commandCaller.getName() + " is attempting to add " + playerName + ". Removing " + playerName +
                     " from removed-list.yml");
-            DiscordWhitelister.getRemovedList().set(playerName, null);
+            RemovedList.getRemovedPlayers().set(playerName, null);
 
             // Save changes
-            // TODO: call save function when created instead of doing it again here
-            try
-            {
-                DiscordWhitelister.getRemovedList().save(DiscordWhitelister.getRemovedListFile().getPath());
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
+            RemovedList.SaveStore();
         }
 
         if(InGameRemovedList.CheckStoreForPlayer(playerName))
