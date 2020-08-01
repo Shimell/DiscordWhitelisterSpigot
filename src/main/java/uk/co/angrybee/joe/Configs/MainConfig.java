@@ -119,6 +119,9 @@ public class MainConfig
 
         CheckEntry("show-vanished-players-in-player-count", false);
 
+        // Disable checking if username exists
+        CheckEntry("offline-mode", false);
+
         // Remove old role entry if found, move role to new array (for people with v1.3.6 or below)
         if(whitelisterBotConfig.get("whitelisted-role") != null)
         {

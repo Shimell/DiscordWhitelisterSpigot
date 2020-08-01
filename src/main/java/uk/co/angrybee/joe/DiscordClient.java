@@ -42,6 +42,7 @@ public class DiscordClient extends ListenerAdapter
 
     private static boolean limitedWhitelistEnabled;
     private static boolean usernameValidation;
+    private static boolean offlineMode;
 
     private static boolean whitelistedRoleAutoAdd;
     private static boolean whitelistedRoleAutoRemove;
@@ -89,6 +90,7 @@ public class DiscordClient extends ListenerAdapter
         maxWhitelistAmount = DiscordWhitelister.getWhitelisterBotConfig().getInt("max-whitelist-amount");
         limitedWhitelistEnabled = DiscordWhitelister.getWhitelisterBotConfig().getBoolean("limited-whitelist-enabled");
         usernameValidation = DiscordWhitelister.getWhitelisterBotConfig().getBoolean("username-validation");
+        offlineMode = DiscordWhitelister.getWhitelisterBotConfig().getBoolean("offline-mode");
 
         // Set the name of the role to add/remove to/from the user after they have been added/removed to/from the whitelist and if this feature is enabled
         whitelistedRoleAutoAdd = DiscordWhitelister.getWhitelisterBotConfig().getBoolean("whitelisted-role-auto-add");
@@ -548,7 +550,7 @@ public class DiscordClient extends ListenerAdapter
                         this will run even if the message is never sent, but is a good trade off */
                         EmbedBuilder embedBuilderWhitelistSuccess = new EmbedBuilder();
                         embedBuilderWhitelistSuccess.setColor(new Color(46, 204, 113));
-                        if(DiscordWhitelister.showPlayerSkin)
+                        if(DiscordWhitelister.showPlayerSkin && !offlineMode)
                         {
                             embedBuilderWhitelistSuccess.setThumbnail("https://minotar.net/armor/bust/" + playerUUID + "/100.png");
                         }
@@ -641,7 +643,7 @@ public class DiscordClient extends ListenerAdapter
 
                         if (WhitelistedPlayers.usingEasyWhitelist)
                         {
-                            if (!invalidMinecraftName) // have to do this else the easy whitelist plugin will add the name regardless of whether it is valid on not
+                            if (!invalidMinecraftName || offlineMode) // have to do this else the easy whitelist plugin will add the name regardless of whether it is valid on not
                             {
                                 if (authorPermissions.isUserCanUseCommand())
                                     executeServerCommand("easywl add " + finalNameToAdd);
@@ -650,7 +652,7 @@ public class DiscordClient extends ListenerAdapter
                             // run through the server so that the check doesn't execute before the server has had a chance to run the whitelist command -- unsure if this is the best way of doing this, but it works
                             DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), () ->
                             {
-                                if (!invalidMinecraftName && WhitelistedPlayers.CheckForPlayerEasyWhitelist(finalNameToAdd))
+                                if ((!invalidMinecraftName || offlineMode) && WhitelistedPlayers.CheckForPlayerEasyWhitelist(finalNameToAdd))
                                 {
                                     channel.sendMessage(embedBuilderWhitelistSuccess.build()).queue();
 
