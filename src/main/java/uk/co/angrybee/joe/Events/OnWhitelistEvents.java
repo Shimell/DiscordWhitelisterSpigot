@@ -3,26 +3,38 @@ package uk.co.angrybee.joe.Events;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import uk.co.angrybee.joe.DiscordWhitelister;
+import uk.co.angrybee.joe.Stores.InGameRemovedList;
+import uk.co.angrybee.joe.Stores.RemovedList;
+import uk.co.angrybee.joe.Stores.WhitelistedPlayers;
+
+import java.io.File;
+import java.io.IOException;
 
 // Checks for whitelist removes in-game, so player's cannot use the bot to add them back without an admin/staff member with higher permissions
 public class OnWhitelistEvents implements Listener
 {
     private enum CommandContext { VANILLA_ADD, EASYWL_ADD, VANILLA_REMOVE, EASYWL_REMOVE }
 
+    // TODO: incorporate this into the checkWhitelistJSON function
+    private static final File whitelistFile = (new File(".", "whitelist.json"));
+
     @EventHandler
-    public void PlayerCommandPreprocessEvent(Player commandCaller, String message)
+    public void onCommandPreprocess(PlayerCommandPreprocessEvent event)
     {
         // Initial check
         CommandContext commandContext;
+        Player commandCaller = event.getPlayer();
+        String message = event.getMessage();
 
-        if(message.startsWith("!whitelist add"))
+        if(message.startsWith("/whitelist add"))
             commandContext = CommandContext.VANILLA_ADD;
-        else if(message.startsWith("!easywl add"))
+        else if(message.startsWith("/easywl add"))
             commandContext = CommandContext.EASYWL_ADD;
-        else if(message.startsWith("!whitelist remove"))
+        else if(message.startsWith("/whitelist remove"))
             commandContext = CommandContext.VANILLA_REMOVE;
-        else if(message.startsWith("!easywl remove"))
+        else if(message.startsWith("/easywl remove"))
             commandContext = CommandContext.EASYWL_REMOVE;
         else
             return;
@@ -39,27 +51,58 @@ public class OnWhitelistEvents implements Listener
 
         // Determine what command to check
 
+        String targetName = "";
+
         // Check for adds to remove player's off the removed list (if they are on it)
-        if(commandContext.equals(CommandContext.VANILLA_ADD) && !DiscordWhitelister.useEasyWhitelist)
+        if(commandContext.equals(CommandContext.VANILLA_ADD) && !WhitelistedPlayers.usingEasyWhitelist)
         {
-            // TODO
-            // Check removed-list.yml, remove username from there if it exists
-            // Check in-game removed list when created and remove from there if it exists
-            // Log removal of name from list if it existed
+            targetName = message.substring("/whitelist add".length() + 1).toLowerCase();
+            ClearPlayerFromRemovedLists(targetName, commandCaller);
         }
-        else if(commandContext.equals(CommandContext.EASYWL_ADD) && DiscordWhitelister.useEasyWhitelist)
+        else if(commandContext.equals(CommandContext.EASYWL_ADD) && WhitelistedPlayers.usingEasyWhitelist)
         {
+            targetName = message.substring("/easywl add".length() + 1).toLowerCase();
+            ClearPlayerFromRemovedLists(targetName, commandCaller);
+        }
+        else if(commandContext.equals(CommandContext.VANILLA_REMOVE) && !WhitelistedPlayers.usingEasyWhitelist)
+        {
+            targetName = message.substring("/whitelist remove".length() + 1).toLowerCase();
 
+            if(WhitelistedPlayers.CheckForPlayer(targetName))
+            {
+                InGameRemovedList.AddUserToStore(targetName, commandCaller.getName());
+                DiscordWhitelister.getPluginLogger().info(commandCaller.getName() + " has added " + targetName + " to the in-game removed list");
+            }
         }
-        else if(commandContext.equals(CommandContext.VANILLA_REMOVE) && !DiscordWhitelister.useEasyWhitelist)
+        else if(commandContext.equals(CommandContext.EASYWL_REMOVE) && WhitelistedPlayers.usingEasyWhitelist)
         {
-            // TODO
-            // Check if the player is in the whitelist as this runs before the command is executed
-            // Add player to in-game removed list and the players' name that removed it
-        }
-        else if(commandContext.equals(CommandContext.EASYWL_REMOVE) && DiscordWhitelister.useEasyWhitelist)
-        {
+            targetName = message.substring("/easywl remove".length() + 1).toLowerCase();
 
+            if(WhitelistedPlayers.CheckForPlayerEasyWhitelist(targetName))
+            {
+                InGameRemovedList.AddUserToStore(targetName, commandCaller.getName());
+                DiscordWhitelister.getPluginLogger().info(commandCaller.getName() + " has added " + targetName + " to the in-game removed list");
+            }
+        }
+    }
+
+    private static void ClearPlayerFromRemovedLists(String playerName, Player commandCaller)
+    {
+        if(RemovedList.CheckStoreForPlayer(playerName))
+        {
+            DiscordWhitelister.getPluginLogger().info(commandCaller.getName() + " is attempting to add " + playerName + ". Removing " + playerName +
+                    " from removed-list.yml");
+            RemovedList.getRemovedPlayers().set(playerName, null);
+
+            // Save changes
+            RemovedList.SaveStore();
+        }
+
+        if(InGameRemovedList.CheckStoreForPlayer(playerName))
+        {
+            InGameRemovedList.RemoveUserFromStore(playerName);
+            DiscordWhitelister.getPluginLogger().info(commandCaller.getName() + " is attempting to add " + playerName + ". Removing " + playerName +
+                    " from in-game-removed-list.yml");
         }
     }
 }

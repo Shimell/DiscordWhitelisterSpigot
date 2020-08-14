@@ -89,6 +89,9 @@ public class CustomMessagesConfig
             CheckEntry("user-was-removed-title", "This user was previously removed by a staff member");
             CheckEntry("user-was-removed", "{Sender}, this user was previously removed by a staff member ({StaffMember}). Please ask a user with higher permissions to add this user.");
 
+            CheckEntry("user-was-removed-in-game-title", "This user was previously removed by a staff member");
+            CheckEntry("user-was-removed-in-game", "{Sender}, this user was previously removed by a staff member in-game ({StaffMember}). Please ask a user with higher permissions to add this user.");
+
             CheckEntry("whitelists-remaining-title", "Whitelists Remaining");
             CheckEntry("whitelists-remaining", "You have **{RemainingWhitelists} out of {MaxWhitelistAmount}** whitelists remaining.");
 
