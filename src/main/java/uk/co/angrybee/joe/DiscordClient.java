@@ -8,6 +8,8 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.internal.utils.PermissionUtil;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -62,8 +64,18 @@ public class DiscordClient extends ListenerAdapter
 
         try
         {
-            javaDiscordAPI = new JDABuilder(AccountType.BOT).setToken(clientToken).addEventListeners(new DiscordClient()).build();
+            //javaDiscordAPI = new JDABuilder(AccountType.BOT).setToken(clientToken).addEventListeners(new DiscordClient()).build();
+
+            javaDiscordAPI = JDABuilder
+                    .createDefault(clientToken)
+                    .addEventListeners(new DiscordClient())
+                    .addEventListeners(new CheckIntents())
+                    .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                    .build();
+
             javaDiscordAPI.awaitReady();
+
+
 
             return 0;
         }

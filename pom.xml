@@ -6,15 +6,15 @@
 
   <groupId>uk.co.angrybee.joe</groupId>
   <artifactId>discord-whitelister</artifactId>
-  <version>1.3.6</version>
+  <version>1.3.8</version>
 
   <name>discord-whitelister</name>
   <url>https://github.com/JoeShimell/DiscordWhitelisterSpigot</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
   <repositories>
@@ -35,21 +35,15 @@
 
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.14.2-R0.1-SNAPSHOT</version>
+      <version>1.16.3-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>net.dv8tion</groupId>
       <artifactId>JDA</artifactId>
-      <version>4.BETA.0_30</version>
+      <version>4.2.0_211</version>
       <exclusions>
         <exclusion>
           <groupId>club.minnced</groupId>
@@ -76,6 +70,12 @@
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
       <version>2.12.1</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
+    <dependency>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-shade-plugin</artifactId>
+      <version>3.2.4</version>
     </dependency>
   </dependencies>
 
@@ -133,10 +133,33 @@
             </execution>
           </executions>
           <configuration>
-            <finalName>uber-${project.artifactId}-${project.version}</finalName>
+            <finalName>${project.artifactId}-${project.version}</finalName>
+            <minimizeJar>true</minimizeJar>
+            <relocations>
+            </relocations>
           </configuration>
         </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.8</version>
+          <executions>
+            <execution>
+              <phase>install</phase>
+              <goals>
+                <goal>run</goal>
+              </goals>
+              <configuration>
+                <tasks>
+                  <copy file="plugin.yml" tofile="${basedir}/plugin.yml"/>
+                </tasks>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
+
     </pluginManagement>
     <plugins>
       <plugin>
@@ -146,6 +169,12 @@
           <source>8</source>
           <target>8</target>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.4</version>
       </plugin>
     </plugins>
   </build>
