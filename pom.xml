@@ -6,7 +6,7 @@
 
   <groupId>uk.co.angrybee.joe</groupId>
   <artifactId>discord-whitelister</artifactId>
-  <version>1.3.7</version>
+  <version>1.3.6</version>
 
   <name>discord-whitelister</name>
   <url>https://github.com/JoeShimell/DiscordWhitelisterSpigot</url>
@@ -34,6 +34,12 @@
 
 
   <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
@@ -71,31 +77,11 @@
       <artifactId>log4j-slf4j-impl</artifactId>
       <version>2.12.1</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-shade-plugin</artifactId>
-      <version>3.2.4</version>
-      <type>maven-plugin</type>
-    </dependency>
   </dependencies>
 
   <build>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
-        <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.3.0</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>uk.co.angrybee.joe.DiscordWhitelister</mainClass>
-            </manifest>
-          </archive>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-        </configuration>
-        </plugin>
         <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
@@ -138,7 +124,6 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.2.4</version>
           <executions>
             <execution>
               <phase>package</phase>
@@ -149,112 +134,7 @@
           </executions>
           <configuration>
             <finalName>uber-${project.artifactId}-${project.version}</finalName>
-            <minimizeJar>true</minimizeJar>
-            <relocations>
-              <relocation>
-                <pattern>net.dv8tion</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.net.dv8tion</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>com.fasterxml</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.com.fasterxml</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>com.google</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.com.google</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>com.iwebpp</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.com.iwebpp</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>com.neovisionaries</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.com.neovisionaries</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>gnu.trove</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.gnu.trove</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>javax.annotation</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.javax.annotation</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>junit.extensions</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.junit.extensions</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>junit.framework</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.junit.framework</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>junit.runner</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.junit.runner</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>junit.textui</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.junit.textui</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>licenses</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.licenses</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>okhttp3</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.okhttp3</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>okio</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.okio</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>org.apache</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.org.apache</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>org.hamcrest</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.org.hamcrest</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>org.jdom2</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.org.jdom2</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>org.jetbrains</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.org.jetbrains</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>org.json</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.org.json</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>org.junit</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.org.junit</shadedPattern>
-              </relocation>
-              <relocation>
-                <pattern>org.slf4j</pattern>
-                <shadedPattern>uk.co.angrybee.joe.dependencies.org.slf4j</shadedPattern>
-              </relocation>
-            </relocations>
           </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-antrun-plugin</artifactId>
-          <version>1.8</version>
-          <executions>
-            <execution>
-              <phase>test</phase>
-              <goals>
-                <goal>run</goal>
-              </goals>
-              <configuration>
-                <tasks>
-                  <copy file="plugin.yml" tofile="${basedir}/plugin.yml"/>
-                </tasks>
-              </configuration>
-            </execution>
-          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -266,11 +146,6 @@
           <source>8</source>
           <target>8</target>
         </configuration>
-      </plugin>
-      <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-shade-plugin</artifactId>
-      <version>3.2.4</version>
       </plugin>
     </plugins>
   </build>
