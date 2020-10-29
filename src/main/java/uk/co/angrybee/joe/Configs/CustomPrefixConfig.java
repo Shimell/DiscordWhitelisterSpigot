@@ -65,6 +65,10 @@ public class CustomPrefixConfig
             CheckEntry("whitelist-add-prefix", "!whitelist add");
 
             CheckEntry("whitelist-remove-prefix", "!whitelist remove");
+
+            CheckEntry("clear-name-prefix", "!clearname");
+
+            CheckEntry("clear-ban-prefix", "!clearban");
         }
     }
 

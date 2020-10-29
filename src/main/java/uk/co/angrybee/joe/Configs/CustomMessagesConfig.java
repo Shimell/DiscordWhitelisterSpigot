@@ -89,6 +89,9 @@ public class CustomMessagesConfig
             CheckEntry("user-was-removed-title", "This user was previously removed by a staff member");
             CheckEntry("user-was-removed", "{Sender}, this user was previously removed by a staff member ({StaffMember}). Please ask a user with higher permissions to add this user.");
 
+            CheckEntry("user-was-removed-in-game-title", "This user was previously removed by a staff member");
+            CheckEntry("user-was-removed-in-game", "{Sender}, this user was previously removed by a staff member in-game ({StaffMember}). Please ask a user with higher permissions to add this user.");
+
             CheckEntry("whitelists-remaining-title", "Whitelists Remaining");
             CheckEntry("whitelists-remaining", "You have **{RemainingWhitelists} out of {MaxWhitelistAmount}** whitelists remaining.");
 
@@ -103,6 +106,24 @@ public class CustomMessagesConfig
 
             CheckEntry("remove-success-title", "{MinecraftUsername} has been removed");
             CheckEntry("remove-success", "{Sender} has removed {MinecraftUsername} from the whitelist");
+
+            CheckEntry("banned-title", "You have been banned!");
+            CheckEntry("banned-message", "{Sender}, you cannot use this bot as you have been banned!");
+
+            CheckEntry("clear-name-success-title", "Successfully Cleared `{MinecraftUsername}`");
+            CheckEntry("clear-name-success-message", "{Sender} successfully cleared username `{MinecraftUsername}` from {DiscordID}'s whitelisted users.");
+
+            CheckEntry("clear-name-failure-title",  "{MinecraftUsername} not Found");
+            CheckEntry("clear-name-failure-message", "{Sender}, could not find name `{MinecraftUsername}` to clear in user list.");
+
+            CheckEntry("clear-ban-success-title",  "Successfully Cleared `{MinecraftUsername}`");
+            CheckEntry("clear-ban-success-message", "{Sender} has successfully cleared `{MinecraftUsername}` from the removed list(s).");
+
+            CheckEntry("clear-ban-failure-title",  "Failed to clear `{MinecraftUsername}`");
+            CheckEntry("clear-ban-failure-message", "{Sender}, `{MinecraftUsername}` cannot be found in any of the removed lists!");
+
+            CheckEntry("instructional-message-title", "How to Whitelist");
+            CheckEntry("instructional-message", "Use `!whitelist add <minecraftUsername>` to whitelist yourself. In the case of whitelisting an incorrect name, please contact a staff member to clear it from the whitelist.");
         }
     }
 

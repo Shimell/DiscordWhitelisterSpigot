@@ -1,6 +1,8 @@
 out/
-target/
 .idea/
 classes/
+target/
 discordwhitelister.iml
 *.iml
+.attach_pid*
+dependency-reduced-pom.xml

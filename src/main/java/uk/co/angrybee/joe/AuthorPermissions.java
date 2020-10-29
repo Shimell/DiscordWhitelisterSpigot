@@ -5,10 +5,13 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.Arrays;
 
-public class AuthorPermissions {
+public class AuthorPermissions
+{
     private boolean userCanAddRemove = false;
     private boolean userCanAdd = false;
     private boolean userHasLimitedAdd = false;
+    private boolean userIsBanned = false;
+    private boolean userCanUseClear = false;
 
     public boolean isUserCanAddRemove() {
         return userCanAddRemove;
@@ -27,8 +30,13 @@ public class AuthorPermissions {
         return userCanAdd || userCanAddRemove || userHasLimitedAdd;
     }
 
+    public boolean isUserIsBanned() { return userIsBanned; }
+
+    public boolean isUserCanUseClear() { return userCanUseClear; }
+
     public AuthorPermissions(MessageReceivedEvent event)
     {
+        // TODO: merge these all together? why calling more times than needed
         for (Role role : event.getGuild().getMember(event.getAuthor()).getRoles())
         {
             if(!DiscordWhitelister.useIdForRoles)
@@ -84,6 +92,49 @@ public class AuthorPermissions {
                 if (Arrays.stream(DiscordClient.allowedToAddLimitedRoles).parallel().anyMatch(role.getId()::equalsIgnoreCase))
                 {
                     userHasLimitedAdd = true;
+                    break;
+                }
+            }
+        }
+
+        if(DiscordWhitelister.useOnBanEvents)
+        {
+            for(Role role : event.getGuild().getMember(event.getAuthor()).getRoles())
+            {
+                if(!DiscordWhitelister.useIdForRoles)
+                {
+                    if (Arrays.stream(DiscordWhitelister.bannedRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase))
+                    {
+                        userIsBanned = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (Arrays.stream(DiscordWhitelister.bannedRoles).parallel().anyMatch(role.getId()::equalsIgnoreCase))
+                    {
+                        userIsBanned = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        for(Role role : event.getGuild().getMember(event.getAuthor()).getRoles())
+        {
+            if(!DiscordWhitelister.useIdForRoles)
+            {
+                if(Arrays.stream(DiscordClient.allowedToClearNamesRoles).parallel().anyMatch(role.getName()::equalsIgnoreCase))
+                {
+                    userCanUseClear = true;
+                    break;
+                }
+            }
+            else
+            {
+                if(Arrays.stream(DiscordClient.allowedToClearNamesRoles).parallel().anyMatch(role.getId()::equalsIgnoreCase))
+                {
+                    userCanUseClear = true;
                     break;
                 }
             }

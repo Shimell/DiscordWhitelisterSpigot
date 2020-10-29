@@ -86,6 +86,11 @@ public class MainConfig
         // The roles to add/remove when whitelisted/removed
         CheckEntry("whitelisted-roles", Collections.singletonList("Whitelisted"));
 
+        CheckEntry("banned-roles", Collections.singletonList("Banned"));
+
+        // For clear name & ban commands
+        CheckEntry("clear-command-roles", Collections.singletonList("Admin"));
+
         CheckEntry("target-text-channels", Arrays.asList("000000000000000000", "111111111111111111"));
 
         // EasyWhitelist support (https://www.spigotmc.org/resources/easywhitelist-name-based-whitelist.65222/)
@@ -100,12 +105,19 @@ public class MainConfig
         // If the limited whitelist feature should be enabled
         CheckEntry("limited-whitelist-enabled", true);
 
+        // Remove whitelisted role, assign to banned role, remove their whitelisted players
+        CheckEntry("use-on-ban-events", false);
+
+        CheckEntry("unwhitelist-and-clear-perms-on-name-clear", true);
+
         // The amount of times a non-staff user is allowed to whitelist
         CheckEntry("max-whitelist-amount", 3);
 
         CheckEntry("username-validation", true);
 
         CheckEntry("removed-list-enabled", true);
+
+        CheckEntry("add-in-game-adds-and-removes-to-list", true);
 
         CheckEntry("use-custom-messages", false);
 
@@ -116,6 +128,18 @@ public class MainConfig
         CheckEntry("show-player-count", true);
 
         CheckEntry("show-vanished-players-in-player-count", false);
+
+        CheckEntry("assign-perms-with-ultra-perms", false);
+
+        CheckEntry("use-on-whitelist-commands", false);
+
+        CheckEntry("send-instructional-message-on-whitelist", false);
+
+        CheckEntry("use-timer-for-instructional-message", false);
+
+        CheckEntry("timer-wait-time-in-seconds", 5);
+
+        CheckEntry("un-whitelist-on-server-leave", true);
 
         // Remove old role entry if found, move role to new array (for people with v1.3.6 or below)
         if(whitelisterBotConfig.get("whitelisted-role") != null)

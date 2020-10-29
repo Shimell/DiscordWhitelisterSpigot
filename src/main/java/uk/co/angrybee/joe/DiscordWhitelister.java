@@ -4,47 +4,44 @@ import org.bukkit.Server;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import uk.co.angrybee.joe.Commands.CommandAbout;
 import uk.co.angrybee.joe.Commands.CommandReload;
 import uk.co.angrybee.joe.Commands.CommandStatus;
-import uk.co.angrybee.joe.Configs.CustomMessagesConfig;
-import uk.co.angrybee.joe.Configs.CustomPrefixConfig;
-import uk.co.angrybee.joe.Configs.MainConfig;
+import uk.co.angrybee.joe.Configs.*;
 import uk.co.angrybee.joe.Events.JoinLeaveEvents;
+import uk.co.angrybee.joe.Events.OnBanEvent;
+import uk.co.angrybee.joe.Events.OnWhitelistEvents;
+import uk.co.angrybee.joe.Stores.InGameRemovedList;
+import uk.co.angrybee.joe.Stores.RemovedList;
+import uk.co.angrybee.joe.Stores.UserList;
+import uk.co.angrybee.joe.Stores.WhitelistedPlayers;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
 public class DiscordWhitelister extends JavaPlugin
 {
-    private static File userListFile;
-    private static File removedListFile;
-
-    private static FileConfiguration userList;
-    private static FileConfiguration removedList;
-
-    // easy whitelist
-    public static Plugin easyWhitelist;
-
     public static String botToken;
 
     private static boolean configCreated = false;
-    private static boolean userListCreated = false;
-    private static boolean removedListCreated = false;
 
-    public static boolean useEasyWhitelist = false;
     public static boolean useCustomMessages = false;
     public static boolean useIdForRoles = false;
     public static boolean useCustomPrefixes = false;
     public static boolean showPlayerSkin = true;
-    public static boolean addInGameRemovesToList = true;
     public static boolean showVanishedPlayersInCount = false;
+    public static boolean useInGameAddRemoves = true;
+    public static boolean useOnBanEvents = true;
+    public static boolean useUltraPerms = false;
+    public static boolean useOnWhitelistCommands = false;
 
     public static boolean botEnabled;
+
+    public static String[] bannedRoles;
 
     private static JavaPlugin thisPlugin;
     private static Server thisServer;
@@ -71,9 +68,28 @@ public class DiscordWhitelister extends JavaPlugin
             pluginLogger.severe("Discord Client failed to initialize, please check if your config file is valid");
         }
 
+        // Check for leavers if enabled
+        if(MainConfig.getMainConfig().getBoolean("un-whitelist-on-server-leave"))
+        {
+            try
+            {
+                DiscordClient.StartUpMemberCheck();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+
         this.getCommand("discordwhitelister").setExecutor(new CommandStatus());
         this.getCommand("discordwhitelisterabout").setExecutor(new CommandAbout());
         this.getCommand("discordwhitelisterreload").setExecutor(new CommandReload());
+    }
+
+    @Override
+    public void onDisable()
+    {
+        DiscordClient.javaDiscordAPI.shutdownNow();
     }
 
     public static JavaPlugin getPlugin()
@@ -81,56 +97,11 @@ public class DiscordWhitelister extends JavaPlugin
         return thisPlugin;
     }
 
-    public static FileConfiguration getWhitelisterBotConfig() { return MainConfig.getMainConfig(); }
-
-    public static FileConfiguration getUserList()
-    {
-        return userList;
-    }
-
-    public static File getUserListFile()
-    {
-        return userListFile;
-    }
-
-    public static FileConfiguration getRemovedList() { return removedList; }
-
-    public static File getRemovedListFile()
-    {
-        return removedListFile;
-    }
-
     public static FileConfiguration getCustomMessagesConfig() { return CustomMessagesConfig.getCustomMessagesConfig(); }
 
     public static Logger getPluginLogger() { return pluginLogger; }
 
-    public static List<?> getRegisteredUsers(String userId) { return userList.getList(userId); }
-
-    public static int getRegisteredUsersCount(String userId) {
-        try {
-            return getRegisteredUsers(userId).size();
-        } catch(NullPointerException ex) {
-            return 0;
-        }
-    }
-
     public static boolean getUseCustomPrefixes() { return useCustomPrefixes; }
-
-    public static void addRegisteredUser(String userId, String userToAdd) throws IOException {
-        List <?> x = getRegisteredUsers(userId);
-        List <String> newList = new ArrayList<>();
-        for (Object o: x) {
-            newList.add(o.toString());
-        }
-        newList.add(userToAdd);
-        getUserList().set(userId, newList);
-        getUserList().save(getUserListFile().getPath());
-    }
-
-    public static void resetRegisteredUsers(String userId) throws IOException {
-        getUserList().set(userId, new ArrayList<>());
-        getUserList().save(getUserListFile().getPath());
-    }
 
     public static void addVanishedPlayer() { vanishedPlayersCount++; }
 
@@ -142,23 +113,41 @@ public class DiscordWhitelister extends JavaPlugin
 
     public static int InitBot(boolean firstInit)
     {
-        userList = new YamlConfiguration();
-        removedList = new YamlConfiguration();
-
         if(firstInit)
             vanishedPlayersCount = 0;
 
         ConfigSetup();
 
-        botToken = getWhitelisterBotConfig().getString("discord-bot-token");
-        botEnabled = getWhitelisterBotConfig().getBoolean("bot-enabled");
-        showPlayerSkin = getWhitelisterBotConfig().getBoolean("show-player-skin-on-whitelist");
+        botToken = MainConfig.getMainConfig().getString("discord-bot-token");
+        botEnabled = MainConfig.getMainConfig().getBoolean("bot-enabled");
+        showPlayerSkin = MainConfig.getMainConfig().getBoolean("show-player-skin-on-whitelist");
         configCreated = MainConfig.configCreated;
         showVanishedPlayersInCount = MainConfig.getMainConfig().getBoolean("show-vanished-players-in-player-count");
+        useInGameAddRemoves = MainConfig.getMainConfig().getBoolean("add-in-game-adds-and-removes-to-list");
+        useOnBanEvents = MainConfig.getMainConfig().getBoolean("use-on-ban-events");
 
+        // Check for UltraPerms first
+        if(MainConfig.getMainConfig().getBoolean("assign-perms-with-ultra-perms"))
+        {
+            if(DiscordWhitelister.getPlugin().getServer().getPluginManager().getPlugin("UltraPermissions") != null)
+            {
+                useUltraPerms = true;
+                DiscordWhitelister.getPluginLogger().info("Ultra Permissions found!");
+            }
+            else
+            {
+                DiscordWhitelister.getPluginLogger().warning("Ultra Permissions was not found but is enabled in the config. Doing nothing...");
+                useUltraPerms = false;
+            }
+        }
 
-        DiscordClient.whitelistAddPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix");
-        DiscordClient.whitelistRemovePrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-remove-prefix");
+        if(MainConfig.getMainConfig().getBoolean("use-on-whitelist-commands"))
+            useOnWhitelistCommands = true;
+
+        DiscordClient.whitelistAddPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix").toLowerCase();
+        DiscordClient.whitelistRemovePrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-remove-prefix").toLowerCase();
+        DiscordClient.clearNamePrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-name-prefix").toLowerCase();
+        DiscordClient.clearBanPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-ban-prefix").toLowerCase();
 
         if(!botEnabled)
         {
@@ -172,58 +161,61 @@ public class DiscordWhitelister extends JavaPlugin
         {
             pluginLogger.info("Initializing Discord client...");
 
-            useIdForRoles = getWhitelisterBotConfig().getBoolean("use-id-for-roles");
+            // TODO: below role section could be moved to DiscordClient class
+            useIdForRoles = MainConfig.getMainConfig().getBoolean("use-id-for-roles");
 
             // set add & remove roles
-            DiscordClient.allowedToAddRemoveRoles = new String[getWhitelisterBotConfig().getList("add-remove-roles").size()];
+            DiscordClient.allowedToAddRemoveRoles = new String[MainConfig.getMainConfig().getList("add-remove-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToAddRemoveRoles.length; ++roles)
             {
-                DiscordClient.allowedToAddRemoveRoles[roles] = getWhitelisterBotConfig().getList("add-remove-roles").get(roles).toString();
+                DiscordClient.allowedToAddRemoveRoles[roles] = MainConfig.getMainConfig().getList("add-remove-roles").get(roles).toString();
             }
 
             // set add roles
-            DiscordClient.allowedToAddRoles = new String[getWhitelisterBotConfig().getList("add-roles").size()];
+            DiscordClient.allowedToAddRoles = new String[MainConfig.getMainConfig().getList("add-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToAddRoles.length; ++roles)
             {
-                DiscordClient.allowedToAddRoles[roles] = getWhitelisterBotConfig().getList("add-roles").get(roles).toString();
+                DiscordClient.allowedToAddRoles[roles] = MainConfig.getMainConfig().getList("add-roles").get(roles).toString();
             }
 
             // set limited add roles
-            DiscordClient.allowedToAddLimitedRoles = new String[getWhitelisterBotConfig().getList("limited-add-roles").size()];
+            DiscordClient.allowedToAddLimitedRoles = new String[MainConfig.getMainConfig().getList("limited-add-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToAddLimitedRoles.length; ++roles)
             {
-                DiscordClient.allowedToAddLimitedRoles[roles] = getWhitelisterBotConfig().getList("limited-add-roles").get(roles).toString();
+                DiscordClient.allowedToAddLimitedRoles[roles] = MainConfig.getMainConfig().getList("limited-add-roles").get(roles).toString();
             }
 
-            // easy whitelist check
-            if(getWhitelisterBotConfig().getBoolean("use-easy-whitelist"))
+            // Get banned roles
+            if(useOnBanEvents)
             {
-                pluginLogger.info("Checking for Easy Whitelist...");
-                if(thisServer.getPluginManager().getPlugin("EasyWhitelist") != null)
+                List<String> tempBannedRoles = MainConfig.getMainConfig().getStringList("banned-roles");
+                bannedRoles = new String[tempBannedRoles.size()];
+                for(int i = 0; i < tempBannedRoles.size(); i++)
                 {
-                    pluginLogger.info("Easy Whitelist found! Will use over default whitelist command.");
-                    easyWhitelist = thisServer.getPluginManager().getPlugin("EasyWhitelist");
-                    useEasyWhitelist = true;
+                    bannedRoles[i] = tempBannedRoles.get(i);
                 }
-                else
-                {
-                    pluginLogger.warning("Easy Whitelist was not found but is enabled in the config. " +
-                            "Falling back to default whitelist command.");
-                }
+            }
+
+            // Allowed to clear name roles
+            DiscordClient.allowedToClearNamesRoles = new String[MainConfig.getMainConfig().getStringList("clear-command-roles").size()];
+            for(int roles = 0; roles < DiscordClient.allowedToClearNamesRoles.length; roles++)
+            {
+                DiscordClient.allowedToClearNamesRoles[roles] = MainConfig.getMainConfig().getStringList("clear-command-roles").get(roles);
             }
 
             // Custom messages check
-            useCustomMessages = getWhitelisterBotConfig().getBoolean("use-custom-messages");
-            useCustomPrefixes = getWhitelisterBotConfig().getBoolean("use-custom-prefixes");
+            useCustomMessages = MainConfig.getMainConfig().getBoolean("use-custom-messages");
+            useCustomPrefixes = MainConfig.getMainConfig().getBoolean("use-custom-prefixes");
 
             int initSuccess = DiscordClient.InitializeClient(botToken);
 
             if(initSuccess == 1)
                 return 1;
 
+
             // No need for an if here statement anymore as this code will not run if the client has not been initialized
             // Only attempt to set player count if the bot successfully initialized
-            if(getWhitelisterBotConfig().getBoolean("show-player-count"))
+            if(MainConfig.getMainConfig().getBoolean("show-player-count"))
             {
                 // Register events if enabled
                 thisServer.getPluginManager().registerEvents(new JoinLeaveEvents(), thisPlugin);
@@ -231,6 +223,14 @@ public class DiscordWhitelister extends JavaPlugin
                 // Set initial player count
                 DiscordClient.SetPlayerCountStatus(getOnlineUsers());
             }
+
+            // Register whitelist events if enabled
+            if(useInGameAddRemoves)
+                thisServer.getPluginManager().registerEvents(new OnWhitelistEvents(), thisPlugin);
+
+            // Register ban events if enabled
+            if(useOnBanEvents)
+                thisServer.getPluginManager().registerEvents(new OnBanEvent(), thisPlugin);
 
             return 0;
         }
@@ -240,88 +240,19 @@ public class DiscordWhitelister extends JavaPlugin
 
     public static void ConfigSetup()
     {
-        File dataFolder = thisPlugin.getDataFolder();
-        Logger pluginLogger = thisPlugin.getLogger();
-
         // Run this first, as it creates the root folder if it does not exist
         MainConfig.ConfigSetup();
+
         CustomPrefixConfig.ConfigSetup();
         CustomMessagesConfig.ConfigSetup();
+        PermissionsConfig.ConfigSetup();
+        OnWhitelistCommandsConfig.ConfigSetup();
 
-        userListFile = new File(dataFolder, "user-list.yml");
-        removedListFile = new File(dataFolder, "removed-list.yml");
+        // Init Stores
+        UserList.StoreSetup();
+        InGameRemovedList.StoreSetup();
+        RemovedList.StoreSetup();
 
-        if(!userListFile.exists())
-        {
-            try
-            {
-                userListFile.createNewFile();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            pluginLogger.info("User list created at: " + userListFile.getPath());
-            userListCreated = true;
-        }
-
-        try
-        {
-            getUserList().load(userListFile);
-        }
-        catch (IOException | InvalidConfigurationException e)
-        {
-            e.printStackTrace();
-        }
-
-        if(!removedListFile.exists())
-        {
-            try
-            {
-                removedListFile.createNewFile();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            pluginLogger.info("Removed list created at: " + removedListFile.getPath());
-            removedListCreated = true;
-        }
-
-        try
-        {
-            getRemovedList().load(removedListFile);
-        }
-        catch (IOException | InvalidConfigurationException e)
-        {
-            e.printStackTrace();
-        }
-
-        if(userListCreated)
-        {
-            try
-            {
-                getUserList().save(userListFile.getPath());
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-        }
-
-        if(removedListCreated)
-        {
-            //getRemovedList().set("minecraftUsername", "discordRemoverID");
-            try
-            {
-                getRemovedList().save(removedListFile.getPath());
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-        }
+        WhitelistedPlayers.Setup();
     }
 }
