@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.json.simple.JSONObject;
@@ -76,6 +77,7 @@ public class DiscordClient extends ListenerAdapter
                     .disableCache(CacheFlag.VOICE_STATE, CacheFlag.EMOTE)
                     .setContextEnabled(true)
                     .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                    .setChunkingFilter(ChunkingFilter.ALL)
                     .addEventListeners(new DiscordClient())
                     .addEventListeners(new ShutdownEvents())
                     .build();
@@ -1655,6 +1657,7 @@ public class DiscordClient extends ListenerAdapter
         DiscordWhitelister.getPluginLogger().info("Checking Discord IDs for leavers...");
 
         Yaml idYaml = new Yaml();
+        UserList.SaveStore();
         InputStream inputStream = new FileInputStream(UserList.getUserListFile());
 
         PushbackInputStream pushbackInputStream = new PushbackInputStream(inputStream);
