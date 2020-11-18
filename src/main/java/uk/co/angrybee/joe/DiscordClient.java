@@ -44,6 +44,7 @@ public class DiscordClient extends ListenerAdapter
     public static String whitelistAddPrefix;
     public static String whitelistRemovePrefix;
     public static String clearNamePrefix;
+    public static String limitedWhitelistClearPrefix;
     public static String clearBanPrefix;
 
     private static MessageEmbed botInfo;
@@ -1474,13 +1475,156 @@ public class DiscordClient extends ListenerAdapter
                 }
             }
 
+            // Clear whitelists for limited-whitelisters
+            if(messageContents.toLowerCase().startsWith("!whitelist clear") && !DiscordWhitelister.getUseCustomPrefixes()
+                    || DiscordWhitelister.getUseCustomPrefixes() && messageContents.toLowerCase().startsWith(limitedWhitelistClearPrefix))
+            {
+                if(!MainConfig.getMainConfig().getBoolean("allow-limited-whitelisters-to-unwhitelist-self"))
+                    return;
+
+                // just inform staff, can add custom messages later if really needed
+                if(authorPermissions.isUserCanAddRemove() && !authorPermissions.isUserIsBanned() || authorPermissions.isUserCanAdd() && !authorPermissions.isUserIsBanned())
+                {
+                    EmbedBuilder onlyForLimitedWhitelisters = new EmbedBuilder();
+                    onlyForLimitedWhitelisters.addField("This Command is Only Available for Limited Whitelister Roles",
+                            "If staff members need to clear a name from the whitelist please use `!clearname <mcName>`.", false);
+                    onlyForLimitedWhitelisters.setColor(new Color(104, 109, 224));
+                    channel.sendMessage(onlyForLimitedWhitelisters.build()).queue();
+                    return;
+                }
+
+                if(authorPermissions.isUserHasLimitedAdd() && !authorPermissions.isUserIsBanned())
+                {
+                    List<?> ls =  UserList.getRegisteredUsers(author.getId());
+
+                    // check for names whitelisted
+                    if(ls != null)
+                    {
+                        for (Object minecraftNameToRemove : ls)
+                        {
+                            if (WhitelistedPlayers.usingEasyWhitelist)
+                            {
+                                ExecuteServerCommand("easywl remove " + minecraftNameToRemove.toString());
+                            }
+                            else
+                            {
+                                ExecuteServerCommand("whitelist remove " + minecraftNameToRemove.toString());
+                            }
+                        }
+
+                        try
+                        {
+                            UserList.resetRegisteredUsers(author.getId());
+                        }
+                        catch (IOException e)
+                        {
+                            DiscordWhitelister.getPluginLogger().severe("Failed to remove" + author.getId() + "'s entries.");
+                            e.printStackTrace();
+                            return;
+                        }
+
+                        DiscordWhitelister.getPlugin().getLogger().info( author.getName() + "(" + author.getId() + ") triggered whitelist clear. " +
+                                "Successfully removed their whitelisted entries from the user list.");
+
+                        // Log in Discord channel
+                        EmbedBuilder clearSuccess = new EmbedBuilder();
+                        clearSuccess.setColor(new Color(46, 204, 113));
+                        if(!DiscordWhitelister.useCustomMessages)
+                        {
+                            String message = author.getAsMention() + " successfully removed the following users from the whitelist: \n";
+                            for (Object minercaftName : ls)
+                            {
+                                message += "- " + minercaftName.toString() + "\n";
+                            }
+                            message += "\n You now have **" + maxWhitelistAmount + " whitelist(s) remaining**.";
+
+                            clearSuccess.addField("Successfully Removed " + author.getName() + "'s Whitelisted Entries",
+                                    message, false);
+                        }
+                        else
+                        {
+                            String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("whitelist-clear-success-title");
+                            customTitle = customTitle.replaceAll("\\{Sender}", author.getName());
+
+                            String removedNames = "";
+                            for (Object minercaftName : ls)
+                            {
+                                removedNames += "- " + minercaftName.toString() + "\n";
+                            }
+
+                            String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("whitelist-clear-success-message");
+                            customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
+                            customMessage = customMessage.replaceAll("\\{RemovedEntries}", removedNames);
+                            customMessage = customMessage.replaceAll("\\{MaxWhitelistAmount}", String.valueOf(maxWhitelistAmount));
+
+                            clearSuccess.addField(customTitle, customMessage, false);
+                        }
+
+                        channel.sendMessage(clearSuccess.build()).queue();
+
+                        if(MainConfig.getMainConfig().getBoolean("whitelisted-role-auto-remove"))
+                        {
+                            // Find all servers bot is in, remove whitelisted roles
+                            for(int i = 0; i < javaDiscordAPI.getGuilds().size(); i++)
+                            {
+                                // Remove the whitelisted role(s)
+                                RemoveRolesFromUser(javaDiscordAPI.getGuilds().get(i), author.getId(), Arrays.asList(whitelistedRoleNames));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        DiscordWhitelister.getPlugin().getLogger().info( author.getName() + "(" + author.getId() + ") triggered whitelist clear. " +
+                                "Could not remove any whitelisted entries as they do not have any.");
+
+                        // Log in Discord channel
+                        EmbedBuilder noEntries = new EmbedBuilder();
+                        noEntries.setColor(new Color(231, 76, 60));
+                        if(!DiscordWhitelister.useCustomMessages)
+                        {
+                            noEntries.addField("No Entries to Remove", (author.getAsMention() + ", you do not have any whitelisted entries to remove."), false);
+                        }
+                        else
+                        {
+                            String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("whitelist-clear-failure-title");
+                            String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("whitelist-clear-failure-message");
+                            customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
+
+                            noEntries.addField(customTitle, customMessage, false);
+                        }
+
+                        channel.sendMessage(noEntries.build()).queue();
+                    }
+                }
+
+                if(!authorPermissions.isUserCanAddRemove() && !authorPermissions.isUserCanAdd() && !authorPermissions.isUserHasLimitedAdd() || authorPermissions.isUserIsBanned())
+                {
+                    EmbedBuilder insufficientPermission = new EmbedBuilder();
+                    insufficientPermission.setColor(new Color(231, 76, 60));
+
+                    if(!DiscordWhitelister.useCustomMessages)
+                    {
+                        insufficientPermission.addField("Insufficient Permissions", (author.getAsMention() + ", you do not have permission to use this command."), false);
+                    }
+                    else
+                    {
+                        String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("insufficient-permissions-title");
+                        String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("insufficient-permissions");
+                        customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention()); // Only checking for {Sender}
+
+                        insufficientPermission.addField(customTitle, customMessage, false);
+                    }
+
+                    channel.sendMessage(insufficientPermission.build()).queue();
+                    return;
+                }
+            }
+
             if(messageContents.toLowerCase().startsWith("!clearban") && !DiscordWhitelister.getUseCustomPrefixes()
                 || DiscordWhitelister.getUseCustomPrefixes() && messageContents.toLowerCase().startsWith(clearBanPrefix))
             {
                 if(authorPermissions.isUserCanUseClear())
                 {
-
-
                     // Check if empty command
                     if(messageContents.toLowerCase().trim().equals("!clearban") && !DiscordWhitelister.getUseCustomPrefixes()
                             || messageContents.toLowerCase().trim().equals(clearBanPrefix) && DiscordWhitelister.getUseCustomPrefixes())
@@ -1641,7 +1785,7 @@ public class DiscordClient extends ListenerAdapter
         }
         else
         {
-            DiscordWhitelister.getPlugin().getLogger().warning(discordUserToRemove + " left. Could not removed their whitelisted entries as they did not whitelist through this plugin.");
+            DiscordWhitelister.getPlugin().getLogger().warning(discordUserToRemove + " left. Could not remove any whitelisted entries as they did not whitelist through this plugin.");
         }
     }
 

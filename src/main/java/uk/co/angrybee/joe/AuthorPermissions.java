@@ -36,7 +36,6 @@ public class AuthorPermissions
 
     public AuthorPermissions(MessageReceivedEvent event)
     {
-        // TODO: merge these all together? why calling more times than needed
         for (Role role : event.getGuild().getMember(event.getAuthor()).getRoles())
         {
             if(!DiscordWhitelister.useIdForRoles)

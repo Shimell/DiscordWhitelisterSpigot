@@ -96,6 +96,8 @@ public class MainConfig
         // EasyWhitelist support (https://www.spigotmc.org/resources/easywhitelist-name-based-whitelist.65222/)
         CheckEntry("use-easy-whitelist", false);
 
+        CheckEntry("allow-limited-whitelisters-to-unwhitelist-self", true);
+
         // If adding the whitelisted role to the discord user is enabled
         CheckEntry("whitelisted-role-auto-add", false);
 

@@ -1,5 +1,6 @@
 package uk.co.angrybee.joe.Events;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -58,7 +59,24 @@ public class OnBanEvent implements Listener
 
         // Check if the player has ever joined the server or is on the whitelist
         Server server = DiscordWhitelister.getPlugin().getServer();
-        if(!server.getOnlinePlayers().contains(banTarget) || !server.getOnlinePlayers().contains(banTarget))
+        boolean nameInOfflinePlayers = false;
+
+        // Check offline players for banTarget
+        OfflinePlayer[] offlinePlayers = server.getOfflinePlayers();
+        for(int i = 0; i < server.getOfflinePlayers().length; i++)
+        {
+            if(offlinePlayers[i].getName().equals(banTarget))
+                nameInOfflinePlayers = true;
+        }
+
+        boolean nameInOnlinePlayers = false;
+        for(Player onlinePlayer : server.getOnlinePlayers())
+        {
+            if(onlinePlayer.getName().equals(banTarget))
+                nameInOnlinePlayers = true;
+        }
+
+        if(!nameInOnlinePlayers && !nameInOfflinePlayers)
         {
             if(!WhitelistedPlayers.usingEasyWhitelist && !WhitelistedPlayers.CheckForPlayer(banTarget)
                 || WhitelistedPlayers.usingEasyWhitelist && !WhitelistedPlayers.CheckForPlayerEasyWhitelist(banTarget))

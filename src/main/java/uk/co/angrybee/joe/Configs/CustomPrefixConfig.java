@@ -68,6 +68,8 @@ public class CustomPrefixConfig
 
             CheckEntry("clear-name-prefix", "!clearname");
 
+            CheckEntry("limited-whitelist-clear-prefix", "!whitelist clear");
+
             CheckEntry("clear-ban-prefix", "!clearban");
         }
     }

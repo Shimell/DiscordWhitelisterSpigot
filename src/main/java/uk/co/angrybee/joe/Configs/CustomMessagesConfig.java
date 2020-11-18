@@ -124,6 +124,12 @@ public class CustomMessagesConfig
 
             CheckEntry("instructional-message-title", "How to Whitelist");
             CheckEntry("instructional-message", "Use `!whitelist add <minecraftUsername>` to whitelist yourself. In the case of whitelisting an incorrect name, please contact a staff member to clear it from the whitelist.");
+
+            CheckEntry("whitelist-clear-success-title",  "Successfully Removed {Sender}'s Whitelisted Entries");
+            CheckEntry("whitelist-clear-success-message", "{Sender} successfully removed the following users from the whitelist: \n{RemovedEntries}\nYou now have **{MaxWhitelistAmount} whitelist(s) remaining**.");
+
+            CheckEntry("whitelist-clear-failure-title",  "No Entries to Remove");
+            CheckEntry("whitelist-clear-failure-message", "{Sender}, you do not have any whitelisted entries to remove. ");
         }
     }
 
