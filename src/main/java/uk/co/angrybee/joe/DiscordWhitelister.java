@@ -1,26 +1,22 @@
 package uk.co.angrybee.joe;
 
 import org.bukkit.Server;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import uk.co.angrybee.joe.Commands.CommandAbout;
-import uk.co.angrybee.joe.Commands.CommandReload;
-import uk.co.angrybee.joe.Commands.CommandStatus;
-import uk.co.angrybee.joe.Configs.*;
-import uk.co.angrybee.joe.Events.JoinLeaveEvents;
-import uk.co.angrybee.joe.Events.OnBanEvent;
-import uk.co.angrybee.joe.Events.OnWhitelistEvents;
-import uk.co.angrybee.joe.Stores.InGameRemovedList;
-import uk.co.angrybee.joe.Stores.RemovedList;
-import uk.co.angrybee.joe.Stores.UserList;
-import uk.co.angrybee.joe.Stores.WhitelistedPlayers;
+import uk.co.angrybee.joe.commands.CommandAbout;
+import uk.co.angrybee.joe.commands.CommandReload;
+import uk.co.angrybee.joe.commands.CommandStatus;
+import uk.co.angrybee.joe.configs.*;
+import uk.co.angrybee.joe.events.JoinLeaveEvents;
+import uk.co.angrybee.joe.events.OnBanEvent;
+import uk.co.angrybee.joe.events.OnWhitelistEvents;
+import uk.co.angrybee.joe.stores.InGameRemovedList;
+import uk.co.angrybee.joe.stores.RemovedList;
+import uk.co.angrybee.joe.stores.UserList;
+import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class DiscordWhitelister extends JavaPlugin

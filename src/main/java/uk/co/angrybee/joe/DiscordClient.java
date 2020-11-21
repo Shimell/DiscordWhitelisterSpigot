@@ -15,12 +15,12 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.yaml.snakeyaml.Yaml;
-import uk.co.angrybee.joe.Configs.*;
-import uk.co.angrybee.joe.Events.ShutdownEvents;
-import uk.co.angrybee.joe.Stores.InGameRemovedList;
-import uk.co.angrybee.joe.Stores.RemovedList;
-import uk.co.angrybee.joe.Stores.UserList;
-import uk.co.angrybee.joe.Stores.WhitelistedPlayers;
+import uk.co.angrybee.joe.configs.*;
+import uk.co.angrybee.joe.events.ShutdownEvents;
+import uk.co.angrybee.joe.stores.InGameRemovedList;
+import uk.co.angrybee.joe.stores.RemovedList;
+import uk.co.angrybee.joe.stores.UserList;
+import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;

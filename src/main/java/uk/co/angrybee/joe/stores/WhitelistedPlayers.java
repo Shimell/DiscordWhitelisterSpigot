@@ -1,4 +1,4 @@
-package uk.co.angrybee.joe.Stores;
+package uk.co.angrybee.joe.stores;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
@@ -7,7 +7,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
-import uk.co.angrybee.joe.Configs.MainConfig;
+import uk.co.angrybee.joe.configs.MainConfig;
 import uk.co.angrybee.joe.DiscordWhitelister;
 
 import java.io.File;

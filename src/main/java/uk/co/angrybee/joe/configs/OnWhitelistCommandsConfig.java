@@ -1,4 +1,4 @@
-package uk.co.angrybee.joe.Configs;
+package uk.co.angrybee.joe.configs;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 
 public class OnWhitelistCommandsConfig
 {

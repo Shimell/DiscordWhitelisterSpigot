@@ -1,4 +1,4 @@
-package uk.co.angrybee.joe.Events;
+package uk.co.angrybee.joe.events;
 
 import uk.co.angrybee.joe.DiscordWhitelister;
 import uk.co.angrybee.joe.DiscordClient;

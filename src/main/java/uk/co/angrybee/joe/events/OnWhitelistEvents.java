@@ -1,13 +1,13 @@
-package uk.co.angrybee.joe.Events;
+package uk.co.angrybee.joe.events;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import uk.co.angrybee.joe.DiscordWhitelister;
-import uk.co.angrybee.joe.Stores.InGameRemovedList;
-import uk.co.angrybee.joe.Stores.RemovedList;
-import uk.co.angrybee.joe.Stores.WhitelistedPlayers;
+import uk.co.angrybee.joe.stores.InGameRemovedList;
+import uk.co.angrybee.joe.stores.RemovedList;
+import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 
 import java.io.File;
 

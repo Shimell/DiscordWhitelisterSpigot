@@ -1,4 +1,4 @@
-package uk.co.angrybee.joe.Configs;
+package uk.co.angrybee.joe.configs;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;

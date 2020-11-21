@@ -1,4 +1,4 @@
-package uk.co.angrybee.joe.Events;
+package uk.co.angrybee.joe.events;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
@@ -7,13 +7,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.yaml.snakeyaml.Yaml;
-import uk.co.angrybee.joe.Configs.MainConfig;
-import uk.co.angrybee.joe.Configs.PermissionsConfig;
+import uk.co.angrybee.joe.configs.MainConfig;
+import uk.co.angrybee.joe.configs.PermissionsConfig;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
-import uk.co.angrybee.joe.Stores.InGameRemovedList;
-import uk.co.angrybee.joe.Stores.UserList;
-import uk.co.angrybee.joe.Stores.WhitelistedPlayers;
+import uk.co.angrybee.joe.stores.InGameRemovedList;
+import uk.co.angrybee.joe.stores.UserList;
+import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 
 import java.io.FileInputStream;
 import java.io.IOException;

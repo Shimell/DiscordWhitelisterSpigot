@@ -1,4 +1,4 @@
-package uk.co.angrybee.joe.Commands;
+package uk.co.angrybee.joe.commands;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
