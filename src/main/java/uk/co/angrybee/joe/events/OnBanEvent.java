@@ -103,9 +103,9 @@ public class OnBanEvent implements Listener
 
             InputStream inputStream = new FileInputStream(UserList.getUserListFile());
 
-            Map<String, List<String>> testObject = userYaml.load(inputStream);
+            Map<String, List<String>> userListObject = userYaml.load(inputStream);
 
-            for(Map.Entry<String, List<String>> entry : testObject.entrySet())
+            for(Map.Entry<String, List<String>> entry : userListObject.entrySet())
             {
                 for(int i = 0; i < entry.getValue().size(); i++)
                 {
@@ -115,6 +115,7 @@ public class OnBanEvent implements Listener
                         targetDiscordId = entry.getKey();
                         targetWhitelistedPlayers = entry.getValue();
                         idFound = true;
+                        break;
                     }
                 }
             }
