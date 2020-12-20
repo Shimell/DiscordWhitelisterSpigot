@@ -18,7 +18,6 @@ import org.yaml.snakeyaml.Yaml;
 import uk.co.angrybee.joe.commands.discord.CommandAdd;
 import uk.co.angrybee.joe.configs.*;
 import uk.co.angrybee.joe.commands.discord.CommandInfo;
-import uk.co.angrybee.joe.commands.discord.MessageContext;
 import uk.co.angrybee.joe.events.ShutdownEvents;
 import uk.co.angrybee.joe.stores.InGameRemovedList;
 import uk.co.angrybee.joe.stores.RemovedList;
@@ -31,8 +30,6 @@ import java.awt.Color;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 // handles Discord interaction
 public class DiscordClient extends ListenerAdapter
