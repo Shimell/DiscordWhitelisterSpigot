@@ -1,4 +1,4 @@
-package uk.co.angrybee.joe.commands;
+package uk.co.angrybee.joe.commands.minecraft;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

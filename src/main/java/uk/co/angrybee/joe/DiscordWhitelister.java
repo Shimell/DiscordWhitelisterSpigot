@@ -3,9 +3,9 @@ package uk.co.angrybee.joe;
 import org.bukkit.Server;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import uk.co.angrybee.joe.commands.CommandAbout;
-import uk.co.angrybee.joe.commands.CommandReload;
-import uk.co.angrybee.joe.commands.CommandStatus;
+import uk.co.angrybee.joe.commands.minecraft.CommandAbout;
+import uk.co.angrybee.joe.commands.minecraft.CommandReload;
+import uk.co.angrybee.joe.commands.minecraft.CommandStatus;
 import uk.co.angrybee.joe.configs.*;
 import uk.co.angrybee.joe.events.JoinLeaveEvents;
 import uk.co.angrybee.joe.events.OnBanEvent;
@@ -140,11 +140,19 @@ public class DiscordWhitelister extends JavaPlugin
         if(MainConfig.getMainConfig().getBoolean("use-on-whitelist-commands"))
             useOnWhitelistCommands = true;
 
-        DiscordClient.whitelistAddPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix").toLowerCase();
-        DiscordClient.whitelistRemovePrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-remove-prefix").toLowerCase();
-        DiscordClient.clearNamePrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-name-prefix").toLowerCase();
-        DiscordClient.limitedWhitelistClearPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("limited-whitelist-clear-prefix").toLowerCase();
-        DiscordClient.clearBanPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-ban-prefix").toLowerCase();
+        // TODO: remove in favour of split versions
+        DiscordClient.customWhitelistAddPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix").toLowerCase();
+        DiscordClient.customWhitelistRemovePrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-remove-prefix").toLowerCase();
+        DiscordClient.customClearNamePrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-name-prefix").toLowerCase();
+        DiscordClient.customLimitedWhitelistClearPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("limited-whitelist-clear-prefix").toLowerCase();
+        DiscordClient.customClearBanPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-ban-prefix").toLowerCase();
+
+        // Split versions
+        DiscordClient.customWhitelistAddPrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customWhitelistRemovePrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-remove-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customClearNamePrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-name-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customLimitedWhitelistClearPrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("limited-whitelist-clear-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customClearBanPrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-ban-prefix").toLowerCase().trim().split(" ");
 
         if(!botEnabled)
         {
