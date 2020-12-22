@@ -153,6 +153,7 @@ public class DiscordWhitelister extends JavaPlugin
         DiscordClient.customClearNamePrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-name-prefix").toLowerCase().trim().split(" ");
         DiscordClient.customLimitedWhitelistClearPrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("limited-whitelist-clear-prefix").toLowerCase().trim().split(" ");
         DiscordClient.customClearBanPrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-ban-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customWhoIsPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-whois-prefix").toLowerCase().trim().split(" ");
 
         if(!botEnabled)
         {

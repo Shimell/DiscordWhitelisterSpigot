@@ -71,6 +71,8 @@ public class CustomPrefixConfig
             CheckEntry("limited-whitelist-clear-prefix", "!whitelist clear");
 
             CheckEntry("clear-ban-prefix", "!clearban");
+
+            CheckEntry("whitelist-whois-prefix", "!whitelist whois");
         }
     }
 

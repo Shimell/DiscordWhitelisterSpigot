@@ -16,6 +16,7 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.yaml.snakeyaml.Yaml;
 import uk.co.angrybee.joe.commands.discord.CommandAdd;
+import uk.co.angrybee.joe.commands.discord.CommandWhoIs;
 import uk.co.angrybee.joe.configs.*;
 import uk.co.angrybee.joe.commands.discord.CommandInfo;
 import uk.co.angrybee.joe.events.ShutdownEvents;
@@ -53,18 +54,21 @@ public class DiscordClient extends ListenerAdapter
     public static String[] customClearNamePrefixSplit;
     public static String[] customLimitedWhitelistClearPrefixSplit;
     public static String[] customClearBanPrefixSplit;
+    public static String[] customWhoIsPrefix;
 
     // TODO: move to own class, references to non custom prefix
     public static final String[] whitelistInfoPrefix = {"!whitelist"};
     public static final String[] whitelistAddPrefix = {"!whitelist", "add"};
     public static final String[] whitelistRemovePrefix = {"!whitelist", "remove"};
     public static final String[] whitelistClearPrefix = {"!whitelist", "clear"};
+    public static final String[] whitelistWhoIsPrefix = {"!whitelist", "whois"};
     public static final String[] clearNamePrefix = {"!clearname"};
     public static final String[] clearBanPrefix = {"!clearban"};
 
     public static MessageEmbed botInfo;
     public static MessageEmbed addCommandInfo;
     public static MessageEmbed removeCommandInfo;
+    public static MessageEmbed whoIsInfo;
 
     public static int maxWhitelistAmount;
 
@@ -128,7 +132,8 @@ public class DiscordClient extends ListenerAdapter
     {
         // assign vars here instead of every time a message is received, as they do not change
         targetTextChannels = new String[MainConfig.getMainConfig().getList("target-text-channels").size()];
-        for (int i = 0; i < targetTextChannels.length; ++i) {
+        for (int i = 0; i < targetTextChannels.length; ++i)
+        {
             targetTextChannels[i] = MainConfig.getMainConfig().getList("target-text-channels").get(i).toString();
         }
 
@@ -166,6 +171,10 @@ public class DiscordClient extends ListenerAdapter
 
         removeCommandInfo = CreateEmbeddedMessage("Whitelist Remove Command",
                 "!whitelist remove minecraftUsername\n\nIf you encounter any issues, please report them here: https://github.com/JoeShimell/DiscordWhitelisterSpigot/issues",
+                EmbedMessageType.INFO).build();
+
+        whoIsInfo = CreateEmbeddedMessage("Whitelist WhoIs Command",
+                "!whitelist whois minecraftUsername\n\nIf you encounter any issues, please report them here: https://github.com/JoeShimell/DiscordWhitelisterSpigot/issues",
                 EmbedMessageType.INFO).build();
     }
 
@@ -480,7 +489,7 @@ public class DiscordClient extends ListenerAdapter
                                             {
                                                 namesRemainingAfterRemoval = true;
                                                 DiscordWhitelister.getPluginLogger().info("The Discord ID (" + targetDiscordId + ") linked to " + finalNameToRemove + " contains "
-                                                        + (targetWhitelistedPlayers.size() - 1) + "more whitelisted user(s), not removing whitelisted roles...");
+                                                        + (targetWhitelistedPlayers.size() - 1) + " more whitelisted user(s), not removing whitelisted roles...");
                                             }
 
                                             // Find all servers bot is in, remove whitelisted roles
@@ -933,6 +942,13 @@ public class DiscordClient extends ListenerAdapter
                     channel.sendMessage(CreateInsufficientPermsMessage(author));
                     return;
                 }
+            }
+
+            if(!DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length >= whitelistWhoIsPrefix.length && CheckForPrefix(whitelistWhoIsPrefix, splitMessage)
+                    || DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length >= customWhoIsPrefix.length && CheckForPrefix(customWhoIsPrefix, splitMessage))
+            {
+                CommandWhoIs.ExecuteCommand(messageReceivedEvent, splitMessage);
+                return;
             }
         }
     }
