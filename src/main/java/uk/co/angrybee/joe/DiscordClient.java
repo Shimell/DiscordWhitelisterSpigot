@@ -1054,25 +1054,26 @@ public class DiscordClient extends ListenerAdapter
             if(DiscordWhitelister.removeUnnecessaryMessages)
             {
                 RemoveMessageAfterSeconds(messageReceivedEvent, DiscordWhitelister.removeMessageWaitTime);
+            }
 
-                if(MainConfig.getMainConfig().getBoolean("show-warning-in-command-channel"))
+            // Warn if enabled
+            if(MainConfig.getMainConfig().getBoolean("show-warning-in-command-channel"))
+            {
+                if(!DiscordWhitelister.useCustomMessages)
                 {
-                    if(!DiscordWhitelister.useCustomMessages)
-                    {
-                        MessageEmbed messageEmbed = CreateEmbeddedMessage("This Channel is for Commands Only", (author.getAsMention() + ", this channel is for commands only, please use another channel."),
-                                EmbedMessageType.FAILURE).build();
-                        QueueAndRemoveAfterSeconds(channel, messageEmbed);
-                    }
-                    else
-                    {
-                        String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("command-channel-title");
+                    MessageEmbed messageEmbed = CreateEmbeddedMessage("This Channel is for Commands Only", (author.getAsMention() + ", this channel is for commands only, please use another channel."),
+                            EmbedMessageType.FAILURE).build();
+                    QueueAndRemoveAfterSeconds(channel, messageEmbed);
+                }
+                else
+                {
+                    String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("command-channel-title");
 
-                        String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("command-channel-message");
-                        customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
+                    String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("command-channel-message");
+                    customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
 
-                        MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage(customTitle, customMessage, DiscordClient.EmbedMessageType.FAILURE).build();
-                        QueueAndRemoveAfterSeconds(channel, messageEmbed);
-                    }
+                    MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage(customTitle, customMessage, DiscordClient.EmbedMessageType.FAILURE).build();
+                    QueueAndRemoveAfterSeconds(channel, messageEmbed);
                 }
             }
         }
@@ -1437,28 +1438,6 @@ public class DiscordClient extends ListenerAdapter
 
         removeTimerThread.start();
     }
-
-//    public static void SendAndRemoveMessagesAfterSeconds(MessageReceivedEvent messageReceivedEvent, List<Object> messages, Integer timeToWait)
-//    {
-//        TextChannel textChannel = messageReceivedEvent.getTextChannel();
-//
-//        for (Object o : messages)
-//        {
-//            // Only Remove supplied Messages
-//            if(o instanceof Message)
-//            {
-//                if(DiscordWhitelister.removeUnnecessaryMessages)
-//                    RemoveMessageAfterSeconds(messageReceivedEvent, DiscordWhitelister.removeMessageWaitTime);
-//            }
-//            else if(o instanceof MessageEmbed)
-//            {
-//                if(DiscordWhitelister.removeUnnecessaryMessages)
-//                    textChannel.sendMessage((MessageEmbed) o).queue(message -> message.delete().queueAfter(timeToWait, TimeUnit.SECONDS));
-//                else
-//                    textChannel.sendMessage((MessageEmbed) o).queue();
-//            }
-//        }
-//    }
 
     public static void QueueAndRemoveAfterSeconds(TextChannel textChannel, MessageEmbed messageEmbed)
     {
