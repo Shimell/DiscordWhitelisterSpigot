@@ -34,6 +34,7 @@ public class DiscordWhitelister extends JavaPlugin
     public static boolean useOnBanEvents = true;
     public static boolean useUltraPerms = false;
     public static boolean useOnWhitelistCommands = false;
+    public static boolean removeUnnecessaryMessages = false;
 
     public static boolean botEnabled;
 
@@ -45,6 +46,8 @@ public class DiscordWhitelister extends JavaPlugin
 
     // For not counting vanished players when other players join/leave
     private static int vanishedPlayersCount;
+
+    public static int removeMessageWaitTime = 5;
 
     @Override
     public void onEnable()
@@ -121,6 +124,9 @@ public class DiscordWhitelister extends JavaPlugin
         showVanishedPlayersInCount = MainConfig.getMainConfig().getBoolean("show-vanished-players-in-player-count");
         useInGameAddRemoves = MainConfig.getMainConfig().getBoolean("add-in-game-adds-and-removes-to-list");
         useOnBanEvents = MainConfig.getMainConfig().getBoolean("use-on-ban-events");
+        removeUnnecessaryMessages = MainConfig.getMainConfig().getBoolean("remove-unnecessary-messages-from-whitelist-channel");
+
+        removeMessageWaitTime = MainConfig.getMainConfig().getInt("seconds-to-remove-message-from-whitelist-channel");
 
         // Check for UltraPerms first
         if(MainConfig.getMainConfig().getBoolean("assign-perms-with-ultra-perms"))

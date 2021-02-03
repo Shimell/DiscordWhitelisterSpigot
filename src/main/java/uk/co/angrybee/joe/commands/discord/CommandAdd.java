@@ -1,10 +1,7 @@
 package uk.co.angrybee.joe.commands.discord;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import uk.co.angrybee.joe.AuthorPermissions;
 import uk.co.angrybee.joe.DiscordClient;
@@ -20,6 +17,7 @@ import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -36,7 +34,10 @@ public class CommandAdd
         {
             if(!DiscordWhitelister.useCustomMessages)
             {
-                channel.sendMessage(DiscordClient.CreateEmbeddedMessage("You have been banned!", (author.getAsMention() + ", you cannot use this bot as you have been banned!"), DiscordClient.EmbedMessageType.FAILURE).build()).queue();
+                MessageEmbed messageEmbed =
+                        DiscordClient.CreateEmbeddedMessage("You have been banned!", (author.getAsMention() + ", you cannot use this bot as you have been banned!"), DiscordClient.EmbedMessageType.FAILURE).build();
+
+                DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
             }
             else
             {
@@ -44,16 +45,16 @@ public class CommandAdd
                 String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("banned-message");
                 customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention()); // Only checking for {Sender}
 
-                channel.sendMessage(DiscordClient.CreateEmbeddedMessage(customTitle, customMessage, DiscordClient.EmbedMessageType.FAILURE).build()).queue();
+                MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage(customTitle, customMessage, DiscordClient.EmbedMessageType.FAILURE).build();
+                DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
             }
-
             return;
         }
 
         // Permission check
         if (!(authorPermissions.isUserCanAddRemove() || authorPermissions.isUserCanAdd() || DiscordClient.limitedWhitelistEnabled && authorPermissions.isUserHasLimitedAdd()))
         {
-            channel.sendMessage(DiscordClient.CreateInsufficientPermsMessage(author)).queue();
+            DiscordClient.QueueAndRemoveAfterSeconds(channel, DiscordClient.CreateInsufficientPermsMessage(author));
             return;
         }
 
@@ -107,10 +108,12 @@ public class CommandAdd
                 }
                 exampleCommand.append("<minecraftUsername> <@discordMention>");
 
-                channel.sendMessage(DiscordClient.CreateEmbeddedMessage("Too many arguments",
+                MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage("Too many arguments",
                         (author.getAsMention() + ", expected 1 or 2 arguments but found " + amountOfArgs + ".\n" +
                                 "Example: " + exampleCommand.toString() + "\n\n **NOTE:** Only staff members may use the <@discordMention> parameter."),
-                                    DiscordClient.EmbedMessageType.FAILURE).build()).queue();
+                                    DiscordClient.EmbedMessageType.FAILURE).build();
+
+                DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
                 return;
             }
 
@@ -135,9 +138,10 @@ public class CommandAdd
             {
                 if(onlyHasLimitedAdd)
                 {
-                    channel.sendMessage(DiscordClient.CreateEmbeddedMessage("Insufficient Permissions",
-                            (author.getAsMention() + ", only staff members can manually link Discord IDs. Please only enter your Minecraft name."), DiscordClient.EmbedMessageType.FAILURE).build()).queue();
+                    MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage("Insufficient Permissions",
+                            (author.getAsMention() + ", only staff members can manually link Discord IDs. Please only enter your Minecraft name."), DiscordClient.EmbedMessageType.FAILURE).build();
 
+                    DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
                     return;
                 }
                 else
@@ -161,10 +165,11 @@ public class CommandAdd
 
             if(finalDiscordIdProvided && suppliedMember == null)
             {
-                channel.sendMessage(DiscordClient.CreateEmbeddedMessage("Discord ID not found in Guild or is incorrect",
+                MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage("Discord ID not found in Guild or is incorrect",
                         (author.getAsMention() + ", the ID supplied (`" + discordIdStripped + "`) could not be located in this Discord Server/Guild."),
-                                DiscordClient.EmbedMessageType.FAILURE).build()).queue();
+                                DiscordClient.EmbedMessageType.FAILURE).build();
 
+                DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
                 return;
             }
 
@@ -194,8 +199,9 @@ public class CommandAdd
             {
                 if(!DiscordWhitelister.useCustomMessages)
                 {
-                    channel.sendMessage(DiscordClient.CreateEmbeddedMessage("No Whitelists Remaining", (author.getAsMention() + ", unable to whitelist. You have **" + (DiscordClient.maxWhitelistAmount - timesWhitelisted)
-                            + " out of " + DiscordClient.maxWhitelistAmount + "** whitelists remaining."), DiscordClient.EmbedMessageType.INFO).build()).queue();
+                    MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage("No Whitelists Remaining", (author.getAsMention() + ", unable to whitelist. You have **" + (DiscordClient.maxWhitelistAmount - timesWhitelisted)
+                            + " out of " + DiscordClient.maxWhitelistAmount + "** whitelists remaining."), DiscordClient.EmbedMessageType.INFO).build();
+                    DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
                 }
                 else
                 {
@@ -205,7 +211,8 @@ public class CommandAdd
                     customMessage = customMessage.replaceAll("\\{RemainingWhitelists}", String.valueOf((DiscordClient.maxWhitelistAmount - timesWhitelisted)));
                     customMessage = customMessage.replaceAll("\\{MaxWhitelistAmount}", String.valueOf(DiscordClient.maxWhitelistAmount));
 
-                    channel.sendMessage(DiscordClient.CreateEmbeddedMessage(customTitle, customMessage, DiscordClient.EmbedMessageType.INFO).build()).queue();
+                    MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage(customTitle, customMessage, DiscordClient.EmbedMessageType.INFO).build();
+                    DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
                 }
 
                 return;
@@ -216,7 +223,8 @@ public class CommandAdd
                     || !DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length == DiscordClient.whitelistAddPrefix.length
                         || finalNameToAdd.isEmpty())
             {
-                channel.sendMessage(DiscordClient.addCommandInfo).queue();
+                if(!MainConfig.getMainConfig().getBoolean("hide-info-command-replies"))
+                    DiscordClient.QueueAndRemoveAfterSeconds(channel, DiscordClient.addCommandInfo);
             }
             else
             {
@@ -247,7 +255,7 @@ public class CommandAdd
                                 DiscordClient.AddWhitelistRemainingCount(embedBuilderInvalidChar, timesWhitelisted);
                             }
 
-                            channel.sendMessage(embedBuilderInvalidChar.build()).queue();
+                            DiscordClient.QueueAndRemoveAfterSeconds(channel, embedBuilderInvalidChar.build());
                             return;
                         }
                     }
@@ -275,7 +283,7 @@ public class CommandAdd
                             DiscordClient.AddWhitelistRemainingCount(embedBuilderLengthInvalid, timesWhitelisted);
                         }
 
-                        channel.sendMessage(embedBuilderLengthInvalid.build()).queue();
+                        DiscordClient.QueueAndRemoveAfterSeconds(channel, embedBuilderLengthInvalid.build());
                         return;
                     }
                 }
@@ -303,7 +311,10 @@ public class CommandAdd
                 {
                     if(!DiscordWhitelister.useCustomMessages)
                     {
-                        channel.sendMessage(DiscordClient.CreateEmbeddedMessage("User already on the whitelist", (author.getAsMention() + ", cannot add user as `" + finalNameToAdd + "` is already on the whitelist!"), DiscordClient.EmbedMessageType.INFO).build()).queue();
+                        MessageEmbed messageEmbed =
+                                DiscordClient.CreateEmbeddedMessage("User already on the whitelist",
+                                        (author.getAsMention() + ", cannot add user as `" + finalNameToAdd + "` is already on the whitelist!"), DiscordClient.EmbedMessageType.INFO).build();
+                        DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
                     }
                     else
                     {
@@ -312,7 +323,8 @@ public class CommandAdd
                         customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
                         customMessage = customMessage.replaceAll("\\{MinecraftUsername}", finalNameToAdd);
 
-                        channel.sendMessage(DiscordClient.CreateEmbeddedMessage(customTitle, customMessage, DiscordClient.EmbedMessageType.INFO).build()).queue();
+                        MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage(customTitle, customMessage, DiscordClient.EmbedMessageType.INFO).build();
+                        DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
                     }
                     return;
                 }
@@ -342,8 +354,7 @@ public class CommandAdd
                         }
 
                         DiscordClient.AddWhitelistRemainingCount(embedBuilderRemovedByStaff, timesWhitelisted);
-
-                        channel.sendMessage(embedBuilderRemovedByStaff.build()).queue();
+                        DiscordClient.QueueAndRemoveAfterSeconds(channel, embedBuilderRemovedByStaff.build());
                         return;
                     }
                     else
@@ -384,7 +395,7 @@ public class CommandAdd
 
                             DiscordClient.AddWhitelistRemainingCount(embedBuilderRemovedByInGameStaff, timesWhitelisted);
 
-                            channel.sendMessage(embedBuilderRemovedByInGameStaff.build()).queue();
+                            DiscordClient.QueueAndRemoveAfterSeconds(channel, embedBuilderRemovedByInGameStaff.build());
                             return;
                         }
                         else
@@ -566,30 +577,30 @@ public class CommandAdd
                                     }
                                 }
                             }
+                        }
 
-                            if (onlyHasLimitedAdd || finalDiscordIdProvided)
+                        if (onlyHasLimitedAdd || finalDiscordIdProvided)
+                        {
+                            if(!finalDiscordIdProvided)
                             {
-                                if(!finalDiscordIdProvided)
-                                {
-                                    UserList.addRegisteredUser(author.getId(), finalNameToAdd);
-                                }
-                                else
-                                {
-                                    UserList.addRegisteredUser(suppliedMember.getId(), finalNameToAdd);
-                                }
-
-                                if(!finalDiscordIdProvided)
-                                    DiscordWhitelister.getPluginLogger().info(author.getName() + "(" + author.getId() + ") successfully added " + finalNameToAdd
-                                            + " to the whitelist, " + (DiscordClient.maxWhitelistAmount - finalTimesWhitelisted) + " whitelists remaining.");
-                                else
-                                    DiscordWhitelister.getPluginLogger().info(author.getName() + "(" + author.getId() + ") successfully added " + finalNameToAdd
-                                            + " to the whitelist and linked " + finalNameToAdd + " to "+ suppliedMember.getEffectiveName() + "(" + suppliedMember.getId() + ").");
+                                UserList.addRegisteredUser(author.getId(), finalNameToAdd);
                             }
+                            else
+                            {
+                                UserList.addRegisteredUser(suppliedMember.getId(), finalNameToAdd);
+                            }
+
+                            if(!finalDiscordIdProvided)
+                                DiscordWhitelister.getPluginLogger().info(author.getName() + "(" + author.getId() + ") successfully added " + finalNameToAdd
+                                        + " to the whitelist, " + (DiscordClient.maxWhitelistAmount - finalTimesWhitelisted) + " whitelists remaining.");
+                            else
+                                DiscordWhitelister.getPluginLogger().info(author.getName() + "(" + author.getId() + ") successfully added " + finalNameToAdd
+                                        + " to the whitelist and linked " + finalNameToAdd + " to "+ suppliedMember.getEffectiveName() + "(" + suppliedMember.getId() + ").");
                         }
                     }
                     else
                     {
-                        channel.sendMessage(embedBuilderWhitelistFailure.build()).queue();
+                        DiscordClient.QueueAndRemoveAfterSeconds(channel, embedBuilderWhitelistFailure.build());
                     }
                     return null;
                 });

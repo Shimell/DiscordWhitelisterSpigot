@@ -27,10 +27,12 @@ import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
+import javax.xml.soap.Text;
 import java.awt.Color;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 // handles Discord interaction
 public class DiscordClient extends ListenerAdapter
@@ -330,13 +332,18 @@ public class DiscordClient extends ListenerAdapter
             // TODO remove, use in command classes when complete
             AuthorPermissions authorPermissions = new AuthorPermissions(messageReceivedEvent);
             User author = messageReceivedEvent.getAuthor();
-            //String messageContents = messageReceivedEvent.getMessage().getContentDisplay(); // used above
             TextChannel channel = messageReceivedEvent.getTextChannel();
 
             // determine which command to run
             if (splitMessage.length == 1 && CheckForPrefix(whitelistInfoPrefix, splitMessage))
             {
+                if(MainConfig.getMainConfig().getBoolean("hide-info-command-replies"))
+                    return;
+
                 CommandInfo.ExecuteCommand(messageReceivedEvent);
+
+                if(DiscordWhitelister.removeUnnecessaryMessages)
+                    RemoveMessageAfterSeconds(messageReceivedEvent, DiscordWhitelister.removeMessageWaitTime);
                 return;
             }
 
@@ -344,6 +351,9 @@ public class DiscordClient extends ListenerAdapter
                 || DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length >= customWhitelistAddPrefixSplit.length && CheckForPrefix(customWhitelistAddPrefixSplit, splitMessage))
             {
                 CommandAdd.ExecuteCommand(messageReceivedEvent, splitMessage);
+
+                if(DiscordWhitelister.removeUnnecessaryMessages)
+                    RemoveMessageAfterSeconds(messageReceivedEvent, DiscordWhitelister.removeMessageWaitTime);
                 return;
             }
 
@@ -375,7 +385,10 @@ public class DiscordClient extends ListenerAdapter
 
                     if (finalNameToRemove.isEmpty())
                     {
-                        channel.sendMessage(removeCommandInfo).queue();
+                        if(!MainConfig.getMainConfig().getBoolean("hide-info-command-replies"))
+                            QueueAndRemoveAfterSeconds(channel, removeCommandInfo);
+
+                        TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                         return;
                     }
                     else
@@ -390,7 +403,11 @@ public class DiscordClient extends ListenerAdapter
 
                             if(!DiscordWhitelister.useCustomMessages)
                             {
-                                channel.sendMessage(CreateEmbeddedMessage("This user is not on the whitelist", (author.getAsMention() + ", cannot remove user as `" + finalNameToRemove + "` is not on the whitelist!"), EmbedMessageType.INFO).build()).queue();
+                                MessageEmbed messageEmbed = CreateEmbeddedMessage("This user is not on the whitelist",
+                                        (author.getAsMention() + ", cannot remove user as `" + finalNameToRemove + "` is not on the whitelist!"), EmbedMessageType.INFO).build();
+                                QueueAndRemoveAfterSeconds(channel, messageEmbed);
+                                TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
+                                // Return below
                             }
                             else
                             {
@@ -399,7 +416,9 @@ public class DiscordClient extends ListenerAdapter
                                 customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
                                 customMessage = customMessage.replaceAll("\\{MinecraftUsername}", finalNameToRemove);
 
-                                channel.sendMessage(CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.INFO).build()).queue();
+                                MessageEmbed messageEmbed = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.INFO).build();
+                                QueueAndRemoveAfterSeconds(channel, messageEmbed);
+                                TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                             }
                         }
 
@@ -416,7 +435,10 @@ public class DiscordClient extends ListenerAdapter
 
                             if(!DiscordWhitelister.useCustomMessages)
                             {
-                                embedBuilderSuccess = CreateEmbeddedMessage((finalNameToRemove + " has been removed"), (author.getAsMention() + " has removed `" + finalNameToRemove + "` from the whitelist."), EmbedMessageType.SUCCESS);
+                                if(!MainConfig.getMainConfig().getBoolean("set-removed-message-colour-to-red"))
+                                    embedBuilderSuccess = CreateEmbeddedMessage((finalNameToRemove + " has been removed"), (author.getAsMention() + " has removed `" + finalNameToRemove + "` from the whitelist."), EmbedMessageType.SUCCESS);
+                                else
+                                    embedBuilderSuccess = CreateEmbeddedMessage((finalNameToRemove + " has been removed"), (author.getAsMention() + " has removed `" + finalNameToRemove + "` from the whitelist."), EmbedMessageType.FAILURE);
                             }
                             else
                             {
@@ -427,7 +449,16 @@ public class DiscordClient extends ListenerAdapter
                                 customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
                                 customMessage = customMessage.replaceAll("\\{MinecraftUsername}", finalNameToRemove);
 
-                                embedBuilderSuccess = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.SUCCESS);
+                                if(!MainConfig.getMainConfig().getBoolean("set-removed-message-colour-to-red"))
+                                    embedBuilderSuccess = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.SUCCESS);
+                                else
+                                    embedBuilderSuccess = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.FAILURE);
+                            }
+
+                            if(DiscordWhitelister.showPlayerSkin)
+                            {
+                                String playerUUID = DiscordClient.minecraftUsernameToUUID(finalNameToRemove);
+                                embedBuilderSuccess.setThumbnail("https://minotar.net/armor/bust/" + playerUUID + "/100.png");
                             }
 
                             EmbedBuilder embedBuilderFailure;
@@ -442,6 +473,7 @@ public class DiscordClient extends ListenerAdapter
                                         || !WhitelistedPlayers.usingEasyWhitelist && !WhitelistedPlayers.CheckForPlayer(finalNameToRemove))
                                 {
                                     channel.sendMessage(embedBuilderSuccess.build()).queue();
+                                    TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
 
                                     if(DiscordWhitelister.useUltraPerms)
                                     {
@@ -525,14 +557,17 @@ public class DiscordClient extends ListenerAdapter
                                 }
                                 else
                                 {
-                                    channel.sendMessage(embedBuilderFailure.build()).queue();
+                                    QueueAndRemoveAfterSeconds(channel, embedBuilderFailure.build());
+                                    TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                                 }
+
                                 return null;
                             });
                             return;
                         }
                         return;
                     }
+
                 }
 
                 if (authorPermissions.isUserCanAdd() && !authorPermissions.isUserCanAddRemove())
@@ -558,12 +593,14 @@ public class DiscordClient extends ListenerAdapter
                         embedBuilderInfo = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.INFO);
                     }
 
-                    channel.sendMessage(embedBuilderInfo.build()).queue();
+                    QueueAndRemoveAfterSeconds(channel, embedBuilderInfo.build());
+                    TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                     return;
                 }
 
                 // if the user doesn't have any allowed roles
-                channel.sendMessage(CreateInsufficientPermsMessage(author)).queue();
+                QueueAndRemoveAfterSeconds(channel, CreateInsufficientPermsMessage(author));
+                //TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
             }
 
             // Clear Whitelists command
@@ -579,11 +616,24 @@ public class DiscordClient extends ListenerAdapter
                     if(messageContents.toLowerCase().trim().equals("!clearname") && !DiscordWhitelister.getUseCustomPrefixes()
                         || messageContents.toLowerCase().trim().equals(customClearNamePrefix) && DiscordWhitelister.getUseCustomPrefixes())
                     {
-                        if(!DiscordWhitelister.getUseCustomPrefixes())
-                            channel.sendMessage(CreateEmbeddedMessage("Clear Name Command", "Usage: `!clearname <minecraftUsername>`\n", EmbedMessageType.INFO).build()).queue();
-                        else
-                            channel.sendMessage(CreateEmbeddedMessage("Clear Name Command", "Usage: `" + customClearNamePrefix + " <minecraftUsername>`\n", EmbedMessageType.INFO).build()).queue();
+                        if(!MainConfig.getMainConfig().getBoolean("hide-info-command-replies"))
+                        {
+                            TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
+                            return;
+                        }
 
+                        if(!DiscordWhitelister.getUseCustomPrefixes())
+                        {
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage("Clear Name Command", "Usage: `!clearname <minecraftUsername>`\n", EmbedMessageType.INFO).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
+                        }
+                        else
+                        {
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage("Clear Name Command", "Usage: `" + customClearNamePrefix + " <minecraftUsername>`\n", EmbedMessageType.INFO).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
+                        }
+
+                        TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                         return;
                     }
 
@@ -691,20 +741,28 @@ public class DiscordClient extends ListenerAdapter
 
                             clearNameTitle = clearNameTitle.replaceAll("\\{MinecraftUsername}", splitMessage[userNameIndex]);
 
-                            channel.sendMessage(CreateEmbeddedMessage(clearNameTitle, clearNameMessage, EmbedMessageType.SUCCESS).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage(clearNameTitle, clearNameMessage, EmbedMessageType.SUCCESS).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
                         else
                         {
-                            channel.sendMessage(CreateEmbeddedMessage("Successfully Cleared Name", (author.getAsMention() + " successfully cleared username `" + splitMessage[userNameIndex] +
-                                    "` from <@" + targetDiscordId + ">'s whitelisted users."), EmbedMessageType.SUCCESS).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage("Successfully Cleared Name", (author.getAsMention() + " successfully cleared username `" + splitMessage[userNameIndex] +
+                                    "` from <@" + targetDiscordId + ">'s whitelisted users."), EmbedMessageType.SUCCESS).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
+
+                        TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
+                        return;
                     }
                     else
                     {
                         // Name not found
                         if(!DiscordWhitelister.useCustomMessages)
                         {
-                            channel.sendMessage(CreateEmbeddedMessage((splitMessage[userNameIndex] + " not Found"), (author.getAsMention() + ", could not find name " + splitMessage[userNameIndex] + " to clear in user list."), EmbedMessageType.FAILURE).build()).queue();
+                            MessageEmbed messageEmbed =
+                                    CreateEmbeddedMessage((splitMessage[userNameIndex] + " not Found"),
+                                            (author.getAsMention() + ", could not find name " + splitMessage[userNameIndex] + " to clear in user list."), EmbedMessageType.FAILURE).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
                         else
                         {
@@ -714,13 +772,18 @@ public class DiscordClient extends ListenerAdapter
                             customMessage = customMessage.replaceAll("\\{MinecraftUsername}", splitMessage[userNameIndex]);
                             customTitle = customTitle.replaceAll("\\{MinecraftUsername}", splitMessage[userNameIndex]);
 
-                            channel.sendMessage(CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.FAILURE).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.FAILURE).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
+
+                        TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
+                        return;
                     }
                 }
                 else // Don't have permission
                 {
-                    channel.sendMessage(CreateInsufficientPermsMessage(author)).queue();
+                    QueueAndRemoveAfterSeconds(channel, CreateInsufficientPermsMessage(author));
+                    TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                     return;
                 }
             }
@@ -735,8 +798,10 @@ public class DiscordClient extends ListenerAdapter
                 // just inform staff, can add custom messages later if really needed
                 if(authorPermissions.isUserCanAddRemove() && !authorPermissions.isUserIsBanned() || authorPermissions.isUserCanAdd() && !authorPermissions.isUserIsBanned())
                 {
-                    channel.sendMessage(CreateEmbeddedMessage("This Command is Only Available for Limited Whitelister Roles",
-                            "If staff members need to clear a name from the whitelist please use `!clearname <mcName>`.", EmbedMessageType.INFO).build()).queue();
+                    MessageEmbed messageEmbed = CreateEmbeddedMessage("This Command is Only Available for Limited Whitelister Roles",
+                            "If staff members need to clear a name from the whitelist please use `!clearname <mcName>`.", EmbedMessageType.INFO).build();
+                    QueueAndRemoveAfterSeconds(channel, messageEmbed);
+                    TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                     return;
                 }
 
@@ -783,8 +848,9 @@ public class DiscordClient extends ListenerAdapter
                             }
                             message += "\n You now have **" + maxWhitelistAmount + " whitelist(s) remaining**.";
 
-                            channel.sendMessage(CreateEmbeddedMessage(("Successfully Removed " + author.getName() + "'s Whitelisted Entries"),
-                                    message, EmbedMessageType.FAILURE).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage(("Successfully Removed " + author.getName() + "'s Whitelisted Entries"),
+                                    message, EmbedMessageType.FAILURE).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
                         else
                         {
@@ -802,7 +868,8 @@ public class DiscordClient extends ListenerAdapter
                             customMessage = customMessage.replaceAll("\\{RemovedEntries}", removedNames);
                             customMessage = customMessage.replaceAll("\\{MaxWhitelistAmount}", String.valueOf(maxWhitelistAmount));
 
-                            channel.sendMessage(CreateEmbeddedMessage(customTitle,customMessage,EmbedMessageType.SUCCESS).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage(customTitle,customMessage,EmbedMessageType.SUCCESS).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
 
                         if(MainConfig.getMainConfig().getBoolean("whitelisted-role-auto-remove"))
@@ -814,6 +881,9 @@ public class DiscordClient extends ListenerAdapter
                                 RemoveRolesFromUser(javaDiscordAPI.getGuilds().get(i), author.getId(), Arrays.asList(whitelistedRoleNames));
                             }
                         }
+
+                        TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
+                        return;
                     }
                     else
                     {
@@ -823,8 +893,9 @@ public class DiscordClient extends ListenerAdapter
                         // Log in Discord channel
                         if(!DiscordWhitelister.useCustomMessages)
                         {
-                            channel.sendMessage(CreateEmbeddedMessage("No Entries to Remove",
-                                    (author.getAsMention() + ", you do not have any whitelisted entries to remove."), EmbedMessageType.FAILURE).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage("No Entries to Remove",
+                                    (author.getAsMention() + ", you do not have any whitelisted entries to remove."), EmbedMessageType.FAILURE).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
                         else
                         {
@@ -832,14 +903,19 @@ public class DiscordClient extends ListenerAdapter
                             String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("whitelist-clear-failure-message");
                             customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
 
-                            channel.sendMessage(CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.FAILURE).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.FAILURE).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
+
+                        TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
+                        return;
                     }
                 }
 
                 if(!authorPermissions.isUserCanAddRemove() && !authorPermissions.isUserCanAdd() && !authorPermissions.isUserHasLimitedAdd() || authorPermissions.isUserIsBanned())
                 {
-                    channel.sendMessage(CreateInsufficientPermsMessage(author)).queue();
+                    QueueAndRemoveAfterSeconds(channel, CreateInsufficientPermsMessage(author));
+                    TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                     return;
                 }
             }
@@ -853,12 +929,25 @@ public class DiscordClient extends ListenerAdapter
                     if(messageContents.toLowerCase().trim().equals("!clearban") && !DiscordWhitelister.getUseCustomPrefixes()
                             || messageContents.toLowerCase().trim().equals(customClearBanPrefix) && DiscordWhitelister.getUseCustomPrefixes())
                     {
+                        if(!MainConfig.getMainConfig().getBoolean("hide-info-command-replies"))
+                        {
+                            TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
+                            return;
+                        }
+
                         // Send info message
                         if(!DiscordWhitelister.getUseCustomPrefixes())
-                            channel.sendMessage(CreateEmbeddedMessage("Clear Ban Command", "Usage: `!clearban <minecraftUsername>`\n", EmbedMessageType.INFO).build()).queue();
+                        {
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage("Clear Ban Command", "Usage: `!clearban <minecraftUsername>`\n", EmbedMessageType.INFO).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
+                        }
                         else
-                            channel.sendMessage(CreateEmbeddedMessage("Clear Ban Command", "Usage: `" + customClearBanPrefix + " <minecraftUsername>`\n", EmbedMessageType.INFO).build()).queue();
+                        {
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage("Clear Ban Command", "Usage: `" + customClearBanPrefix + " <minecraftUsername>`\n", EmbedMessageType.INFO).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
+                        }
 
+                        TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                         return;
                     }
 
@@ -900,8 +989,9 @@ public class DiscordClient extends ListenerAdapter
 
                         if(!DiscordWhitelister.useCustomMessages)
                         {
-                            channel.sendMessage(CreateEmbeddedMessage(("Successfully Cleared `" + targetName + "`"),
-                                    (author.getAsMention() + " has successfully cleared `" + targetName + "` from the removed list(s)."), EmbedMessageType.SUCCESS).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage(("Successfully Cleared `" + targetName + "`"),
+                                    (author.getAsMention() + " has successfully cleared `" + targetName + "` from the removed list(s)."), EmbedMessageType.SUCCESS).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
                         else
                         {
@@ -911,17 +1001,20 @@ public class DiscordClient extends ListenerAdapter
                             customMessage = customMessage.replaceAll("\\{MinecraftUsername}", targetName);
                             customTitle = customTitle.replaceAll("\\{MinecraftUsername}", targetName);
 
-                            channel.sendMessage(CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.INFO).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.INFO).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
 
+                        TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                         return;
                     }
                     else
                     {
                         if(!DiscordWhitelister.useCustomMessages)
                         {
-                            channel.sendMessage(CreateEmbeddedMessage(("Failed to Clear `" + targetName + "`"),
-                                    (author.getAsMention() + ", `" + targetName + "` cannot be found in any of the removed lists!"), EmbedMessageType.FAILURE).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage(("Failed to Clear `" + targetName + "`"),
+                                    (author.getAsMention() + ", `" + targetName + "` cannot be found in any of the removed lists!"), EmbedMessageType.FAILURE).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
                         else
                         {
@@ -931,15 +1024,18 @@ public class DiscordClient extends ListenerAdapter
                             customMessage = customMessage.replaceAll("\\{MinecraftUsername}", targetName);
                             customTitle = customTitle.replaceAll("\\{MinecraftUsername}", targetName);
 
-                            channel.sendMessage(CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.FAILURE).build()).queue();
+                            MessageEmbed messageEmbed = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.FAILURE).build();
+                            QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
 
+                        TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                         return;
                     }
                 }
                 else
                 {
-                    channel.sendMessage(CreateInsufficientPermsMessage(author));
+                    QueueAndRemoveAfterSeconds(channel, CreateInsufficientPermsMessage(author));
+                    TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
                     return;
                 }
             }
@@ -948,7 +1044,36 @@ public class DiscordClient extends ListenerAdapter
                     || DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length >= customWhoIsPrefix.length && CheckForPrefix(customWhoIsPrefix, splitMessage))
             {
                 CommandWhoIs.ExecuteCommand(messageReceivedEvent, splitMessage);
+
+                if(DiscordWhitelister.removeUnnecessaryMessages)
+                    RemoveMessageAfterSeconds(messageReceivedEvent, DiscordWhitelister.removeMessageWaitTime);
                 return;
+            }
+
+            // if no commands are executed, delete the message, if enabled
+            if(DiscordWhitelister.removeUnnecessaryMessages)
+            {
+                RemoveMessageAfterSeconds(messageReceivedEvent, DiscordWhitelister.removeMessageWaitTime);
+
+                if(MainConfig.getMainConfig().getBoolean("show-warning-in-command-channel"))
+                {
+                    if(!DiscordWhitelister.useCustomMessages)
+                    {
+                        MessageEmbed messageEmbed = CreateEmbeddedMessage("This Channel is for Commands Only", (author.getAsMention() + ", this channel is for commands only, please use another channel."),
+                                EmbedMessageType.FAILURE).build();
+                        QueueAndRemoveAfterSeconds(channel, messageEmbed);
+                    }
+                    else
+                    {
+                        String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("command-channel-title");
+
+                        String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("command-channel-message");
+                        customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
+
+                        MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage(customTitle, customMessage, DiscordClient.EmbedMessageType.FAILURE).build();
+                        QueueAndRemoveAfterSeconds(channel, messageEmbed);
+                    }
+                }
             }
         }
     }
@@ -1293,6 +1418,60 @@ public class DiscordClient extends ListenerAdapter
                 targetGuild.removeRoleFromMember(targetGuild.getMemberById(targetUserId), rolesFound.get(i)).queue();
             }
         }
+    }
+
+    public static void RemoveMessageAfterSeconds(MessageReceivedEvent messageReceivedEvent, Integer timeToWait)
+    {
+        Thread removeTimerThread = new Thread(() ->
+        {
+            try
+            {
+                TimeUnit.SECONDS.sleep(timeToWait);
+                messageReceivedEvent.getMessage().delete().queue();
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+        });
+
+        removeTimerThread.start();
+    }
+
+//    public static void SendAndRemoveMessagesAfterSeconds(MessageReceivedEvent messageReceivedEvent, List<Object> messages, Integer timeToWait)
+//    {
+//        TextChannel textChannel = messageReceivedEvent.getTextChannel();
+//
+//        for (Object o : messages)
+//        {
+//            // Only Remove supplied Messages
+//            if(o instanceof Message)
+//            {
+//                if(DiscordWhitelister.removeUnnecessaryMessages)
+//                    RemoveMessageAfterSeconds(messageReceivedEvent, DiscordWhitelister.removeMessageWaitTime);
+//            }
+//            else if(o instanceof MessageEmbed)
+//            {
+//                if(DiscordWhitelister.removeUnnecessaryMessages)
+//                    textChannel.sendMessage((MessageEmbed) o).queue(message -> message.delete().queueAfter(timeToWait, TimeUnit.SECONDS));
+//                else
+//                    textChannel.sendMessage((MessageEmbed) o).queue();
+//            }
+//        }
+//    }
+
+    public static void QueueAndRemoveAfterSeconds(TextChannel textChannel, MessageEmbed messageEmbed)
+    {
+        if(DiscordWhitelister.removeUnnecessaryMessages)
+            textChannel.sendMessage(messageEmbed).queue(message -> message.delete().queueAfter(DiscordWhitelister.removeMessageWaitTime, TimeUnit.SECONDS));
+        else
+            textChannel.sendMessage(messageEmbed).queue();
+    }
+
+    public static void TempRemoveOriginalMessageAfterSeconds(MessageReceivedEvent messageReceivedEvent)
+    {
+        if(DiscordWhitelister.removeUnnecessaryMessages)
+            RemoveMessageAfterSeconds(messageReceivedEvent, DiscordWhitelister.removeMessageWaitTime);
     }
 
     // TODO: improve, not go through console commands

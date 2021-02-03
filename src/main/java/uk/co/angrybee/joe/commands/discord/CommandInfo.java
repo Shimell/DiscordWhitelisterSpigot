@@ -16,11 +16,11 @@ public class CommandInfo
 
         if (authorPermissions.isUserCanUseCommand())
         {
-            channel.sendMessage(DiscordClient.botInfo).queue();
+            DiscordClient.QueueAndRemoveAfterSeconds(channel, DiscordClient.botInfo);
         }
         else
         {
-            channel.sendMessage(DiscordClient.CreateInsufficientPermsMessage(author)).queue();
+            DiscordClient.QueueAndRemoveAfterSeconds(channel, DiscordClient.CreateInsufficientPermsMessage(author));
         }
     }
 }

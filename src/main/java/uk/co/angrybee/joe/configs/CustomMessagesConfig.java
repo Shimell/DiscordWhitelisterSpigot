@@ -130,6 +130,9 @@ public class CustomMessagesConfig
 
             CheckEntry("whitelist-clear-failure-title",  "No Entries to Remove");
             CheckEntry("whitelist-clear-failure-message", "{Sender}, you do not have any whitelisted entries to remove. ");
+
+            CheckEntry("command-channel-title", "This Channel is for Commands Only");
+            CheckEntry("command-channel-message", "{Sender}, this channel is for commands only, please use another channel.");
         }
     }
 

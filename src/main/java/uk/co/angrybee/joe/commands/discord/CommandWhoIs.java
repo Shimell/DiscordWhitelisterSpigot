@@ -2,24 +2,24 @@ package uk.co.angrybee.joe.commands.discord;
 
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.AccountTypeException;
 import org.yaml.snakeyaml.Yaml;
 import uk.co.angrybee.joe.AuthorPermissions;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
+import uk.co.angrybee.joe.configs.MainConfig;
 import uk.co.angrybee.joe.stores.UserList;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class CommandWhoIs
 {
@@ -28,11 +28,10 @@ public class CommandWhoIs
         AuthorPermissions authorPermissions = new AuthorPermissions(messageReceivedEvent);
         User author = messageReceivedEvent.getAuthor();
         TextChannel channel = messageReceivedEvent.getTextChannel();
-        Member member = messageReceivedEvent.getMember();
 
         if (!authorPermissions.isUserCanAddRemove() && !authorPermissions.isUserCanAdd())
         {
-            channel.sendMessage(DiscordClient.CreateInsufficientPermsMessage(author)).queue();
+            DiscordClient.QueueAndRemoveAfterSeconds(channel, DiscordClient.CreateInsufficientPermsMessage(author));
             return;
         }
 
@@ -63,9 +62,11 @@ public class CommandWhoIs
             }
             exampleCommand.append("<minecraftUsername>");
 
-            channel.sendMessage(DiscordClient.CreateEmbeddedMessage("Too many arguments",
+            MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage("Too many arguments",
                     (author.getAsMention() + ", expected 1 argument but found " + amountOfArgs + ".\n" +
-                            "Example: " + exampleCommand.toString()), DiscordClient.EmbedMessageType.FAILURE).build()).queue();
+                            "Example: " + exampleCommand.toString()), DiscordClient.EmbedMessageType.FAILURE).build();
+
+            DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
             return;
         }
 
@@ -79,7 +80,10 @@ public class CommandWhoIs
         if(DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length == DiscordClient.customWhoIsPrefix.length
                 || !DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length == DiscordClient.whitelistWhoIsPrefix.length || nameToCheck.isEmpty())
         {
-            channel.sendMessage(DiscordClient.whoIsInfo).queue();
+            if(!MainConfig.getMainConfig().getBoolean("hide-info-command-replies"))
+                return;
+
+            DiscordClient.QueueAndRemoveAfterSeconds(channel, DiscordClient.whoIsInfo);
             return;
         }
 
@@ -134,14 +138,16 @@ public class CommandWhoIs
             else
                 DiscordWhitelister.getPluginLogger().warning("Failed to fetch avatar linked to Discord ID: " + targetDiscordId);
 
-            channel.sendMessage(idFoundMessage.build()).queue();
+            DiscordClient.QueueAndRemoveAfterSeconds(channel, idFoundMessage.build());
         }
         else
         {
-            channel.sendMessage(DiscordClient.CreateEmbeddedMessage(("Could not find an account linked to `" + nameToCheck + "`"),
+            MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage(("Could not find an account linked to `" + nameToCheck + "`"),
                     (author.getAsMention() + ", the name: `" + nameToCheck +
                             "` could not be found in the users list. Please make sure that the Minecraft name is valid and whitelisted + linked to an ID before."),
-                                DiscordClient.EmbedMessageType.FAILURE).build()).queue();
+                                DiscordClient.EmbedMessageType.FAILURE).build();
+
+            DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
         }
     }
 }

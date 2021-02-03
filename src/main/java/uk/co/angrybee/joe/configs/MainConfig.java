@@ -143,6 +143,16 @@ public class MainConfig
 
         CheckEntry("un-whitelist-on-server-leave", true);
 
+        CheckEntry("remove-unnecessary-messages-from-whitelist-channel", false);
+
+        CheckEntry("seconds-to-remove-message-from-whitelist-channel", 5);
+
+        CheckEntry("set-removed-message-colour-to-red", false);
+
+        CheckEntry("show-warning-in-command-channel", false);
+
+        CheckEntry("hide-info-command-replies", false);
+
         // Remove old role entry if found, move role to new array (for people with v1.3.6 or below)
         if(whitelisterBotConfig.get("whitelisted-role") != null)
         {
