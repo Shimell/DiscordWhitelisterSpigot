@@ -325,6 +325,7 @@ public class DiscordClient extends ListenerAdapter
 
             String messageContents = messageReceivedEvent.getMessage().getContentRaw();
             String[] splitMessage = messageContents.toLowerCase().trim().split(" ");
+            String[] splitMessageCaseSensitive = messageContents.trim().split(" ");
 
             if(splitMessage.length <= 0)
                 return;
@@ -350,7 +351,7 @@ public class DiscordClient extends ListenerAdapter
             if(!DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length >= whitelistAddPrefix.length  && CheckForPrefix(whitelistAddPrefix, splitMessage)
                 || DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length >= customWhitelistAddPrefixSplit.length && CheckForPrefix(customWhitelistAddPrefixSplit, splitMessage))
             {
-                CommandAdd.ExecuteCommand(messageReceivedEvent, splitMessage);
+                CommandAdd.ExecuteCommand(messageReceivedEvent, splitMessageCaseSensitive);
 
                 if(DiscordWhitelister.removeUnnecessaryMessages)
                     RemoveMessageAfterSeconds(messageReceivedEvent, DiscordWhitelister.removeMessageWaitTime);

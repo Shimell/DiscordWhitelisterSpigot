@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CommandAdd
 {
-    public static void ExecuteCommand(MessageReceivedEvent messageReceivedEvent, String[] splitMessage)
+    public static void ExecuteCommand(MessageReceivedEvent messageReceivedEvent, String[] splitMessageCaseSensitive)
     {
         AuthorPermissions authorPermissions = new AuthorPermissions(messageReceivedEvent);
         User author = messageReceivedEvent.getAuthor();
@@ -82,14 +82,14 @@ public class CommandAdd
 
         if (authorPermissions.isUserCanAddRemove() || authorPermissions.isUserCanAdd() || DiscordClient.limitedWhitelistEnabled && authorPermissions.isUserHasLimitedAdd())
         {
-            if(DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length > (DiscordClient.customWhitelistAddPrefixSplit.length + 2)
-                    || !DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length > (DiscordClient.whitelistAddPrefix.length + 2))
+            if(DiscordWhitelister.getUseCustomPrefixes() && splitMessageCaseSensitive.length > (DiscordClient.customWhitelistAddPrefixSplit.length + 2)
+                    || !DiscordWhitelister.getUseCustomPrefixes() && splitMessageCaseSensitive.length > (DiscordClient.whitelistAddPrefix.length + 2))
             {
                 int amountOfArgs = 0;
                 if(DiscordWhitelister.getUseCustomPrefixes())
-                    amountOfArgs = splitMessage.length - (DiscordClient.customWhitelistAddPrefixSplit.length);
+                    amountOfArgs = splitMessageCaseSensitive.length - (DiscordClient.customWhitelistAddPrefixSplit.length);
                 else
-                    amountOfArgs = splitMessage.length - (DiscordClient.whitelistAddPrefix.length);
+                    amountOfArgs = splitMessageCaseSensitive.length - (DiscordClient.whitelistAddPrefix.length);
 
                 StringBuilder exampleCommand = new StringBuilder();
                 if(DiscordWhitelister.getUseCustomPrefixes())
@@ -117,15 +117,15 @@ public class CommandAdd
                 return;
             }
 
-            String nameToAdd = "";
-            if(DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length >= DiscordClient.customWhitelistAddPrefixSplit.length + 1)
-                nameToAdd = splitMessage[DiscordClient.customWhitelistAddPrefixSplit.length];
+            String nameToAddCaseSensitive = "";
+            if(DiscordWhitelister.getUseCustomPrefixes() && splitMessageCaseSensitive.length >= DiscordClient.customWhitelistAddPrefixSplit.length + 1)
+                nameToAddCaseSensitive = splitMessageCaseSensitive[DiscordClient.customWhitelistAddPrefixSplit.length];
 
-            if(!DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length >= DiscordClient.whitelistAddPrefix.length + 1)
-                nameToAdd = splitMessage[DiscordClient.whitelistAddPrefix.length];
+            if(!DiscordWhitelister.getUseCustomPrefixes() && splitMessageCaseSensitive.length >= DiscordClient.whitelistAddPrefix.length + 1)
+                nameToAddCaseSensitive = splitMessageCaseSensitive[DiscordClient.whitelistAddPrefix.length];
 
-            final String finalNameToAdd = nameToAdd;
-            final char[] finalNameToWhitelistChar = finalNameToAdd.toCharArray();
+            final String finalNameToAdd = nameToAddCaseSensitive;
+            final char[] finalNameToWhitelistChar = finalNameToAdd.toLowerCase().toCharArray(); // Lower case for char check
 
             int timesWhitelisted = 0;
 
@@ -133,8 +133,8 @@ public class CommandAdd
                     !authorPermissions.isUserCanAddRemove() && !authorPermissions.isUserCanAdd();
 
             boolean discordIdProvided = false;
-            if(DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length == (DiscordClient.customWhitelistAddPrefixSplit.length + 2)
-                    || !DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length == (DiscordClient.whitelistAddPrefix.length + 2))
+            if(DiscordWhitelister.getUseCustomPrefixes() && splitMessageCaseSensitive.length == (DiscordClient.customWhitelistAddPrefixSplit.length + 2)
+                    || !DiscordWhitelister.getUseCustomPrefixes() && splitMessageCaseSensitive.length == (DiscordClient.whitelistAddPrefix.length + 2))
             {
                 if(onlyHasLimitedAdd)
                 {
@@ -155,7 +155,7 @@ public class CommandAdd
             String discordIdStripped = "";
             if(finalDiscordIdProvided)
             {
-                discordIdStripped = splitMessage[DiscordClient.customWhitelistAddPrefixSplit.length + 1];
+                discordIdStripped = splitMessageCaseSensitive[DiscordClient.customWhitelistAddPrefixSplit.length + 1];
                 discordIdStripped = discordIdStripped.replaceAll("<@!","");
                 discordIdStripped = discordIdStripped.replaceAll(">","");
             }
@@ -219,8 +219,8 @@ public class CommandAdd
             }
 
             // Command would only be executed if the prefix matched so no need to check contents just length
-            if (DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length == DiscordClient.customWhitelistAddPrefixSplit.length
-                    || !DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length == DiscordClient.whitelistAddPrefix.length
+            if (DiscordWhitelister.getUseCustomPrefixes() && splitMessageCaseSensitive.length == DiscordClient.customWhitelistAddPrefixSplit.length
+                    || !DiscordWhitelister.getUseCustomPrefixes() && splitMessageCaseSensitive.length == DiscordClient.whitelistAddPrefix.length
                         || finalNameToAdd.isEmpty())
             {
                 if(!MainConfig.getMainConfig().getBoolean("hide-info-command-replies"))
@@ -338,14 +338,14 @@ public class CommandAdd
                         if(!DiscordWhitelister.useCustomMessages)
                         {
                             embedBuilderRemovedByStaff = DiscordClient.CreateEmbeddedMessage("This user was previously removed by a staff member",
-                                    (author.getAsMention() + ", this user was previously removed by a staff member (<@" + RemovedList.getRemovedPlayers().get(finalNameToAdd) + ">).\n" +
+                                    (author.getAsMention() + ", this user was previously removed by a staff member (<@" + RemovedList.getRemovedPlayers().get(finalNameToAdd.toLowerCase()) + ">).\n" +
                                             "Please ask a user with higher permissions to add this user.\n"), DiscordClient.EmbedMessageType.FAILURE);
                         }
                         else
                         {
                             String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("user-was-removed-title");
                             String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("user-was-removed");
-                            String staffMemberMention = "<@" + RemovedList.getRemovedPlayers().get(finalNameToAdd) + ">";
+                            String staffMemberMention = "<@" + RemovedList.getRemovedPlayers().get(finalNameToAdd.toLowerCase()) + ">";
 
                             customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
                             customMessage = customMessage.replaceAll("\\{StaffMember}", staffMemberMention);
@@ -359,7 +359,7 @@ public class CommandAdd
                     }
                     else
                     {
-                        RemovedList.getRemovedPlayers().set(finalNameToAdd, null);
+                        RemovedList.getRemovedPlayers().set(finalNameToAdd.toLowerCase(), null);
                         RemovedList.SaveStore();
 
                         DiscordWhitelister.getPlugin().getLogger().info(finalNameToAdd + " has been removed from the removed list by " + author.getName() + "(" + author.getId() + ")");
@@ -369,7 +369,7 @@ public class CommandAdd
                 // In-game list check
                 if(DiscordWhitelister.useInGameAddRemoves)
                 {
-                    if(InGameRemovedList.CheckStoreForPlayer(finalNameToAdd))
+                    if(InGameRemovedList.CheckStoreForPlayer(finalNameToAdd.toLowerCase()))
                     {
                         if(onlyHasLimitedAdd)
                         {
@@ -378,14 +378,14 @@ public class CommandAdd
                             if(!DiscordWhitelister.useCustomMessages)
                             {
                                 embedBuilderRemovedByInGameStaff = DiscordClient.CreateEmbeddedMessage("This user was previously removed by a staff member",
-                                        (author.getAsMention() + ", this user was previously removed by a staff member in-game (" + InGameRemovedList.getRemovedPlayers().get(finalNameToAdd) + ").\n" +
+                                        (author.getAsMention() + ", this user was previously removed by a staff member in-game (" + InGameRemovedList.getRemovedPlayers().get(finalNameToAdd.toLowerCase()) + ").\n" +
                                                 "Please ask a user with higher permissions to add this user.\n"), DiscordClient.EmbedMessageType.FAILURE);
                             }
                             else
                             {
                                 String customTitle = DiscordWhitelister.getCustomMessagesConfig().getString("user-was-removed-in-game-title");
                                 String customMessage = DiscordWhitelister.getCustomMessagesConfig().getString("user-was-removed-in-game");
-                                String inGameStaffMember = InGameRemovedList.getRemovedPlayers().getString(finalNameToAdd);
+                                String inGameStaffMember = InGameRemovedList.getRemovedPlayers().getString(finalNameToAdd.toLowerCase());
 
                                 customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
                                 customMessage = customMessage.replaceAll("\\{StaffMember}", inGameStaffMember);
@@ -400,7 +400,7 @@ public class CommandAdd
                         }
                         else
                         {
-                            InGameRemovedList.RemoveUserFromStore(finalNameToAdd);
+                            InGameRemovedList.RemoveUserFromStore(finalNameToAdd.toLowerCase());
 
                             DiscordWhitelister.getPlugin().getLogger().info(finalNameToAdd + " has been removed from in-game-removed-list.yml by " + author.getName() + "(" + author.getId() + ")");
                         }
@@ -583,11 +583,11 @@ public class CommandAdd
                         {
                             if(!finalDiscordIdProvided)
                             {
-                                UserList.addRegisteredUser(author.getId(), finalNameToAdd);
+                                UserList.addRegisteredUser(author.getId(), finalNameToAdd.toLowerCase()); // convert to lower case for remove & clearname commands
                             }
                             else
                             {
-                                UserList.addRegisteredUser(suppliedMember.getId(), finalNameToAdd);
+                                UserList.addRegisteredUser(suppliedMember.getId(), finalNameToAdd.toLowerCase());
                             }
 
                             if(!finalDiscordIdProvided)

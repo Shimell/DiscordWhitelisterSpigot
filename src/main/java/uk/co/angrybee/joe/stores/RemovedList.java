@@ -70,6 +70,9 @@ public class RemovedList
     // Returns true if the player is in the store/list
     public static boolean CheckStoreForPlayer(String nameToCheck)
     {
+        // Removed list is case-insensitive, can change in the future if needed
+        nameToCheck = nameToCheck.toLowerCase();
+
         LoadStore();
         return removedPlayersConfig.get(nameToCheck) != null;
     }
