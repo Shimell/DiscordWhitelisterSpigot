@@ -153,6 +153,8 @@ public class MainConfig
 
         CheckEntry("hide-info-command-replies", false);
 
+        CheckEntry("use-crafatar-for-avatars", false);
+
         // Remove old role entry if found, move role to new array (for people with v1.3.6 or below)
         if(whitelisterBotConfig.get("whitelisted-role") != null)
         {

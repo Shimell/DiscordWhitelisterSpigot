@@ -459,7 +459,11 @@ public class DiscordClient extends ListenerAdapter
                             if(DiscordWhitelister.showPlayerSkin)
                             {
                                 String playerUUID = DiscordClient.minecraftUsernameToUUID(finalNameToRemove);
-                                embedBuilderSuccess.setThumbnail("https://minotar.net/armor/bust/" + playerUUID + "/100.png");
+
+                                if(!MainConfig.getMainConfig().getBoolean("use-crafatar-for-avatars"))
+                                    embedBuilderSuccess.setThumbnail("https://minotar.net/armor/bust/" + playerUUID + "/100.png");
+                                else
+                                    embedBuilderSuccess.setThumbnail("https://crafatar.com/avatars/" + playerUUID + "?size=100&default=MHF_Steve&overlay.png");
                             }
 
                             EmbedBuilder embedBuilderFailure;

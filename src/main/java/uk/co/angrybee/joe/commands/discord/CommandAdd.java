@@ -436,7 +436,12 @@ public class CommandAdd
                     DiscordClient.AddWhitelistRemainingCount(embedBuilderWhitelistSuccess, (timesWhitelisted + 1));
 
                 if(DiscordWhitelister.showPlayerSkin)
-                    embedBuilderWhitelistSuccess.setThumbnail("https://minotar.net/armor/bust/" + playerUUID + "/100.png");
+                {
+                    if(!MainConfig.getMainConfig().getBoolean("use-crafatar-for-avatars"))
+                        embedBuilderWhitelistSuccess.setThumbnail("https://minotar.net/armor/bust/" + playerUUID + "/100.png");
+                    else
+                        embedBuilderWhitelistSuccess.setThumbnail("https://crafatar.com/avatars/" + playerUUID + "?size=100&default=MHF_Steve&overlay.png");
+                }
 
                 EmbedBuilder embedBuilderWhitelistFailure;
 

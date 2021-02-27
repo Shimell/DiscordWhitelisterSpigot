@@ -6,7 +6,7 @@
 
   <groupId>uk.co.angrybee.joe</groupId>
   <artifactId>discord-whitelister</artifactId>
-  <version>1.4.5</version>
+  <version>1.4.6</version>
 
   <name>discord-whitelister</name>
   <url>https://github.com/JoeShimell/DiscordWhitelisterSpigot</url>
