@@ -33,6 +33,7 @@ public class DiscordWhitelister extends JavaPlugin
     public static boolean useInGameAddRemoves = true;
     public static boolean useOnBanEvents = true;
     public static boolean useUltraPerms = false;
+    public static boolean useLuckPerms = false;
     public static boolean useOnWhitelistCommands = false;
     public static boolean removeUnnecessaryMessages = false;
 
@@ -128,7 +129,20 @@ public class DiscordWhitelister extends JavaPlugin
 
         removeMessageWaitTime = MainConfig.getMainConfig().getInt("seconds-to-remove-message-from-whitelist-channel");
 
-        // Check for UltraPerms first
+        // Check for LuckPerms first
+        if(MainConfig.getMainConfig().getBoolean("assign-perms-with-luck-perms"))
+        {
+            if(DiscordWhitelister.getPlugin().getServer().getPluginManager().getPlugin("LuckPerms") != null)
+            {
+                useLuckPerms = true;
+                DiscordWhitelister.getPluginLogger().info("LuckPerms found!");
+            }
+            else
+            {
+                DiscordWhitelister.getPluginLogger().warning("LuckPerms was not found but is enabled in the config. Doing nothing...");
+                useLuckPerms = false;
+            }
+        }
         if(MainConfig.getMainConfig().getBoolean("assign-perms-with-ultra-perms"))
         {
             if(DiscordWhitelister.getPlugin().getServer().getPluginManager().getPlugin("UltraPermissions") != null)

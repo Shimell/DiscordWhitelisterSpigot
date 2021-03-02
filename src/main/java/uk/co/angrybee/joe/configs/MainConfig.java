@@ -133,6 +133,8 @@ public class MainConfig
 
         CheckEntry("assign-perms-with-ultra-perms", false);
 
+        CheckEntry("assign-perms-with-luck-perms", false);
+
         CheckEntry("use-on-whitelist-commands", false);
 
         CheckEntry("send-instructional-message-on-whitelist", false);
