@@ -488,8 +488,11 @@ public class CommandAdd
                         // For instructional message
                         successfulWhitelist.set(true);
 
+                        if(DiscordWhitelister.useLuckPerms)
+                            DiscordClient.LpAssignPermsToUser(finalNameToAdd, PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist"));
+
                         if(DiscordWhitelister.useUltraPerms)
-                            DiscordClient.AssignPermsToUser(finalNameToAdd, PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist"));
+                            DiscordClient.UpAssignPermsToUser(finalNameToAdd, PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist"));
 
                         if(DiscordWhitelister.useOnWhitelistCommands)
                         {
