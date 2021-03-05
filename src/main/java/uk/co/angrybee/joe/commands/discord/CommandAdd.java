@@ -473,6 +473,9 @@ public class CommandAdd
 
                 if (!WhitelistedPlayers.usingEasyWhitelist && authorPermissions.isUserCanUseCommand())
                     DiscordClient.ExecuteServerCommand("whitelist add " + finalNameToAdd);
+                    if(MainConfig.getMainConfig().getBoolean("use-geyser/floodgate-compatibility")) {
+                        addBedrockUser(finalNameToAdd);
+                    }
 
                 // have to use !invalidMinecraftName else the easy whitelist plugin will add the name regardless of whether it is valid on not
                 if (WhitelistedPlayers.usingEasyWhitelist && !invalidMinecraftName && authorPermissions.isUserCanUseCommand())
@@ -613,6 +616,18 @@ public class CommandAdd
                     return null;
                 });
             }
+        }
+    }
+
+    private static void addBedrockUser(String finalNameToAdd) {
+        String bedrockPrefix = MainConfig.getMainConfig().getString("geyser/floodgate prefix");
+        String bedrockName = bedrockPrefix + finalNameToAdd;
+        if(bedrockName.length() > 16) {
+            bedrockName = bedrockName.substring(0, 16);
+        }
+        //check if we actually NEED to add
+        if(finalNameToAdd.length() < bedrockPrefix.length() || !finalNameToAdd.substring(0, bedrockPrefix.length() - 1).equals(bedrockPrefix)) {
+            DiscordClient.ExecuteServerCommand("whitelist add " + bedrockName);
         }
     }
 }
