@@ -161,6 +161,10 @@ public class MainConfig
 
         CheckEntry("geyser/floodgate prefix", "SetThisToWhateverPrefixYouUse");
 
+        CheckEntry("un-whitelist-if-missing-role", false);
+
+        CheckEntry("role-to-check-for", "Twitch Subscriber");
+
         // Remove old role entry if found, move role to new array (for people with v1.3.6 or below)
         if(whitelisterBotConfig.get("whitelisted-role") != null)
         {

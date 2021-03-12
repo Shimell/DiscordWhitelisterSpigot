@@ -5,12 +5,14 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
@@ -27,7 +29,6 @@ import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
-import javax.xml.soap.Text;
 import java.awt.Color;
 import java.io.*;
 import java.net.URL;
@@ -81,6 +82,9 @@ public class DiscordClient extends ListenerAdapter
     public static boolean whitelistedRoleAutoRemove;
     public static String[] whitelistedRoleNames;
 
+    private static boolean checkForMissingRole = false;
+    private static String roleToCheck;
+
     public static final char[] validCharacters = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h',
             'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'};
 
@@ -132,27 +136,32 @@ public class DiscordClient extends ListenerAdapter
 
     private static void AssignVars()
     {
+        FileConfiguration mainConfig = MainConfig.getMainConfig();
+
         // assign vars here instead of every time a message is received, as they do not change
-        targetTextChannels = new String[MainConfig.getMainConfig().getList("target-text-channels").size()];
+        targetTextChannels = new String[mainConfig.getList("target-text-channels").size()];
         for (int i = 0; i < targetTextChannels.length; ++i)
         {
-            targetTextChannels[i] = MainConfig.getMainConfig().getList("target-text-channels").get(i).toString();
+            targetTextChannels[i] = mainConfig.getList("target-text-channels").get(i).toString();
         }
 
-        maxWhitelistAmount = MainConfig.getMainConfig().getInt("max-whitelist-amount");
-        limitedWhitelistEnabled = MainConfig.getMainConfig().getBoolean("limited-whitelist-enabled");
-        usernameValidation = MainConfig.getMainConfig().getBoolean("username-validation");
+        maxWhitelistAmount = mainConfig.getInt("max-whitelist-amount");
+        limitedWhitelistEnabled = mainConfig.getBoolean("limited-whitelist-enabled");
+        usernameValidation = mainConfig.getBoolean("username-validation");
 
         // Set the name of the role to add/remove to/from the user after they have been added/removed to/from the whitelist and if this feature is enabled
-        whitelistedRoleAutoAdd = MainConfig.getMainConfig().getBoolean("whitelisted-role-auto-add");
-        whitelistedRoleAutoRemove = MainConfig.getMainConfig().getBoolean("whitelisted-role-auto-remove");
+        whitelistedRoleAutoAdd = mainConfig.getBoolean("whitelisted-role-auto-add");
+        whitelistedRoleAutoRemove = mainConfig.getBoolean("whitelisted-role-auto-remove");
 
 
-        whitelistedRoleNames = new String[MainConfig.getMainConfig().getList("whitelisted-roles").size()];
+        whitelistedRoleNames = new String[mainConfig.getList("whitelisted-roles").size()];
         for(int i = 0; i < whitelistedRoleNames.length; i++)
         {
-            whitelistedRoleNames[i] = MainConfig.getMainConfig().getList("whitelisted-roles").get(i).toString();
+            whitelistedRoleNames[i] = mainConfig.getList("whitelisted-roles").get(i).toString();
         }
+
+        checkForMissingRole = mainConfig.getBoolean("un-whitelist-if-missing-role");
+        roleToCheck = mainConfig.getString("role-to-check-for");
     }
 
     private static void BuildStrings()
@@ -1129,6 +1138,81 @@ public class DiscordClient extends ListenerAdapter
         else
         {
             DiscordWhitelister.getPlugin().getLogger().warning(discordUserToRemove + " left. Could not remove any whitelisted entries as they did not whitelist through this plugin.");
+        }
+    }
+
+    @Override
+    public void onGuildMemberRoleRemove(@Nonnull GuildMemberRoleRemoveEvent e)
+    {
+        CheckForRequiredRole(e);
+    }
+
+    private static void CheckForRequiredRole(GuildMemberRoleRemoveEvent e)
+    {
+        if(!checkForMissingRole)
+            return;
+
+        if(roleToCheck == null || roleToCheck.equals(""))
+        {
+            DiscordWhitelister.getPluginLogger().warning("'un-whitelist-if-missing-role' is enabled but " +
+                    "'role-to-check-for' is null or empty, please double check the config");
+            return;
+        }
+
+        for(Role r : e.getMember().getRoles())
+        {
+            // required role found, no need to proceed
+            if(r.getName().equals(roleToCheck))
+                return;
+        }
+
+        String disName = e.getMember().getEffectiveName();
+        String disId = e.getMember().getId();
+        String nameForLogger = disName + "(" + disId + ")";
+
+        DiscordWhitelister.getPluginLogger().info(nameForLogger + " does not have the required " +
+                "role (" + roleToCheck + "). Attempting to remove their whitelisted entries...");
+
+        List<?> regUsers = UserList.getRegisteredUsers(disId);
+        if(regUsers != null)
+        {
+            if(regUsers.size() <= 0)
+            {
+                DiscordWhitelister.getPluginLogger().info(nameForLogger + "'s entries are empty, doing nothing");
+                return;
+            }
+
+            for(Object mcName : regUsers)
+            {
+                if(WhitelistedPlayers.usingEasyWhitelist)
+                {
+                    ExecuteServerCommand("easywl remove " + mcName.toString());
+                }
+                else
+                {
+                    ExecuteServerCommand("whitelist remove " + mcName.toString());
+                }
+            }
+
+            try
+            {
+                UserList.resetRegisteredUsers(disId);
+            }
+            catch (IOException ex)
+            {
+                DiscordWhitelister.getPluginLogger().severe("Failed to remove whitelisted users from " +
+                        nameForLogger);
+                ex.printStackTrace();
+                return;
+            }
+
+            DiscordWhitelister.getPluginLogger().info("Successfully removed " + nameForLogger +
+                    "'s whitelisted entries due to missing required role (" + roleToCheck + ")");
+        }
+        else
+        {
+            DiscordWhitelister.getPluginLogger().warning("Failed to remove whitelisted entries from " +
+                    nameForLogger + " as they did not whitelist through this plugin");
         }
     }
 
