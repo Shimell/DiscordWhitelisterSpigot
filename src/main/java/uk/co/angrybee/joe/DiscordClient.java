@@ -1147,6 +1147,7 @@ public class DiscordClient extends ListenerAdapter
         CheckForRequiredRole(e);
     }
 
+    // TODO check users at startup for required role, in case it was removed while the bot was offline
     private static void CheckForRequiredRole(GuildMemberRoleRemoveEvent e)
     {
         if(!checkForMissingRole)
