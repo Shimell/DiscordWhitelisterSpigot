@@ -737,8 +737,7 @@ public class DiscordClient extends ListenerAdapter
                             }
 
                             // Clear permissions
-                            // Clear permissions
-                            DiscordClient.RemovePerms(splitMessage[userNameIndex]);
+                            RemovePerms(splitMessage[userNameIndex]);
                             }
 
                         // Success message
@@ -1258,7 +1257,8 @@ public class DiscordClient extends ListenerAdapter
                     {
                         DiscordClient.ExecuteServerCommand("easywl remove " + entry.getValue().get(i));
                     }
-
+                    //remove permissions
+                    RemovePerms(entry.getValue().get(i));
                     DiscordWhitelister.getPluginLogger().info("Removed " + entry.getValue().get(i)
                             + " from the whitelist as Discord ID: " + entry.getKey() + " has left the server.");
                 }
