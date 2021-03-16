@@ -435,11 +435,7 @@ public class DiscordClient extends ListenerAdapter
                         // not not on whitelist, nice
                         if (!notOnWhitelist) // aka on the whitelist
                         {
-                            if (WhitelistedPlayers.usingEasyWhitelist)
-                                ExecuteServerCommand("easywl remove " + finalNameToRemove);
-                            else
-                                ExecuteServerCommand("whitelist remove " + finalNameToRemove);
-
+                            UnWhitelist(finalNameToRemove);
                             // Configure message here instead of on the main thread - this means this will run even if the message is never sent, but is a good trade off (I think)
                             EmbedBuilder embedBuilderSuccess;
 
@@ -488,9 +484,6 @@ public class DiscordClient extends ListenerAdapter
                                 {
                                     channel.sendMessage(embedBuilderSuccess.build()).queue();
                                     TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
-
-                                    //remove perms
-                                    RemovePerms(finalNameToRemove);
 
                                     if(whitelistedRoleAutoRemove)
                                     {
@@ -727,17 +720,8 @@ public class DiscordClient extends ListenerAdapter
                         if(MainConfig.getMainConfig().getBoolean("unwhitelist-and-clear-perms-on-name-clear"))
                         {
                             // Remove name from the whitelist
-                            if(!WhitelistedPlayers.usingEasyWhitelist)
-                            {
-                                DiscordClient.ExecuteServerCommand("whitelist remove " + splitMessage[userNameIndex]);
-                            }
-                            else
-                            {
-                                DiscordClient.ExecuteServerCommand("easywl remove " + splitMessage[userNameIndex]);
-                            }
+                            UnWhitelist(splitMessage[userNameIndex]);
 
-                            // Clear permissions
-                            RemovePerms(splitMessage[userNameIndex]);
                             }
 
                         // Success message
@@ -825,14 +809,7 @@ public class DiscordClient extends ListenerAdapter
                     {
                         for (Object minecraftNameToRemove : ls)
                         {
-                            if (WhitelistedPlayers.usingEasyWhitelist)
-                            {
-                                ExecuteServerCommand("easywl remove " + minecraftNameToRemove.toString());
-                            }
-                            else
-                            {
-                                ExecuteServerCommand("whitelist remove " + minecraftNameToRemove.toString());
-                            }
+                            UnWhitelist(minecraftNameToRemove.toString());
                         }
 
                         try
@@ -1105,12 +1082,7 @@ public class DiscordClient extends ListenerAdapter
             for (Object minecraftNameToRemove : ls)
             {
                 DiscordWhitelister.getPlugin().getLogger().info(minecraftNameToRemove.toString() + " left. Removing their whitelisted entries.");
-                if (WhitelistedPlayers.usingEasyWhitelist)
-                {
-                    ExecuteServerCommand("easywl remove " + minecraftNameToRemove.toString());
-                } else {
-                    ExecuteServerCommand("whitelist remove " + minecraftNameToRemove.toString());
-                }
+                UnWhitelist(minecraftNameToRemove.toString());
             }
 
             try
@@ -1174,14 +1146,7 @@ public class DiscordClient extends ListenerAdapter
 
             for(Object mcName : regUsers)
             {
-                if(WhitelistedPlayers.usingEasyWhitelist)
-                {
-                    ExecuteServerCommand("easywl remove " + mcName.toString());
-                }
-                else
-                {
-                    ExecuteServerCommand("whitelist remove " + mcName.toString());
-                }
+                UnWhitelist(mcName.toString());
             }
 
             try
@@ -1253,13 +1218,7 @@ public class DiscordClient extends ListenerAdapter
                 if (!requiredRole) {
                     for (int i = 0; i < entry.getValue().size(); i++) {
                         // un-whitelist
-                        if (!WhitelistedPlayers.usingEasyWhitelist) {
-                            DiscordClient.ExecuteServerCommand("whitelist remove " + entry.getValue().get(i));
-                        } else {
-                            DiscordClient.ExecuteServerCommand("easywl remove " + entry.getValue().get(i));
-                        }
-                        //remove permissions
-                        RemovePerms(entry.getValue().get(i));
+                        UnWhitelist(entry.getValue().get(i));
                         DiscordWhitelister.getPluginLogger().info("Removed " + entry.getValue().get(i)
                                 + " from the whitelist as Discord ID: " + entry.getKey() + " due to missing required role (" + roleToCheck + ").");
                     }
@@ -1308,13 +1267,8 @@ public class DiscordClient extends ListenerAdapter
                     if (!inGuild) {
                         for (int i = 0; i < entry.getValue().size(); i++) {
                             // un-whitelist
-                            if (!WhitelistedPlayers.usingEasyWhitelist) {
-                                DiscordClient.ExecuteServerCommand("whitelist remove " + entry.getValue().get(i));
-                            } else {
-                                DiscordClient.ExecuteServerCommand("easywl remove " + entry.getValue().get(i));
-                            }
+                            UnWhitelist(entry.getValue().get(i));
                             //remove permissions
-                            RemovePerms(entry.getValue().get(i));
                             DiscordWhitelister.getPluginLogger().info("Removed " + entry.getValue().get(i)
                                     + " from the whitelist as Discord ID: " + entry.getKey() + " has left the server.");
                         }
@@ -1631,5 +1585,16 @@ public class DiscordClient extends ListenerAdapter
                 DiscordClient.ExecuteServerCommand("upc removePlayerPermission " + targetPlayerName + " " + s);
             }
         }
+    }
+
+    // Remove player from whitelist
+    public static void UnWhitelist(String minecraftNameToRemove) {
+        if (WhitelistedPlayers.usingEasyWhitelist) {
+            ExecuteServerCommand("easywl remove " + minecraftNameToRemove);
+        } else {
+            ExecuteServerCommand("whitelist remove " + minecraftNameToRemove);
+        }
+        // Clear permissions
+        RemovePerms(minecraftNameToRemove);
     }
 }
