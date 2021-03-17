@@ -163,6 +163,8 @@ public class MainConfig
 
         CheckEntry("un-whitelist-if-missing-role", false);
 
+        CheckEntry("check-all-roles", false);
+
         CheckEntry("role-to-check-for", "Twitch Subscriber");
 
         // Remove old role entry if found, move role to new array (for people with v1.3.6 or below)

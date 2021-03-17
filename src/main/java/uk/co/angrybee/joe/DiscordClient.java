@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -83,6 +84,7 @@ public class DiscordClient extends ListenerAdapter
     public static String[] whitelistedRoleNames;
 
     private static boolean checkForMissingRole = false;
+    private static boolean checkAllRoles = false;
     private static String roleToCheck;
 
     public static final char[] validCharacters = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h',
@@ -161,6 +163,7 @@ public class DiscordClient extends ListenerAdapter
         }
 
         checkForMissingRole = mainConfig.getBoolean("un-whitelist-if-missing-role");
+        checkAllRoles = mainConfig.getBoolean("check-all-roles");
         roleToCheck = mainConfig.getString("role-to-check-for");
     }
 
@@ -1108,13 +1111,49 @@ public class DiscordClient extends ListenerAdapter
         CheckForRequiredRole(e);
     }
 
-    // TODO check users at startup for required role, in case it was removed while the bot was offline
     private static void CheckForRequiredRole(GuildMemberRoleRemoveEvent e)
     {
         if(!checkForMissingRole)
             return;
+        if(checkAllRoles){
+            String[]  allRoles = ArrayUtils.addAll(allowedToAddRemoveRoles, ArrayUtils.addAll(allowedToAddRoles, ArrayUtils.addAll(allowedToAddLimitedRoles, allowedToClearNamesRoles)));
 
-        if(roleToCheck == null || roleToCheck.equals(""))
+            String discordUserId= e.getMember().getId();
+            List<Role> removedRoles = e.getRoles();
+            boolean limitedRoleRemoved = false;
+            for(Role role:removedRoles){
+                if(Arrays.asList(allowedToAddLimitedRoles).contains(role.getId())){
+                    limitedRoleRemoved = true;
+                    break;
+                }
+            }
+            if(!limitedRoleRemoved){
+                DiscordWhitelister.getPlugin().getLogger().info(discordUserId + " unrelated role removed. Doing nothing...");
+                return;
+            }
+            DiscordWhitelister.getPlugin().getLogger().info(discordUserId + " weak role removed. Checking remaining roles...");
+            boolean rolesRemaining= false;
+            for(int i = 0; i < javaDiscordAPI.getGuilds().size(); i++)
+            {
+                Member member = javaDiscordAPI.getGuilds().get(i).getMemberById(discordUserId);
+                if(member != null){
+                    List<Role> roles = member.getRoles();
+                    for(Role role:roles){
+                        if(Arrays.asList(allRoles).contains(role.getId())){
+                            rolesRemaining = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(!rolesRemaining){
+                DiscordWhitelister.getPlugin().getLogger().info(discordUserId + " has no roles remaining. Removing their whitelisted entries...");
+                UnWhitelist(discordUserId);
+            }
+            else{
+                DiscordWhitelister.getPlugin().getLogger().info(discordUserId + "  has role(s) remaining. Doing nothing...");
+            }
+    }else if(roleToCheck == null || roleToCheck.equals(""))
         {
             DiscordWhitelister.getPluginLogger().warning("'un-whitelist-if-missing-role' is enabled but " +
                     "'role-to-check-for' is null or empty, please double check the config");
@@ -1176,13 +1215,58 @@ public class DiscordClient extends ListenerAdapter
             if (!checkForMissingRole)
                 return;
 
+            if (checkAllRoles) {
+                DiscordWhitelister.getPluginLogger().info("Checking Discord IDs for required roles...");
+                String[] allRoles = ArrayUtils.addAll(allowedToAddRemoveRoles, ArrayUtils.addAll(allowedToAddRoles, ArrayUtils.addAll(allowedToAddLimitedRoles, allowedToClearNamesRoles)));
+
+                Yaml idYaml = new Yaml();
+                UserList.SaveStore();
+                InputStream inputStream = new FileInputStream(UserList.getUserListFile());
+
+                PushbackInputStream pushbackInputStream = new PushbackInputStream(inputStream);
+                int b = pushbackInputStream.read();
+
+                if (b == -1)
+                    return;
+                else
+                    pushbackInputStream.unread(b);
+
+                Map<String, List<String>> userObject = idYaml.load(pushbackInputStream);
+
+                for (Map.Entry<String, List<String>> entry : userObject.entrySet()) {
+                    // Check if the ID is in any guilds
+
+                    // Check all guilds
+                    boolean rolesRemaining = false;
+                    for (int i = 0; i < javaDiscordAPI.getGuilds().size(); i++) {
+                        Member member = javaDiscordAPI.getGuilds().get(i).getMemberById(entry.getKey());
+                        if (member != null) {
+                            List<Role> roles = member.getRoles();
+                            for (Role role : roles) {
+                                if (Arrays.asList(allRoles).contains(role.getId())) {
+                                    rolesRemaining = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (!rolesRemaining) {
+                        DiscordWhitelister.getPlugin().getLogger().info(entry.getKey() + " has no roles remaining. Removing their whitelisted entries...");
+                        UnWhitelist(entry.getKey());
+                    }
+                }
+                return;
+            }
+
+
+
             if (roleToCheck == null || roleToCheck.equals("")) {
                 DiscordWhitelister.getPluginLogger().warning("'un-whitelist-if-missing-role' is enabled but " +
                         "'role-to-check-for' is null or empty, please double check the config");
                 return;
             }
 
-            DiscordWhitelister.getPluginLogger().info("Checking Discord IDs for required roles...");
+            DiscordWhitelister.getPluginLogger().info("Checking Discord IDs for required role " + roleToCheck);
 
             Yaml idYaml = new Yaml();
             UserList.SaveStore();
@@ -1221,6 +1305,14 @@ public class DiscordClient extends ListenerAdapter
                         UnWhitelist(entry.getValue().get(i));
                         DiscordWhitelister.getPluginLogger().info("Removed " + entry.getValue().get(i)
                                 + " from the whitelist as Discord ID: " + entry.getKey() + " due to missing required role (" + roleToCheck + ").");
+                    }
+                    // Clear entries in user-list
+                    if (userObject.get(entry.getKey()) != null) {
+                        UserList.getUserList().set(entry.getKey(), null);
+
+                        UserList.SaveStore();
+
+                        DiscordWhitelister.getPlugin().getLogger().info("Successfully removed " +entry.getKey() + " whitelisted entries from the user list.");
                     }
                 }
             }
