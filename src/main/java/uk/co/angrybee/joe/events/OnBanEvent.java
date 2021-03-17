@@ -125,14 +125,7 @@ public class OnBanEvent implements Listener
                 // Remove whitelisted players associated with the discord id
                 for(int i = 0; i < targetWhitelistedPlayers.size(); i++)
                 {
-                    if(!WhitelistedPlayers.usingEasyWhitelist)
-                    {
-                        DiscordClient.ExecuteServerCommand("whitelist remove " + targetWhitelistedPlayers.get(i));
-                    }
-                    else
-                    {
-                        DiscordClient.ExecuteServerCommand("easywl remove " + targetWhitelistedPlayers.get(i));
-                    }
+                    DiscordClient.UnWhitelist(targetWhitelistedPlayers.get(i));
 
                     DiscordWhitelister.getPluginLogger().info("Removed " + targetWhitelistedPlayers.get(i)
                             + " from the whitelist as they were added by Discord Id: " + targetDiscordId);
@@ -143,9 +136,6 @@ public class OnBanEvent implements Listener
 
                 // Remove the users whitelisted players from the list
                 UserList.getUserList().set(targetDiscordId, null);
-
-                // Remove perms on ban if enabled
-                DiscordClient.RemovePerms(banTarget);
 
                 UserList.SaveStore();
 
