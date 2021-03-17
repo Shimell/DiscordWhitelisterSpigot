@@ -489,15 +489,8 @@ public class DiscordClient extends ListenerAdapter
                                     channel.sendMessage(embedBuilderSuccess.build()).queue();
                                     TempRemoveOriginalMessageAfterSeconds(messageReceivedEvent);
 
-                                    if(DiscordWhitelister.useLuckPerms)
-                                    {
-                                        LpRemovePermsFromUser(finalNameToRemove, PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist"));
-                                    }
-
-                                    if(DiscordWhitelister.useUltraPerms)
-                                    {
-                                        UpRemovePermsFromUser(finalNameToRemove, PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist"));
-                                    }
+                                    //remove perms
+                                    RemovePerms(finalNameToRemove);
 
                                     if(whitelistedRoleAutoRemove)
                                     {
@@ -744,12 +737,8 @@ public class DiscordClient extends ListenerAdapter
                             }
 
                             // Clear permissions
-                            // Clear permissions
-                            if(DiscordWhitelister.useLuckPerms)
-                                DiscordClient.LpRemovePermsFromUser(splitMessage[userNameIndex], PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist"));
-                            if(DiscordWhitelister.useUltraPerms)
-                                DiscordClient.UpRemovePermsFromUser(splitMessage[userNameIndex], PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist"));
-                        }
+                            RemovePerms(splitMessage[userNameIndex]);
+                            }
 
                         // Success message
                         if(DiscordWhitelister.useCustomMessages)
@@ -1217,73 +1206,133 @@ public class DiscordClient extends ListenerAdapter
         }
     }
 
-    public static void StartUpMemberCheck() throws IOException
-    {
-        if(!MainConfig.getMainConfig().getBoolean("un-whitelist-on-server-leave"))
-            return;
+    public static void RequiredRoleStartupCheck() {
+        try {
+            if (!checkForMissingRole)
+                return;
 
-        // Don't attempt to remove members if not connected
-        if(javaDiscordAPI.getStatus() != JDA.Status.CONNECTED)
-            return;
-
-        DiscordWhitelister.getPluginLogger().info("Checking Discord IDs for leavers...");
-
-        Yaml idYaml = new Yaml();
-        UserList.SaveStore();
-        InputStream inputStream = new FileInputStream(UserList.getUserListFile());
-
-        PushbackInputStream pushbackInputStream = new PushbackInputStream(inputStream);
-        int b = pushbackInputStream.read();
-
-        if(b == -1)
-            return;
-        else
-            pushbackInputStream.unread(b);
-
-        Map<String, List<String>> userObject = idYaml.load(pushbackInputStream);
-
-        for(Map.Entry<String, List<String>> entry : userObject.entrySet())
-        {
-            // Check if the ID is in any guilds
-            boolean inGuild = false;
-
-            // Check all guilds
-            for(int i = 0; i < javaDiscordAPI.getGuilds().size(); i++)
-            {
-                if(javaDiscordAPI.getGuilds().get(i).getMemberById(entry.getKey()) != null)
-                    inGuild = true;
+            if (roleToCheck == null || roleToCheck.equals("")) {
+                DiscordWhitelister.getPluginLogger().warning("'un-whitelist-if-missing-role' is enabled but " +
+                        "'role-to-check-for' is null or empty, please double check the config");
+                return;
             }
 
-            // un-whitelist associated minecraft usernames if not in any guilds
-            if(!inGuild)
-            {
-                for(int i = 0; i < entry.getValue().size(); i++)
-                {
-                    // un-whitelist
-                    if(!WhitelistedPlayers.usingEasyWhitelist)
-                    {
-                        DiscordClient.ExecuteServerCommand("whitelist remove " + entry.getValue().get(i));
-                    }
-                    else
-                    {
-                        DiscordClient.ExecuteServerCommand("easywl remove " + entry.getValue().get(i));
-                    }
+            DiscordWhitelister.getPluginLogger().info("Checking Discord IDs for required roles...");
 
-                    DiscordWhitelister.getPluginLogger().info("Removed " + entry.getValue().get(i)
-                            + " from the whitelist as Discord ID: " + entry.getKey() + " has left the server.");
+            Yaml idYaml = new Yaml();
+            UserList.SaveStore();
+            InputStream inputStream = new FileInputStream(UserList.getUserListFile());
+
+            PushbackInputStream pushbackInputStream = new PushbackInputStream(inputStream);
+            int b = pushbackInputStream.read();
+
+            if (b == -1)
+                return;
+            else
+                pushbackInputStream.unread(b);
+
+            Map<String, List<String>> userObject = idYaml.load(pushbackInputStream);
+
+            for (Map.Entry<String, List<String>> entry : userObject.entrySet()) {
+                // Check if the ID is in any guilds
+                boolean hasRole = false;
+
+                // Check all guilds
+                boolean requiredRole = false;
+                for (int i = 0; i < javaDiscordAPI.getGuilds().size(); i++) {
+                    Member member = javaDiscordAPI.getGuilds().get(i).getMemberById(entry.getKey());
+                    if (member != null) {
+                        for (Role role : member.getRoles()) {
+                            if (role.getId().equals(roleToCheck)) {
+                                requiredRole = true;
+                                break;
+                            }
+                        }
+                    }
                 }
-
-                // Clear entries in user-list
-                if(userObject.get(entry.getKey()) != null)
-                {
-                    UserList.getUserList().set(entry.getKey(), null);
-
-                    UserList.SaveStore();
-
-                    DiscordWhitelister.getPlugin().getLogger().info("Discord ID: " + entry.getKey()
-                            + " left. Successfully removed their whitelisted entries from the user list.");
+                if (!requiredRole) {
+                    for (int i = 0; i < entry.getValue().size(); i++) {
+                        // un-whitelist
+                        if (!WhitelistedPlayers.usingEasyWhitelist) {
+                            DiscordClient.ExecuteServerCommand("whitelist remove " + entry.getValue().get(i));
+                        } else {
+                            DiscordClient.ExecuteServerCommand("easywl remove " + entry.getValue().get(i));
+                        }
+                        //remove permissions
+                        RemovePerms(entry.getValue().get(i));
+                        DiscordWhitelister.getPluginLogger().info("Removed " + entry.getValue().get(i)
+                                + " from the whitelist as Discord ID: " + entry.getKey() + " due to missing required role (" + roleToCheck + ").");
+                    }
                 }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void ServerLeaveStartupCheck() {
+        try {
+            if (MainConfig.getMainConfig().getBoolean("un-whitelist-on-server-leave")) {
+
+                // Don't attempt to remove members if not connected
+                if (javaDiscordAPI.getStatus() != JDA.Status.CONNECTED)
+                    return;
+
+                DiscordWhitelister.getPluginLogger().info("Checking Discord IDs for leavers...");
+
+                Yaml idYaml = new Yaml();
+                UserList.SaveStore();
+                InputStream inputStream = new FileInputStream(UserList.getUserListFile());
+
+                PushbackInputStream pushbackInputStream = new PushbackInputStream(inputStream);
+                int b = pushbackInputStream.read();
+
+                if (b == -1)
+                    return;
+                else
+                    pushbackInputStream.unread(b);
+
+                Map<String, List<String>> userObject = idYaml.load(pushbackInputStream);
+
+                for (Map.Entry<String, List<String>> entry : userObject.entrySet()) {
+                    // Check if the ID is in any guilds
+                    boolean inGuild = false;
+
+                    // Check all guilds
+                    for (int i = 0; i < javaDiscordAPI.getGuilds().size(); i++) {
+                        if (javaDiscordAPI.getGuilds().get(i).getMemberById(entry.getKey()) != null)
+                            inGuild = true;
+                    }
+
+                    // un-whitelist associated minecraft usernames if not in any guilds
+                    if (!inGuild) {
+                        for (int i = 0; i < entry.getValue().size(); i++) {
+                            // un-whitelist
+                            if (!WhitelistedPlayers.usingEasyWhitelist) {
+                                DiscordClient.ExecuteServerCommand("whitelist remove " + entry.getValue().get(i));
+                            } else {
+                                DiscordClient.ExecuteServerCommand("easywl remove " + entry.getValue().get(i));
+                            }
+                            //remove permissions
+                            RemovePerms(entry.getValue().get(i));
+                            DiscordWhitelister.getPluginLogger().info("Removed " + entry.getValue().get(i)
+                                    + " from the whitelist as Discord ID: " + entry.getKey() + " has left the server.");
+                        }
+
+                        // Clear entries in user-list
+                        if (userObject.get(entry.getKey()) != null) {
+                            UserList.getUserList().set(entry.getKey(), null);
+
+                            UserList.SaveStore();
+
+                            DiscordWhitelister.getPlugin().getLogger().info("Discord ID: " + entry.getKey()
+                                    + " left. Successfully removed their whitelisted entries from the user list.");
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -1518,23 +1567,7 @@ public class DiscordClient extends ListenerAdapter
             }
         }
     }
-    // TODO: improve, not go through console commands
-    // For ultra perms
-    public static void LpAssignPermsToUser(String targetPlayerName, List<String> permsToAssign)
-    {
-        for(int i = 0; i < permsToAssign.size(); i++)
-        {
-            DiscordClient.ExecuteServerCommand("lp user " + targetPlayerName + " permission set " + permsToAssign.get(i));
-        }
-    }
 
-    public static void LpRemovePermsFromUser(String targetPlayerName, List<String> permsToRemove)
-    {
-        for(int i = 0; i < permsToRemove.size(); i++)
-        {
-            DiscordClient.ExecuteServerCommand("lp user " + targetPlayerName + " permission unset " + permsToRemove.get(i));
-        }
-    }
 
     public static void RemoveMessageAfterSeconds(MessageReceivedEvent messageReceivedEvent, Integer timeToWait)
     {
@@ -1568,21 +1601,35 @@ public class DiscordClient extends ListenerAdapter
             RemoveMessageAfterSeconds(messageReceivedEvent, DiscordWhitelister.removeMessageWaitTime);
     }
 
+
     // TODO: improve, not go through console commands
-    // For ultra perms
-    public static void UpAssignPermsToUser(String targetPlayerName, List<String> permsToAssign)
-    {
-        for(int i = 0; i < permsToAssign.size(); i++)
-        {
-            DiscordClient.ExecuteServerCommand("upc addPlayerPermission " + targetPlayerName + " " + permsToAssign.get(i));
+    public static void AssignPerms(String targetPlayerName){
+        // For ultra perms:
+        if(DiscordWhitelister.useLuckPerms){
+            for (String s : PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist")) {
+                DiscordClient.ExecuteServerCommand("lp user " + targetPlayerName + " permission set " + s);
+            }
+        }
+        // For LuckPerms:
+        if(DiscordWhitelister.useUltraPerms){
+            for (String s : PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist")) {
+                DiscordClient.ExecuteServerCommand("upc addPlayerPermission " + targetPlayerName + " " + s);
+            }
         }
     }
 
-    public static void UpRemovePermsFromUser(String targetPlayerName, List<String> permsToRemove)
-    {
-        for(int i = 0; i < permsToRemove.size(); i++)
-        {
-            DiscordClient.ExecuteServerCommand("upc removePlayerPermission " + targetPlayerName + " " + permsToRemove.get(i));
+    public static void RemovePerms(String targetPlayerName){
+        // For ultra perms:
+        if(DiscordWhitelister.useLuckPerms){
+            for (String s : PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist")) {
+                DiscordClient.ExecuteServerCommand("lp user " + targetPlayerName + " permission unset " + s);
+            }
+        }
+        // For LuckPerms:
+        if(DiscordWhitelister.useUltraPerms){
+            for (String s : PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist")) {
+                DiscordClient.ExecuteServerCommand("upc removePlayerPermission " + targetPlayerName + " " + s);
+            }
         }
     }
 }

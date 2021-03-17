@@ -15,7 +15,6 @@ import uk.co.angrybee.joe.stores.RemovedList;
 import uk.co.angrybee.joe.stores.UserList;
 import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -69,17 +68,8 @@ public class DiscordWhitelister extends JavaPlugin
         }
 
         // Check for leavers if enabled
-        if(MainConfig.getMainConfig().getBoolean("un-whitelist-on-server-leave"))
-        {
-            try
-            {
-                DiscordClient.StartUpMemberCheck();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-        }
+        DiscordClient.ServerLeaveStartupCheck();
+        DiscordClient.RequiredRoleStartupCheck();
 
         this.getCommand("discordwhitelister").setExecutor(new CommandStatus());
         this.getCommand("discordwhitelisterabout").setExecutor(new CommandAbout());

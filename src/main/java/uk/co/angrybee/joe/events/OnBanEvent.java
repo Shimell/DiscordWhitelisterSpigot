@@ -145,11 +145,7 @@ public class OnBanEvent implements Listener
                 UserList.getUserList().set(targetDiscordId, null);
 
                 // Remove perms on ban if enabled
-                if(DiscordWhitelister.useLuckPerms)
-                    DiscordClient.LpRemovePermsFromUser(banTarget, PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist"));
-
-                if(DiscordWhitelister.useUltraPerms)
-                    DiscordClient.UpRemovePermsFromUser(banTarget, PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist"));
+                DiscordClient.RemovePerms(banTarget);
 
                 UserList.SaveStore();
 
