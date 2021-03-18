@@ -1359,7 +1359,7 @@ public class DiscordClient extends ListenerAdapter
                         {
                             for (Role role : member.getRoles())
                             {
-                                if (role.getId().equals(roleToCheck))
+                                if (role.getName().equals(roleToCheck))
                                 {
                                     requiredRole = true;
                                     break;
