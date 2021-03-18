@@ -17,6 +17,7 @@ import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class DiscordWhitelister extends JavaPlugin
 {
@@ -218,6 +219,11 @@ public class DiscordWhitelister extends JavaPlugin
             {
                 DiscordClient.allowedToClearNamesRoles[roles] = MainConfig.getMainConfig().getStringList("clear-command-roles").get(roles);
             }
+
+            // All roles combined for role check
+            DiscordClient.combinedRoles = Stream.of(DiscordClient.allowedToAddRemoveRoles, DiscordClient.allowedToAddRoles,
+                    DiscordClient.allowedToAddLimitedRoles, DiscordClient.allowedToClearNamesRoles)
+                    .flatMap(Stream::of).toArray(String[]::new);
 
             // Custom messages check
             useCustomMessages = MainConfig.getMainConfig().getBoolean("use-custom-messages");
