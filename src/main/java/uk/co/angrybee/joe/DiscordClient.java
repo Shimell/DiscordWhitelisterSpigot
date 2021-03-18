@@ -1129,10 +1129,21 @@ public class DiscordClient extends ListenerAdapter
             // Check if removed roles contain a limited-add role
             for(Role role:removedRoles)
             {
-                if(Arrays.asList(allowedToAddLimitedRoles).contains(role.getName()))
+                if(DiscordWhitelister.useIdForRoles)
                 {
-                    limitedRoleRemoved = true;
-                    break;
+                    if(Arrays.asList(allowedToAddLimitedRoles).contains(role.getId()))
+                    {
+                        limitedRoleRemoved = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    if(Arrays.asList(allowedToAddLimitedRoles).contains(role.getName()))
+                    {
+                        limitedRoleRemoved = true;
+                        break;
+                    }
                 }
             }
 
@@ -1149,10 +1160,21 @@ public class DiscordClient extends ListenerAdapter
                     List<Role> roles = member.getRoles();
                     for(Role role:roles)
                     {
-                        if(Arrays.asList(combinedRoles).contains(role.getName()))
+                        if(DiscordWhitelister.useIdForRoles)
                         {
-                            rolesRemaining = true;
-                            break;
+                            if(Arrays.asList(combinedRoles).contains(role.getId()))
+                            {
+                                rolesRemaining = true;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if(Arrays.asList(combinedRoles).contains(role.getName()))
+                            {
+                                rolesRemaining = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -1201,8 +1223,16 @@ public class DiscordClient extends ListenerAdapter
             for(Role r : e.getMember().getRoles())
             {
                 // required role found, no need to proceed
-                if(r.getName().equals(roleToCheck))
-                    return;
+                if(DiscordWhitelister.useIdForRoles)
+                {
+                    if(r.getId().equals(roleToCheck))
+                        return;
+                }
+                else
+                {
+                    if(r.getName().equals(roleToCheck))
+                        return;
+                }
             }
 
             DiscordWhitelister.getPluginLogger().info(nameForLogger + " does not have the required " +
@@ -1287,10 +1317,21 @@ public class DiscordClient extends ListenerAdapter
                             List<Role> roles = member.getRoles();
                             for (Role role : roles)
                             {
-                                if (Arrays.asList(combinedRoles).contains(role.getName()))
+                                if(DiscordWhitelister.useIdForRoles)
                                 {
-                                    rolesRemaining = true;
-                                    break;
+                                    if (Arrays.asList(combinedRoles).contains(role.getId()))
+                                    {
+                                        rolesRemaining = true;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    if (Arrays.asList(combinedRoles).contains(role.getName()))
+                                    {
+                                        rolesRemaining = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -1359,10 +1400,21 @@ public class DiscordClient extends ListenerAdapter
                         {
                             for (Role role : member.getRoles())
                             {
-                                if (role.getName().equals(roleToCheck))
+                                if(DiscordWhitelister.useIdForRoles)
                                 {
-                                    requiredRole = true;
-                                    break;
+                                    if (role.getId().equals(roleToCheck))
+                                    {
+                                        requiredRole = true;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    if (role.getName().equals(roleToCheck))
+                                    {
+                                        requiredRole = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
