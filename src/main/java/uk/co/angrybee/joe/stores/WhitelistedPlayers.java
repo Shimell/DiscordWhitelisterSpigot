@@ -29,7 +29,7 @@ public class WhitelistedPlayers
     public static void Setup()
     {
         // Check if we are using EasyWhitelist
-        if(MainConfig.getMainConfig().getBoolean("use-easy-whitelist"))
+        if(DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("use-easy-whitelist"))
             GetEasyWhitelist();
 
         if(usingEasyWhitelist)

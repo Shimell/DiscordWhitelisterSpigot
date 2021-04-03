@@ -1,29 +1,22 @@
 package uk.co.angrybee.joe.configs;
 
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import uk.co.angrybee.joe.DiscordWhitelister;
 
 import java.io.File;
-import java.io.IOException;
 
 // custom-messages.yml
-public class CustomMessagesConfig
+public class CustomMessagesConfig extends Config
 {
-    private static File customMessagesFile;
-    private static FileConfiguration customMessagesConfig;
+    public CustomMessagesConfig(){
+        fileName = "custom-messages.yml";
+        file = new File(DiscordWhitelister.getPlugin().getDataFolder(), fileName);
+        fileConfiguration = new YamlConfiguration();
+    }
 
-    public static FileConfiguration getCustomMessagesConfig() { return customMessagesConfig; }
-
-    private static boolean customMessagesFileCreated = false;
-
-    public static void ConfigSetup()
+    public void ConfigSetup()
     {
-        customMessagesFile = new File(DiscordWhitelister.getPlugin().getDataFolder(), "custom-messages.yml");
-        customMessagesConfig = new YamlConfiguration();
-
-        if(!customMessagesFile.exists())
+        if(!file.exists())
             CreateConfig();
 
         LoadConfigFile();
@@ -31,34 +24,7 @@ public class CustomMessagesConfig
         SaveConfig();
     }
 
-    private static void CreateConfig()
-    {
-        try
-        {
-            customMessagesFile.createNewFile();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-
-        DiscordWhitelister.getPluginLogger().info("Custom messages file created at: " + customMessagesFile.getPath());
-        customMessagesFileCreated = true;
-    }
-
-    private static void LoadConfigFile()
-    {
-        try
-        {
-            customMessagesConfig.load(customMessagesFile);
-        }
-        catch (IOException | InvalidConfigurationException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private static void CheckEntries()
+    private void CheckEntries()
     {
         /* TODO: add a YAML comment (#) explaining the config file params
         NOTE: only {params} in the original messages will be evaluated. For example: using {MaxWhitelistAmount} in the "insufficient-permissions" String will not work as it was never in the original message.
@@ -66,7 +32,7 @@ public class CustomMessagesConfig
         {MinecraftUsername} == finalNameToAdd/Remove, {StaffMember} == DiscordWhitelister.getRemovedList().get(finalNameToAdd), {AddRemoveRoles} = DiscordWhitelister.getWhitelisterBotConfig().getList("add-remove-roles")
         Internal error messages & info messages will remain uneditable. No need to add custom remove failure messages as it should never happen */
 
-        if(customMessagesFile.exists())
+        if(file.exists())
         {
             CheckEntry("insufficient-permissions-title", "Insufficient Permissions");
             CheckEntry("insufficient-permissions", "{Sender}, you do not have permission to use this command.");
@@ -133,29 +99,6 @@ public class CustomMessagesConfig
 
             CheckEntry("command-channel-title", "This Channel is for Commands Only");
             CheckEntry("command-channel-message", "{Sender}, this channel is for commands only, please use another channel.");
-        }
-    }
-
-    private static void SaveConfig()
-    {
-        try
-        {
-            customMessagesConfig.save(customMessagesFile.getPath());
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private static void CheckEntry(String entryName, Object passedValue)
-    {
-        if(customMessagesConfig.get(entryName) == null)
-        {
-            customMessagesConfig.set(entryName, passedValue);
-
-            if(!customMessagesFileCreated)
-                DiscordWhitelister.getPluginLogger().warning("Entry '" + entryName + "' was not found, adding it to custom-messages.yml...");
         }
     }
 }

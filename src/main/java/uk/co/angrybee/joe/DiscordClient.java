@@ -139,7 +139,7 @@ public class DiscordClient extends ListenerAdapter
 
     private static void AssignVars()
     {
-        FileConfiguration mainConfig = MainConfig.getMainConfig();
+        FileConfiguration mainConfig = DiscordWhitelister.mainConfig.getFileConfiguration();
 
         // assign vars here instead of every time a message is received, as they do not change
         targetTextChannels = new String[mainConfig.getList("target-text-channels").size()];
@@ -281,15 +281,15 @@ public class DiscordClient extends ListenerAdapter
         {
             String addCommandExample = "!whitelist add";
             if(DiscordWhitelister.useCustomPrefixes)
-                addCommandExample = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix").trim();
+                addCommandExample = DiscordWhitelister.customPrefixConfig.getFileConfiguration().getString("whitelist-add-prefix").trim();
 
             instructionalMessageEmbed = CreateEmbeddedMessage("How to Whitelist", ("Use `" + addCommandExample + " <minecraftUsername>` to whitelist yourself.\n" +
                     "In the case of whitelisting an incorrect name, please contact a staff member to clear it from the whitelist."), EmbedMessageType.INFO).build();
         }
         else
         {
-            String customTitle = CustomMessagesConfig.getCustomMessagesConfig().getString("instructional-message-title");
-            String customMessage = CustomMessagesConfig.getCustomMessagesConfig().getString("instructional-message");
+            String customTitle = DiscordWhitelister.customMessagesConfig.getFileConfiguration().getString("instructional-message-title");
+            String customMessage = DiscordWhitelister.customMessagesConfig.getFileConfiguration().getString("instructional-message");
 
             instructionalMessageEmbed = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.INFO).build();
         }
@@ -446,7 +446,7 @@ public class DiscordClient extends ListenerAdapter
 
                             if(!DiscordWhitelister.useCustomMessages)
                             {
-                                if(!MainConfig.getMainConfig().getBoolean("set-removed-message-colour-to-red"))
+                                if(!DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("set-removed-message-colour-to-red"))
                                     embedBuilderSuccess = CreateEmbeddedMessage((finalNameToRemove + " has been removed"), (author.getAsMention() + " has removed `" + finalNameToRemove + "` from the whitelist."), EmbedMessageType.SUCCESS);
                                 else
                                     embedBuilderSuccess = CreateEmbeddedMessage((finalNameToRemove + " has been removed"), (author.getAsMention() + " has removed `" + finalNameToRemove + "` from the whitelist."), EmbedMessageType.FAILURE);
@@ -460,7 +460,7 @@ public class DiscordClient extends ListenerAdapter
                                 customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
                                 customMessage = customMessage.replaceAll("\\{MinecraftUsername}", finalNameToRemove);
 
-                                if(!MainConfig.getMainConfig().getBoolean("set-removed-message-colour-to-red"))
+                                if(!DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("set-removed-message-colour-to-red"))
                                     embedBuilderSuccess = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.SUCCESS);
                                 else
                                     embedBuilderSuccess = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.FAILURE);
@@ -470,7 +470,7 @@ public class DiscordClient extends ListenerAdapter
                             {
                                 String playerUUID = DiscordClient.minecraftUsernameToUUID(finalNameToRemove);
 
-                                if(!MainConfig.getMainConfig().getBoolean("use-crafatar-for-avatars"))
+                                if(!DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("use-crafatar-for-avatars"))
                                     embedBuilderSuccess.setThumbnail("https://minotar.net/armor/bust/" + playerUUID + "/100.png");
                                 else
                                     embedBuilderSuccess.setThumbnail("https://crafatar.com/avatars/" + playerUUID + "?size=100&default=MHF_Steve&overlay.png");
@@ -557,7 +557,7 @@ public class DiscordClient extends ListenerAdapter
 
                 if (authorPermissions.isUserCanAdd() && !authorPermissions.isUserCanAddRemove())
                 {
-                    String higherPermRoles = MainConfig.getMainConfig().getList("add-remove-roles").toString();
+                    String higherPermRoles = DiscordWhitelister.mainConfig.getFileConfiguration().getList("add-remove-roles").toString();
                     higherPermRoles = higherPermRoles.replaceAll("\\[", "");
                     higherPermRoles = higherPermRoles.replaceAll("]", "");
 
@@ -652,7 +652,7 @@ public class DiscordClient extends ListenerAdapter
                                 UserList.getUserList().set(userid, null);
                             }
                             UserList.SaveStore();
-                            if (MainConfig.getMainConfig().getBoolean("unwhitelist-and-clear-perms-on-name-clear")) {
+                            if (DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("unwhitelist-and-clear-perms-on-name-clear")) {
                                 // Remove name from the whitelist
                                 UnWhitelist(splitMessage[userNameIndex]);
                             }
@@ -663,8 +663,8 @@ public class DiscordClient extends ListenerAdapter
                 if (nameFound) {
                     // Success message
                     if (DiscordWhitelister.useCustomMessages) {
-                        String clearNameTitle = CustomMessagesConfig.getCustomMessagesConfig().getString("clear-name-success-title");
-                        String clearNameMessage = CustomMessagesConfig.getCustomMessagesConfig().getString("clear-name-success-message");
+                        String clearNameTitle = DiscordWhitelister.customMessagesConfig.getFileConfiguration().getString("clear-name-success-title");
+                        String clearNameMessage = DiscordWhitelister.customMessagesConfig.getFileConfiguration().getString("clear-name-success-message");
 
                         clearNameMessage = clearNameMessage.replaceAll("\\{Sender}", author.getAsMention());
                         clearNameMessage = clearNameMessage.replaceAll("\\{MinecraftUsername}", splitMessage[userNameIndex]);
@@ -688,8 +688,8 @@ public class DiscordClient extends ListenerAdapter
                                         (author.getAsMention() + ", could not find name " + splitMessage[userNameIndex] + " to clear in user list."), EmbedMessageType.FAILURE).build();
                         QueueAndRemoveAfterSeconds(channel, messageEmbed);
                     } else {
-                        String customTitle = CustomMessagesConfig.getCustomMessagesConfig().getString("clear-name-failure-title");
-                        String customMessage = CustomMessagesConfig.getCustomMessagesConfig().getString("clear-name-failure-message");
+                        String customTitle = DiscordWhitelister.customMessagesConfig.getFileConfiguration().getString("clear-name-failure-title");
+                        String customMessage = DiscordWhitelister.customMessagesConfig.getFileConfiguration().getString("clear-name-failure-message");
                         customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
                         customMessage = customMessage.replaceAll("\\{MinecraftUsername}", splitMessage[userNameIndex]);
                         customTitle = customTitle.replaceAll("\\{MinecraftUsername}", splitMessage[userNameIndex]);
@@ -706,7 +706,7 @@ public class DiscordClient extends ListenerAdapter
             // Clear whitelists for limited-whitelisters
             else if (messageContents.toLowerCase().startsWith("!whitelist clear") && !DiscordWhitelister.getUseCustomPrefixes()
                     || DiscordWhitelister.getUseCustomPrefixes() && messageContents.toLowerCase().startsWith(customLimitedWhitelistClearPrefix)) {
-                if (!MainConfig.getMainConfig().getBoolean("allow-limited-whitelisters-to-unwhitelist-self"))
+                if (!DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("allow-limited-whitelisters-to-unwhitelist-self"))
                     return;
 
                 // just inform staff, can add custom messages later if really needed
@@ -767,7 +767,7 @@ public class DiscordClient extends ListenerAdapter
                             QueueAndRemoveAfterSeconds(channel, messageEmbed);
                         }
 
-                        if (MainConfig.getMainConfig().getBoolean("whitelisted-role-auto-remove")) {
+                        if (DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("whitelisted-role-auto-remove")) {
                             // Find all servers bot is in, remove whitelisted roles
                             for (int i = 0; i < javaDiscordAPI.getGuilds().size(); i++) {
                                 // Remove the whitelisted role(s)
@@ -881,8 +881,8 @@ public class DiscordClient extends ListenerAdapter
                         }
                         else
                         {
-                            String customTitle = CustomMessagesConfig.getCustomMessagesConfig().getString("clear-ban-success-title");
-                            String customMessage = CustomMessagesConfig.getCustomMessagesConfig().getString("clear-ban-success-message");
+                            String customTitle = DiscordWhitelister.customMessagesConfig.getFileConfiguration().getString("clear-ban-success-title");
+                            String customMessage = DiscordWhitelister.customMessagesConfig.getFileConfiguration().getString("clear-ban-success-message");
                             customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
                             customMessage = customMessage.replaceAll("\\{MinecraftUsername}", targetName);
                             customTitle = customTitle.replaceAll("\\{MinecraftUsername}", targetName);
@@ -904,8 +904,8 @@ public class DiscordClient extends ListenerAdapter
                         }
                         else
                         {
-                            String customTitle = CustomMessagesConfig.getCustomMessagesConfig().getString("clear-ban-failure-title");
-                            String customMessage = CustomMessagesConfig.getCustomMessagesConfig().getString("clear-ban-failure-message");
+                            String customTitle = DiscordWhitelister.customMessagesConfig.getFileConfiguration().getString("clear-ban-failure-title");
+                            String customMessage = DiscordWhitelister.customMessagesConfig.getFileConfiguration().getString("clear-ban-failure-message");
                             customMessage = customMessage.replaceAll("\\{Sender}", author.getAsMention());
                             customMessage = customMessage.replaceAll("\\{MinecraftUsername}", targetName);
                             customTitle = customTitle.replaceAll("\\{MinecraftUsername}", targetName);
@@ -943,7 +943,7 @@ public class DiscordClient extends ListenerAdapter
             }
 
             // Warn if enabled
-            if(MainConfig.getMainConfig().getBoolean("show-warning-in-command-channel"))
+            if(DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("show-warning-in-command-channel"))
             {
                 if(!DiscordWhitelister.useCustomMessages)
                 {
@@ -968,7 +968,7 @@ public class DiscordClient extends ListenerAdapter
     @Override
     public void onGuildMemberRemove(@Nonnull GuildMemberRemoveEvent event)
     {
-        if(!MainConfig.getMainConfig().getBoolean("un-whitelist-on-server-leave"))
+        if(!DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("un-whitelist-on-server-leave"))
             return;
 
         String discordUserToRemove = event.getMember().getId();
@@ -1287,7 +1287,7 @@ public class DiscordClient extends ListenerAdapter
     }
 
     public static void ServerLeaveStartupCheck() {
-        if (MainConfig.getMainConfig().getBoolean("un-whitelist-on-server-leave")) {
+        if (DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("un-whitelist-on-server-leave")) {
 
             // Don't attempt to remove members if not connected
             if (javaDiscordAPI.getStatus() != JDA.Status.CONNECTED)
@@ -1574,13 +1574,13 @@ public class DiscordClient extends ListenerAdapter
     public static void AssignPerms(String targetPlayerName){
         // For ultra perms:
         if(DiscordWhitelister.useLuckPerms){
-            for (String s : PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist")) {
+            for (String s : DiscordWhitelister.customPrefixConfig.getFileConfiguration().getStringList("perms-on-whitelist")) {
                 DiscordClient.ExecuteServerCommand("lp user " + targetPlayerName + " permission set " + s);
             }
         }
         // For LuckPerms:
         if(DiscordWhitelister.useUltraPerms){
-            for (String s : PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist")) {
+            for (String s : DiscordWhitelister.customPrefixConfig.getFileConfiguration().getStringList("perms-on-whitelist")) {
                 DiscordClient.ExecuteServerCommand("upc addPlayerPermission " + targetPlayerName + " " + s);
             }
         }
@@ -1589,13 +1589,13 @@ public class DiscordClient extends ListenerAdapter
     public static void RemovePerms(String targetPlayerName){
         // For ultra perms:
         if(DiscordWhitelister.useLuckPerms){
-            for (String s : PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist")) {
+            for (String s : DiscordWhitelister.customPrefixConfig.getFileConfiguration().getStringList("perms-on-whitelist")) {
                 DiscordClient.ExecuteServerCommand("lp user " + targetPlayerName + " permission unset " + s);
             }
         }
         // For LuckPerms:
         if(DiscordWhitelister.useUltraPerms){
-            for (String s : PermissionsConfig.getPermissionsConfig().getStringList("perms-on-whitelist")) {
+            for (String s : DiscordWhitelister.customPrefixConfig.getFileConfiguration().getStringList("perms-on-whitelist")) {
                 DiscordClient.ExecuteServerCommand("upc removePlayerPermission " + targetPlayerName + " " + s);
             }
         }
