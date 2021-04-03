@@ -66,6 +66,7 @@ public class DiscordWhitelister extends JavaPlugin
         else if(initSuccess == 1)
         {
             pluginLogger.severe("Discord Client failed to initialize, please check if your config file is valid");
+            return;
         }
 
         // Check for leavers if enabled
@@ -117,8 +118,8 @@ public class DiscordWhitelister extends JavaPlugin
         useInGameAddRemoves = MainConfig.getMainConfig().getBoolean("add-in-game-adds-and-removes-to-list");
         useOnBanEvents = MainConfig.getMainConfig().getBoolean("use-on-ban-events");
         removeUnnecessaryMessages = MainConfig.getMainConfig().getBoolean("remove-unnecessary-messages-from-whitelist-channel");
-
         removeMessageWaitTime = MainConfig.getMainConfig().getInt("seconds-to-remove-message-from-whitelist-channel");
+        useOnWhitelistCommands = MainConfig.getMainConfig().getBoolean("use-on-whitelist-commands");
 
         // Check for LuckPerms first
         if(MainConfig.getMainConfig().getBoolean("assign-perms-with-luck-perms"))
@@ -147,9 +148,6 @@ public class DiscordWhitelister extends JavaPlugin
                 useUltraPerms = false;
             }
         }
-
-        if(MainConfig.getMainConfig().getBoolean("use-on-whitelist-commands"))
-            useOnWhitelistCommands = true;
 
         // TODO: remove in favour of split versions
         DiscordClient.customWhitelistAddPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix").toLowerCase();

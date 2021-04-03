@@ -1,27 +1,21 @@
 package uk.co.angrybee.joe.events;
 
+import net.dv8tion.jda.api.entities.Guild;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.yaml.snakeyaml.Yaml;
 import uk.co.angrybee.joe.configs.MainConfig;
-import uk.co.angrybee.joe.configs.PermissionsConfig;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
 import uk.co.angrybee.joe.stores.InGameRemovedList;
 import uk.co.angrybee.joe.stores.UserList;
 import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class OnBanEvent implements Listener
@@ -94,62 +88,46 @@ public class OnBanEvent implements Listener
         if(!WhitelistedPlayers.usingEasyWhitelist && WhitelistedPlayers.CheckForPlayer(banTarget)
                 || WhitelistedPlayers.usingEasyWhitelist && WhitelistedPlayers.CheckForPlayerEasyWhitelist(banTarget))
         {
-            Boolean idFound = false;
-            String targetDiscordId = "";
-            List<String> targetWhitelistedPlayers = Collections.emptyList();
+            boolean idFound = false;
 
             // Find the Discord Id linked to the whitelisted player
-            Yaml userYaml = new Yaml();
-
-            InputStream inputStream = new FileInputStream(UserList.getUserListFile());
-
-            Map<String, List<String>> userListObject = userYaml.load(inputStream);
-
-            for(Map.Entry<String, List<String>> entry : userListObject.entrySet())
-            {
-                for(int i = 0; i < entry.getValue().size(); i++)
-                {
-                    if(entry.getValue().get(i).equals(banTarget))
+            Set<String> keys = UserList.getUserList().getKeys(false);
+            for (String discordId : keys) {
+                List<?> registeredUsers = UserList.getRegisteredUsers(discordId);
+                for (Object mc_name : registeredUsers) {
+                if(mc_name instanceof String && mc_name.equals(banTarget))
                     {
                         // Found the ban target, assign the corresponding Discord id
-                        targetDiscordId = entry.getKey();
-                        targetWhitelistedPlayers = entry.getValue();
+                        // Remove whitelisted players associated with the discord id
+                        for (Object targetWhitelistedPlayer : registeredUsers) {
+                            if (targetWhitelistedPlayer instanceof String){
+                                DiscordClient.UnWhitelist((String) mc_name);
+                                DiscordWhitelister.getPluginLogger().info("Removed " + targetWhitelistedPlayer
+                                        + " from the whitelist as they were added by Discord Id: " + discordId);
+
+                                // Add username to the in-game removed list
+                                InGameRemovedList.AddUserToStore((String) targetWhitelistedPlayer, commandCaller.getDisplayName());
+                            }
+                        }
+                        // Remove the users whitelisted players from the list
+                        UserList.getUserList().set(discordId, null);
+
+                        UserList.SaveStore();
+
+                        // Find all servers bot is in, assign & remove roles
+                        for(Guild guild: DiscordClient.javaDiscordAPI.getGuilds())
+                        {
+                            // Remove the whitelisted role(s)
+                            DiscordClient.RemoveRolesFromUser(guild, discordId, Arrays.asList(DiscordClient.whitelistedRoleNames));
+                            // Add the banned role(s)
+                            DiscordClient.AssignRolesToUser(guild, discordId, (List<String>) MainConfig.getMainConfig().get("banned-roles"));
+                        }
                         idFound = true;
                         break;
                     }
                 }
             }
-
-            if(idFound)
-            {
-                // Remove whitelisted players associated with the discord id
-                for(int i = 0; i < targetWhitelistedPlayers.size(); i++)
-                {
-                    DiscordClient.UnWhitelist(targetWhitelistedPlayers.get(i));
-
-                    DiscordWhitelister.getPluginLogger().info("Removed " + targetWhitelistedPlayers.get(i)
-                            + " from the whitelist as they were added by Discord Id: " + targetDiscordId);
-
-                    // Add username to the in-game removed list
-                    InGameRemovedList.AddUserToStore(targetWhitelistedPlayers.get(i), commandCaller.getDisplayName());
-                }
-
-                // Remove the users whitelisted players from the list
-                UserList.getUserList().set(targetDiscordId, null);
-
-                UserList.SaveStore();
-
-                // Find all servers bot is in, assign & remove roles
-                for(int i = 0; i < DiscordClient.javaDiscordAPI.getGuilds().size(); i++)
-                {
-                    // Remove the whitelisted role(s)
-                    DiscordClient.RemoveRolesFromUser(DiscordClient.javaDiscordAPI.getGuilds().get(i), targetDiscordId, Arrays.asList(DiscordClient.whitelistedRoleNames));
-                    // Add the banned role(s)
-                    DiscordClient.AssignRolesToUser(DiscordClient.javaDiscordAPI.getGuilds().get(i), targetDiscordId, (List<String>) MainConfig.getMainConfig().get("banned-roles"));
-                }
-            }
-            else
-            {
+            if (!idFound) {
                 DiscordWhitelister.getPluginLogger().warning(banTarget + " does not have a linked Discord Id; cannot assign roles!");
             }
         }
