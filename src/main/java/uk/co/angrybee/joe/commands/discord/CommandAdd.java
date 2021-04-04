@@ -54,6 +54,7 @@ public class CommandAdd
         // Permission check
         if (!(authorPermissions.isUserCanAddRemove() || authorPermissions.isUserCanAdd() || DiscordClient.limitedWhitelistEnabled && authorPermissions.isUserHasLimitedAdd()))
         {
+            //todo: add a message to notify user
             DiscordClient.QueueAndRemoveAfterSeconds(channel, DiscordClient.CreateInsufficientPermsMessage(author));
             return;
         }
@@ -223,7 +224,7 @@ public class CommandAdd
                     || !DiscordWhitelister.getUseCustomPrefixes() && splitMessageCaseSensitive.length == DiscordClient.whitelistAddPrefix.length
                         || finalNameToAdd.isEmpty())
             {
-                if(!MainConfig.getMainConfig().getBoolean("hide-info-command-replies"))
+                if(!DiscordClient.hideInfoCommandReplies)
                     DiscordClient.QueueAndRemoveAfterSeconds(channel, DiscordClient.addCommandInfo);
             }
             else
