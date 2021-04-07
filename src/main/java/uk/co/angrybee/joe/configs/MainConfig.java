@@ -11,7 +11,7 @@ import java.util.Collections;
 
 // discord-whitelister.yml
 public class MainConfig extends Config {
-    MainConfig() {
+    public MainConfig() {
         fileName = "discord-whitelister.yml";
         file = new File(DiscordWhitelister.getPlugin().getDataFolder(), fileName);
         fileConfiguration = new YamlConfiguration();

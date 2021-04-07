@@ -268,6 +268,12 @@ public class DiscordWhitelister extends JavaPlugin
 
     public static void ConfigSetup()
     {
+        mainConfig = new MainConfig();
+        customPrefixConfig = new CustomPrefixConfig();
+        customMessagesConfig = new CustomMessagesConfig();
+        permissionsConfig = new PermissionsConfig();
+        onWhitelistCommandsConfig = new OnWhitelistCommandsConfig();
+
         // Run this first, as it creates the root folder if it does not exist
         mainConfig.ConfigSetup();
         customPrefixConfig.ConfigSetup();

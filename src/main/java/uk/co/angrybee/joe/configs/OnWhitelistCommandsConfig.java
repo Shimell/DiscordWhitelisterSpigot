@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class OnWhitelistCommandsConfig extends Config {
-    OnWhitelistCommandsConfig() {
+    public OnWhitelistCommandsConfig() {
         fileName = "on-whitelist-commands.yml";
         file = new File(DiscordWhitelister.getPlugin().getDataFolder(), fileName);
         fileConfiguration = new YamlConfiguration();
