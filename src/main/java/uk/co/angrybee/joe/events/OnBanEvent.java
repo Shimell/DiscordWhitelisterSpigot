@@ -120,7 +120,7 @@ public class OnBanEvent implements Listener
                             // Remove the whitelisted role(s)
                             DiscordClient.RemoveRolesFromUser(guild, discordId, Arrays.asList(DiscordClient.whitelistedRoleNames));
                             // Add the banned role(s)
-                            DiscordClient.AssignRolesToUser(guild, discordId, (List<String>) MainConfig.getMainConfig().get("banned-roles"));
+                            DiscordClient.AssignRolesToUser(guild, discordId, (List<String>) DiscordWhitelister.mainConfig.getFileConfiguration().get("banned-roles"));
                         }
                         idFound = true;
                         break;

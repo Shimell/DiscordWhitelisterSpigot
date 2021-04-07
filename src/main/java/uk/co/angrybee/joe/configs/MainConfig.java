@@ -1,6 +1,5 @@
 package uk.co.angrybee.joe.configs;
 
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import uk.co.angrybee.joe.DiscordWhitelister;
@@ -11,66 +10,42 @@ import java.util.Arrays;
 import java.util.Collections;
 
 // discord-whitelister.yml
-public class MainConfig
-{
-    private static File whitelisterBotConfigFile;
-    private static FileConfiguration whitelisterBotConfig;
+public class MainConfig extends Config {
+    public MainConfig() {
+        fileName = "discord-whitelister.yml";
+        file = new File(DiscordWhitelister.getPlugin().getDataFolder(), fileName);
+        fileConfiguration = new YamlConfiguration();
+    }
 
-    public static FileConfiguration getMainConfig() { return whitelisterBotConfig; }
+    public FileConfiguration getFileConfiguration() {
+        return fileConfiguration;
+    }
 
-    public static boolean configCreated = false;
+    public boolean fileCreated = false;
 
-    public static void ConfigSetup()
-    {
-        whitelisterBotConfigFile = new File(DiscordWhitelister.getPlugin().getDataFolder(), "discord-whitelister.yml");
-        whitelisterBotConfig = new YamlConfiguration();
+    public void ConfigSetup() {
+
 
         // Create root folder for configs if it does not exist
-        if(!whitelisterBotConfigFile.getParentFile().exists())
-            whitelisterBotConfigFile.getParentFile().mkdirs();
+        if (!file.getParentFile().exists())
+            file.getParentFile().mkdirs();
 
-        if(!whitelisterBotConfigFile.exists())
+        if (!file.exists()) {
             CreateConfig();
-
+            DiscordWhitelister.getPluginLogger().info("Configuration file created at: " + file.getPath() +
+                    ", please edit this else the plugin will not work!");
+        }
         LoadConfigFile();
         CheckEntries();
         SaveConfig();
     }
 
-    private static void CreateConfig()
-    {
-        try
-        {
-            whitelisterBotConfigFile.createNewFile();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
 
-        DiscordWhitelister.getPluginLogger().info("Configuration file created at: " + whitelisterBotConfigFile.getPath() +
-                ", please edit this else the plugin will not work!");
-        configCreated = true;
-    }
-
-    private static void LoadConfigFile()
-    {
-        try
-        {
-            whitelisterBotConfig.load(whitelisterBotConfigFile);
-        }
-        catch (IOException | InvalidConfigurationException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private static void CheckEntries()
-    {
+    private void CheckEntries() {
         CheckEntry("bot-enabled", true);
 
         CheckEntry("discord-bot-token",
-                "Discord bot token goes here, you can find it here: https://discordapp.com/developers/applications/" );
+                "Discord bot token goes here, you can find it here: https://discordapp.com/developers/applications/");
 
         CheckEntry("use-id-for-roles", false);
 
@@ -168,45 +143,20 @@ public class MainConfig
         CheckEntry("role-to-check-for", "Twitch Subscriber");
 
         // Remove old role entry if found, move role to new array (for people with v1.3.6 or below)
-        if(whitelisterBotConfig.get("whitelisted-role") != null)
-        {
+        if (fileConfiguration.get("whitelisted-role") != null) {
             DiscordWhitelister.getPluginLogger().warning("Found whitelisted-role entry, moving over to whitelisted-roles. Please check your config to make sure the change is correct");
             // Get the role from the old entry
-            String whitelistedRoleTemp = whitelisterBotConfig.getString("whitelisted-role");
+            String whitelistedRoleTemp = fileConfiguration.getString("whitelisted-role");
             // Assign role from old entry to new entry as a list
-            whitelisterBotConfig.set("whitelisted-roles", Collections.singletonList(whitelistedRoleTemp));
+            fileConfiguration.set("whitelisted-roles", Collections.singletonList(whitelistedRoleTemp));
 
             // Remove now un-used entry
-            whitelisterBotConfig.set("whitelisted-role", null);
+            fileConfiguration.set("whitelisted-role", null);
 
             // Note to users that id for roles now affects the new entry
-            if(whitelisterBotConfig.getBoolean("use-id-for-roles"))
-            {
+            if (fileConfiguration.getBoolean("use-id-for-roles")) {
                 DiscordWhitelister.getPluginLogger().severe("You have 'use-id-for-roles' enabled please change the whitelisted-roles to ids as they now follow this setting");
             }
-        }
-    }
-
-    private static void SaveConfig()
-    {
-        try
-        {
-            whitelisterBotConfig.save(whitelisterBotConfigFile.getPath());
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private static void CheckEntry(String entryName, Object passedValue)
-    {
-        if(whitelisterBotConfig.get(entryName) == null)
-        {
-            whitelisterBotConfig.set(entryName, passedValue);
-
-            if(!configCreated)
-                DiscordWhitelister.getPluginLogger().warning("Entry '" + entryName + "' was not found, adding it to the config...");
         }
     }
 }

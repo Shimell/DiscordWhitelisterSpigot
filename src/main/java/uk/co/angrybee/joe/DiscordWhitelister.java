@@ -50,6 +50,14 @@ public class DiscordWhitelister extends JavaPlugin
 
     public static int removeMessageWaitTime = 5;
 
+    public static MainConfig mainConfig;
+
+    public static CustomPrefixConfig customPrefixConfig;
+    public static CustomMessagesConfig customMessagesConfig;
+    public static PermissionsConfig permissionsConfig;
+    public static OnWhitelistCommandsConfig onWhitelistCommandsConfig;
+
+
     @Override
     public void onEnable()
     {
@@ -89,7 +97,7 @@ public class DiscordWhitelister extends JavaPlugin
         return thisPlugin;
     }
 
-    public static FileConfiguration getCustomMessagesConfig() { return CustomMessagesConfig.getCustomMessagesConfig(); }
+    public static FileConfiguration getCustomMessagesConfig() { return customMessagesConfig.getFileConfiguration(); }
 
     public static Logger getPluginLogger() { return pluginLogger; }
 
@@ -110,59 +118,59 @@ public class DiscordWhitelister extends JavaPlugin
 
         ConfigSetup();
 
-        botToken = MainConfig.getMainConfig().getString("discord-bot-token");
-        botEnabled = MainConfig.getMainConfig().getBoolean("bot-enabled");
-        showPlayerSkin = MainConfig.getMainConfig().getBoolean("show-player-skin-on-whitelist");
-        configCreated = MainConfig.configCreated;
-        showVanishedPlayersInCount = MainConfig.getMainConfig().getBoolean("show-vanished-players-in-player-count");
-        useInGameAddRemoves = MainConfig.getMainConfig().getBoolean("add-in-game-adds-and-removes-to-list");
-        useOnBanEvents = MainConfig.getMainConfig().getBoolean("use-on-ban-events");
-        removeUnnecessaryMessages = MainConfig.getMainConfig().getBoolean("remove-unnecessary-messages-from-whitelist-channel");
-        removeMessageWaitTime = MainConfig.getMainConfig().getInt("seconds-to-remove-message-from-whitelist-channel");
-        useOnWhitelistCommands = MainConfig.getMainConfig().getBoolean("use-on-whitelist-commands");
+        botToken = mainConfig.getFileConfiguration().getString("discord-bot-token");
+        botEnabled = mainConfig.getFileConfiguration().getBoolean("bot-enabled");
+        showPlayerSkin = mainConfig.getFileConfiguration().getBoolean("show-player-skin-on-whitelist");
+        configCreated = mainConfig.fileCreated;
+        showVanishedPlayersInCount = mainConfig.getFileConfiguration().getBoolean("show-vanished-players-in-player-count");
+        useInGameAddRemoves = mainConfig.getFileConfiguration().getBoolean("add-in-game-adds-and-removes-to-list");
+        useOnBanEvents = mainConfig.getFileConfiguration().getBoolean("use-on-ban-events");
+        removeUnnecessaryMessages = mainConfig.getFileConfiguration().getBoolean("remove-unnecessary-messages-from-whitelist-channel");
+        removeMessageWaitTime = mainConfig.getFileConfiguration().getInt("seconds-to-remove-message-from-whitelist-channel");
+        useOnWhitelistCommands = mainConfig.getFileConfiguration().getBoolean("use-on-whitelist-commands");
 
         // Check for LuckPerms first
-        if(MainConfig.getMainConfig().getBoolean("assign-perms-with-luck-perms"))
+        if(mainConfig.getFileConfiguration().getBoolean("assign-perms-with-luck-perms"))
         {
-            if(DiscordWhitelister.getPlugin().getServer().getPluginManager().getPlugin("LuckPerms") != null)
+            if(getPlugin().getServer().getPluginManager().getPlugin("LuckPerms") != null)
             {
                 useLuckPerms = true;
-                DiscordWhitelister.getPluginLogger().info("LuckPerms found!");
+                getPluginLogger().info("LuckPerms found!");
             }
             else
             {
-                DiscordWhitelister.getPluginLogger().warning("LuckPerms was not found but is enabled in the config. Doing nothing...");
+                getPluginLogger().warning("LuckPerms was not found but is enabled in the config. Doing nothing...");
                 useLuckPerms = false;
             }
         }
-        if(MainConfig.getMainConfig().getBoolean("assign-perms-with-ultra-perms"))
+        if(mainConfig.getFileConfiguration().getBoolean("assign-perms-with-ultra-perms"))
         {
-            if(DiscordWhitelister.getPlugin().getServer().getPluginManager().getPlugin("UltraPermissions") != null)
+            if(getPlugin().getServer().getPluginManager().getPlugin("UltraPermissions") != null)
             {
                 useUltraPerms = true;
-                DiscordWhitelister.getPluginLogger().info("Ultra Permissions found!");
+                getPluginLogger().info("Ultra Permissions found!");
             }
             else
             {
-                DiscordWhitelister.getPluginLogger().warning("Ultra Permissions was not found but is enabled in the config. Doing nothing...");
+                getPluginLogger().warning("Ultra Permissions was not found but is enabled in the config. Doing nothing...");
                 useUltraPerms = false;
             }
         }
 
         // TODO: remove in favour of split versions
-        DiscordClient.customWhitelistAddPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix").toLowerCase();
-        DiscordClient.customWhitelistRemovePrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-remove-prefix").toLowerCase();
-        DiscordClient.customClearNamePrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-name-prefix").toLowerCase();
-        DiscordClient.customLimitedWhitelistClearPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("limited-whitelist-clear-prefix").toLowerCase();
-        DiscordClient.customClearBanPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-ban-prefix").toLowerCase();
+        DiscordClient.customWhitelistAddPrefix = customPrefixConfig.getFileConfiguration().getString("whitelist-add-prefix").toLowerCase();
+        DiscordClient.customWhitelistRemovePrefix = customPrefixConfig.getFileConfiguration().getString("whitelist-remove-prefix").toLowerCase();
+        DiscordClient.customClearNamePrefix = customPrefixConfig.getFileConfiguration().getString("clear-name-prefix").toLowerCase();
+        DiscordClient.customLimitedWhitelistClearPrefix = customPrefixConfig.getFileConfiguration().getString("limited-whitelist-clear-prefix").toLowerCase();
+        DiscordClient.customClearBanPrefix = customPrefixConfig.getFileConfiguration().getString("clear-ban-prefix").toLowerCase();
 
         // Split versions
-        DiscordClient.customWhitelistAddPrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-add-prefix").toLowerCase().trim().split(" ");
-        DiscordClient.customWhitelistRemovePrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-remove-prefix").toLowerCase().trim().split(" ");
-        DiscordClient.customClearNamePrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-name-prefix").toLowerCase().trim().split(" ");
-        DiscordClient.customLimitedWhitelistClearPrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("limited-whitelist-clear-prefix").toLowerCase().trim().split(" ");
-        DiscordClient.customClearBanPrefixSplit = CustomPrefixConfig.getCustomPrefixesConfig().getString("clear-ban-prefix").toLowerCase().trim().split(" ");
-        DiscordClient.customWhoIsPrefix = CustomPrefixConfig.getCustomPrefixesConfig().getString("whitelist-whois-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customWhitelistAddPrefixSplit = customPrefixConfig.getFileConfiguration().getString("whitelist-add-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customWhitelistRemovePrefixSplit = customPrefixConfig.getFileConfiguration().getString("whitelist-remove-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customClearNamePrefixSplit = customPrefixConfig.getFileConfiguration().getString("clear-name-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customLimitedWhitelistClearPrefixSplit = customPrefixConfig.getFileConfiguration().getString("limited-whitelist-clear-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customClearBanPrefixSplit = customPrefixConfig.getFileConfiguration().getString("clear-ban-prefix").toLowerCase().trim().split(" ");
+        DiscordClient.customWhoIsPrefix = customPrefixConfig.getFileConfiguration().getString("whitelist-whois-prefix").toLowerCase().trim().split(" ");
 
         if(!botEnabled)
         {
@@ -177,33 +185,33 @@ public class DiscordWhitelister extends JavaPlugin
             pluginLogger.info("Initializing Discord client...");
 
             // TODO: below role section could be moved to DiscordClient class
-            useIdForRoles = MainConfig.getMainConfig().getBoolean("use-id-for-roles");
+            useIdForRoles = mainConfig.getFileConfiguration().getBoolean("use-id-for-roles");
 
             // set add & remove roles
-            DiscordClient.allowedToAddRemoveRoles = new String[MainConfig.getMainConfig().getList("add-remove-roles").size()];
+            DiscordClient.allowedToAddRemoveRoles = new String[mainConfig.getFileConfiguration().getList("add-remove-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToAddRemoveRoles.length; ++roles)
             {
-                DiscordClient.allowedToAddRemoveRoles[roles] = MainConfig.getMainConfig().getList("add-remove-roles").get(roles).toString();
+                DiscordClient.allowedToAddRemoveRoles[roles] = mainConfig.getFileConfiguration().getList("add-remove-roles").get(roles).toString();
             }
 
             // set add roles
-            DiscordClient.allowedToAddRoles = new String[MainConfig.getMainConfig().getList("add-roles").size()];
+            DiscordClient.allowedToAddRoles = new String[mainConfig.getFileConfiguration().getList("add-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToAddRoles.length; ++roles)
             {
-                DiscordClient.allowedToAddRoles[roles] = MainConfig.getMainConfig().getList("add-roles").get(roles).toString();
+                DiscordClient.allowedToAddRoles[roles] = mainConfig.getFileConfiguration().getList("add-roles").get(roles).toString();
             }
 
             // set limited add roles
-            DiscordClient.allowedToAddLimitedRoles = new String[MainConfig.getMainConfig().getList("limited-add-roles").size()];
+            DiscordClient.allowedToAddLimitedRoles = new String[mainConfig.getFileConfiguration().getList("limited-add-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToAddLimitedRoles.length; ++roles)
             {
-                DiscordClient.allowedToAddLimitedRoles[roles] = MainConfig.getMainConfig().getList("limited-add-roles").get(roles).toString();
+                DiscordClient.allowedToAddLimitedRoles[roles] = mainConfig.getFileConfiguration().getList("limited-add-roles").get(roles).toString();
             }
 
             // Get banned roles
             if(useOnBanEvents)
             {
-                List<String> tempBannedRoles = MainConfig.getMainConfig().getStringList("banned-roles");
+                List<String> tempBannedRoles = mainConfig.getFileConfiguration().getStringList("banned-roles");
                 bannedRoles = new String[tempBannedRoles.size()];
                 for(int i = 0; i < tempBannedRoles.size(); i++)
                 {
@@ -212,10 +220,10 @@ public class DiscordWhitelister extends JavaPlugin
             }
 
             // Allowed to clear name roles
-            DiscordClient.allowedToClearNamesRoles = new String[MainConfig.getMainConfig().getStringList("clear-command-roles").size()];
+            DiscordClient.allowedToClearNamesRoles = new String[mainConfig.getFileConfiguration().getStringList("clear-command-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToClearNamesRoles.length; roles++)
             {
-                DiscordClient.allowedToClearNamesRoles[roles] = MainConfig.getMainConfig().getStringList("clear-command-roles").get(roles);
+                DiscordClient.allowedToClearNamesRoles[roles] = mainConfig.getFileConfiguration().getStringList("clear-command-roles").get(roles);
             }
 
             // All roles combined for role check
@@ -224,8 +232,8 @@ public class DiscordWhitelister extends JavaPlugin
                     .flatMap(Stream::of).toArray(String[]::new);
 
             // Custom messages check
-            useCustomMessages = MainConfig.getMainConfig().getBoolean("use-custom-messages");
-            useCustomPrefixes = MainConfig.getMainConfig().getBoolean("use-custom-prefixes");
+            useCustomMessages = mainConfig.getFileConfiguration().getBoolean("use-custom-messages");
+            useCustomPrefixes = mainConfig.getFileConfiguration().getBoolean("use-custom-prefixes");
 
             int initSuccess = DiscordClient.InitializeClient(botToken);
 
@@ -235,7 +243,7 @@ public class DiscordWhitelister extends JavaPlugin
 
             // No need for an if here statement anymore as this code will not run if the client has not been initialized
             // Only attempt to set player count if the bot successfully initialized
-            if(MainConfig.getMainConfig().getBoolean("show-player-count"))
+            if(mainConfig.getFileConfiguration().getBoolean("show-player-count"))
             {
                 // Register events if enabled
                 thisServer.getPluginManager().registerEvents(new JoinLeaveEvents(), thisPlugin);
@@ -260,13 +268,18 @@ public class DiscordWhitelister extends JavaPlugin
 
     public static void ConfigSetup()
     {
-        // Run this first, as it creates the root folder if it does not exist
-        MainConfig.ConfigSetup();
+        mainConfig = new MainConfig();
+        customPrefixConfig = new CustomPrefixConfig();
+        customMessagesConfig = new CustomMessagesConfig();
+        permissionsConfig = new PermissionsConfig();
+        onWhitelistCommandsConfig = new OnWhitelistCommandsConfig();
 
-        CustomPrefixConfig.ConfigSetup();
-        CustomMessagesConfig.ConfigSetup();
-        PermissionsConfig.ConfigSetup();
-        OnWhitelistCommandsConfig.ConfigSetup();
+        // Run this first, as it creates the root folder if it does not exist
+        mainConfig.ConfigSetup();
+        customPrefixConfig.ConfigSetup();
+        customMessagesConfig.ConfigSetup();
+        permissionsConfig.ConfigSetup();
+        onWhitelistCommandsConfig.ConfigSetup();
 
         // Init Stores
         UserList.StoreSetup();

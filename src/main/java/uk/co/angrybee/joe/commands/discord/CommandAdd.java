@@ -6,9 +6,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import uk.co.angrybee.joe.AuthorPermissions;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
-import uk.co.angrybee.joe.configs.MainConfig;
-import uk.co.angrybee.joe.configs.OnWhitelistCommandsConfig;
-import uk.co.angrybee.joe.configs.PermissionsConfig;
 import uk.co.angrybee.joe.stores.InGameRemovedList;
 import uk.co.angrybee.joe.stores.RemovedList;
 import uk.co.angrybee.joe.stores.UserList;
@@ -17,7 +14,6 @@ import uk.co.angrybee.joe.stores.WhitelistedPlayers;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -438,7 +434,7 @@ public class CommandAdd
 
                 if(DiscordWhitelister.showPlayerSkin)
                 {
-                    if(!MainConfig.getMainConfig().getBoolean("use-crafatar-for-avatars"))
+                    if(!DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("use-crafatar-for-avatars"))
                         embedBuilderWhitelistSuccess.setThumbnail("https://minotar.net/armor/bust/" + playerUUID + "/100.png");
                     else
                         embedBuilderWhitelistSuccess.setThumbnail("https://crafatar.com/avatars/" + playerUUID + "?size=100&default=MHF_Steve&overlay.png");
@@ -474,7 +470,7 @@ public class CommandAdd
 
                 if (!WhitelistedPlayers.usingEasyWhitelist && authorPermissions.isUserCanUseCommand())
                     DiscordClient.ExecuteServerCommand("whitelist add " + finalNameToAdd);
-                    if(MainConfig.getMainConfig().getBoolean("use-geyser/floodgate-compatibility")) {
+                    if(DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("use-geyser/floodgate-compatibility")) {
                         addBedrockUser(finalNameToAdd);
                     }
 
@@ -497,7 +493,7 @@ public class CommandAdd
 
                         if(DiscordWhitelister.useOnWhitelistCommands)
                         {
-                            List<String> commandsToExecute = OnWhitelistCommandsConfig.getPermissionsConfig().getStringList("on-whitelist-commands");
+                            List<String> commandsToExecute = DiscordWhitelister.onWhitelistCommandsConfig.getFileConfiguration().getStringList("on-whitelist-commands");
                             for (String command : commandsToExecute)
                             {
                                 DiscordClient.CheckAndExecuteCommand(command, finalNameToAdd);
@@ -558,15 +554,15 @@ public class CommandAdd
                             // Instructional message
                             if(successfulWhitelist.get())
                             {
-                                if(MainConfig.getMainConfig().getBoolean("send-instructional-message-on-whitelist"))
+                                if(DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("send-instructional-message-on-whitelist"))
                                 {
-                                    if(!MainConfig.getMainConfig().getBoolean("use-timer-for-instructional-message"))
+                                    if(!DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("use-timer-for-instructional-message"))
                                     {
                                         channel.sendMessage(DiscordClient.CreateInstructionalMessage()).queue();
                                     }
                                     else
                                     {
-                                        int waitTime = MainConfig.getMainConfig().getInt("timer-wait-time-in-seconds");
+                                        int waitTime = DiscordWhitelister.mainConfig.getFileConfiguration().getInt("timer-wait-time-in-seconds");
 
                                         // Run on a new thread to not block main thread
                                         Thread whitelisterTimerThread = new Thread(() ->
@@ -618,7 +614,7 @@ public class CommandAdd
     }
 
     private static void addBedrockUser(String finalNameToAdd) {
-        String bedrockPrefix = MainConfig.getMainConfig().getString("geyser/floodgate prefix");
+        String bedrockPrefix = DiscordWhitelister.mainConfig.getFileConfiguration().getString("geyser/floodgate prefix");
         String bedrockName = bedrockPrefix + finalNameToAdd;
         if(bedrockName.length() > 16) {
             bedrockName = bedrockName.substring(0, 16);
