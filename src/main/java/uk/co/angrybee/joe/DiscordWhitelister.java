@@ -118,41 +118,41 @@ public class DiscordWhitelister extends JavaPlugin
 
         ConfigSetup();
 
-        botToken = DiscordWhitelister.mainConfig.getFileConfiguration().getString("discord-bot-token");
-        botEnabled = DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("bot-enabled");
-        showPlayerSkin = DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("show-player-skin-on-whitelist");
+        botToken = mainConfig.getFileConfiguration().getString("discord-bot-token");
+        botEnabled = mainConfig.getFileConfiguration().getBoolean("bot-enabled");
+        showPlayerSkin = mainConfig.getFileConfiguration().getBoolean("show-player-skin-on-whitelist");
         configCreated = mainConfig.fileCreated;
-        showVanishedPlayersInCount = DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("show-vanished-players-in-player-count");
-        useInGameAddRemoves = DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("add-in-game-adds-and-removes-to-list");
-        useOnBanEvents = DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("use-on-ban-events");
-        removeUnnecessaryMessages = DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("remove-unnecessary-messages-from-whitelist-channel");
-        removeMessageWaitTime = DiscordWhitelister.mainConfig.getFileConfiguration().getInt("seconds-to-remove-message-from-whitelist-channel");
-        useOnWhitelistCommands = DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("use-on-whitelist-commands");
+        showVanishedPlayersInCount = mainConfig.getFileConfiguration().getBoolean("show-vanished-players-in-player-count");
+        useInGameAddRemoves = mainConfig.getFileConfiguration().getBoolean("add-in-game-adds-and-removes-to-list");
+        useOnBanEvents = mainConfig.getFileConfiguration().getBoolean("use-on-ban-events");
+        removeUnnecessaryMessages = mainConfig.getFileConfiguration().getBoolean("remove-unnecessary-messages-from-whitelist-channel");
+        removeMessageWaitTime = mainConfig.getFileConfiguration().getInt("seconds-to-remove-message-from-whitelist-channel");
+        useOnWhitelistCommands = mainConfig.getFileConfiguration().getBoolean("use-on-whitelist-commands");
 
         // Check for LuckPerms first
-        if(DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("assign-perms-with-luck-perms"))
+        if(mainConfig.getFileConfiguration().getBoolean("assign-perms-with-luck-perms"))
         {
-            if(DiscordWhitelister.getPlugin().getServer().getPluginManager().getPlugin("LuckPerms") != null)
+            if(getPlugin().getServer().getPluginManager().getPlugin("LuckPerms") != null)
             {
                 useLuckPerms = true;
-                DiscordWhitelister.getPluginLogger().info("LuckPerms found!");
+                getPluginLogger().info("LuckPerms found!");
             }
             else
             {
-                DiscordWhitelister.getPluginLogger().warning("LuckPerms was not found but is enabled in the config. Doing nothing...");
+                getPluginLogger().warning("LuckPerms was not found but is enabled in the config. Doing nothing...");
                 useLuckPerms = false;
             }
         }
-        if(DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("assign-perms-with-ultra-perms"))
+        if(mainConfig.getFileConfiguration().getBoolean("assign-perms-with-ultra-perms"))
         {
-            if(DiscordWhitelister.getPlugin().getServer().getPluginManager().getPlugin("UltraPermissions") != null)
+            if(getPlugin().getServer().getPluginManager().getPlugin("UltraPermissions") != null)
             {
                 useUltraPerms = true;
-                DiscordWhitelister.getPluginLogger().info("Ultra Permissions found!");
+                getPluginLogger().info("Ultra Permissions found!");
             }
             else
             {
-                DiscordWhitelister.getPluginLogger().warning("Ultra Permissions was not found but is enabled in the config. Doing nothing...");
+                getPluginLogger().warning("Ultra Permissions was not found but is enabled in the config. Doing nothing...");
                 useUltraPerms = false;
             }
         }
@@ -185,33 +185,33 @@ public class DiscordWhitelister extends JavaPlugin
             pluginLogger.info("Initializing Discord client...");
 
             // TODO: below role section could be moved to DiscordClient class
-            useIdForRoles = DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("use-id-for-roles");
+            useIdForRoles = mainConfig.getFileConfiguration().getBoolean("use-id-for-roles");
 
             // set add & remove roles
-            DiscordClient.allowedToAddRemoveRoles = new String[DiscordWhitelister.mainConfig.getFileConfiguration().getList("add-remove-roles").size()];
+            DiscordClient.allowedToAddRemoveRoles = new String[mainConfig.getFileConfiguration().getList("add-remove-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToAddRemoveRoles.length; ++roles)
             {
-                DiscordClient.allowedToAddRemoveRoles[roles] = DiscordWhitelister.mainConfig.getFileConfiguration().getList("add-remove-roles").get(roles).toString();
+                DiscordClient.allowedToAddRemoveRoles[roles] = mainConfig.getFileConfiguration().getList("add-remove-roles").get(roles).toString();
             }
 
             // set add roles
-            DiscordClient.allowedToAddRoles = new String[DiscordWhitelister.mainConfig.getFileConfiguration().getList("add-roles").size()];
+            DiscordClient.allowedToAddRoles = new String[mainConfig.getFileConfiguration().getList("add-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToAddRoles.length; ++roles)
             {
-                DiscordClient.allowedToAddRoles[roles] = DiscordWhitelister.mainConfig.getFileConfiguration().getList("add-roles").get(roles).toString();
+                DiscordClient.allowedToAddRoles[roles] = mainConfig.getFileConfiguration().getList("add-roles").get(roles).toString();
             }
 
             // set limited add roles
-            DiscordClient.allowedToAddLimitedRoles = new String[DiscordWhitelister.mainConfig.getFileConfiguration().getList("limited-add-roles").size()];
+            DiscordClient.allowedToAddLimitedRoles = new String[mainConfig.getFileConfiguration().getList("limited-add-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToAddLimitedRoles.length; ++roles)
             {
-                DiscordClient.allowedToAddLimitedRoles[roles] = DiscordWhitelister.mainConfig.getFileConfiguration().getList("limited-add-roles").get(roles).toString();
+                DiscordClient.allowedToAddLimitedRoles[roles] = mainConfig.getFileConfiguration().getList("limited-add-roles").get(roles).toString();
             }
 
             // Get banned roles
             if(useOnBanEvents)
             {
-                List<String> tempBannedRoles = DiscordWhitelister.mainConfig.getFileConfiguration().getStringList("banned-roles");
+                List<String> tempBannedRoles = mainConfig.getFileConfiguration().getStringList("banned-roles");
                 bannedRoles = new String[tempBannedRoles.size()];
                 for(int i = 0; i < tempBannedRoles.size(); i++)
                 {
@@ -220,10 +220,10 @@ public class DiscordWhitelister extends JavaPlugin
             }
 
             // Allowed to clear name roles
-            DiscordClient.allowedToClearNamesRoles = new String[DiscordWhitelister.mainConfig.getFileConfiguration().getStringList("clear-command-roles").size()];
+            DiscordClient.allowedToClearNamesRoles = new String[mainConfig.getFileConfiguration().getStringList("clear-command-roles").size()];
             for(int roles = 0; roles < DiscordClient.allowedToClearNamesRoles.length; roles++)
             {
-                DiscordClient.allowedToClearNamesRoles[roles] = DiscordWhitelister.mainConfig.getFileConfiguration().getStringList("clear-command-roles").get(roles);
+                DiscordClient.allowedToClearNamesRoles[roles] = mainConfig.getFileConfiguration().getStringList("clear-command-roles").get(roles);
             }
 
             // All roles combined for role check
@@ -232,8 +232,8 @@ public class DiscordWhitelister extends JavaPlugin
                     .flatMap(Stream::of).toArray(String[]::new);
 
             // Custom messages check
-            useCustomMessages = DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("use-custom-messages");
-            useCustomPrefixes = DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("use-custom-prefixes");
+            useCustomMessages = mainConfig.getFileConfiguration().getBoolean("use-custom-messages");
+            useCustomPrefixes = mainConfig.getFileConfiguration().getBoolean("use-custom-prefixes");
 
             int initSuccess = DiscordClient.InitializeClient(botToken);
 
@@ -243,7 +243,7 @@ public class DiscordWhitelister extends JavaPlugin
 
             // No need for an if here statement anymore as this code will not run if the client has not been initialized
             // Only attempt to set player count if the bot successfully initialized
-            if(DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("show-player-count"))
+            if(mainConfig.getFileConfiguration().getBoolean("show-player-count"))
             {
                 // Register events if enabled
                 thisServer.getPluginManager().registerEvents(new JoinLeaveEvents(), thisPlugin);
