@@ -3,6 +3,7 @@ version: 1.4.8
 author: Joe Shimell
 main: uk.co.angrybee.joe.DiscordWhitelister
 description: Discord Whitelister.
+softdepend: [Essentials, SuperVanish, VanishNoPacket]
 commands:
   discordwhitelister:
     description: See info about this plugin
