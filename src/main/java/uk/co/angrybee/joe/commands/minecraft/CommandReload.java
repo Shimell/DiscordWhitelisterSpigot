@@ -39,8 +39,10 @@ public class CommandReload implements CommandExecutor
         {
             pluginLogger.info("Failed to re-initialize client");
             sender.sendMessage("[DW] Failed to reload Discord client (Reason: Failed to re-initialize client)");
+            DiscordWhitelister.initialized = false;
             return false;
         }
+        DiscordWhitelister.initialized = true;
 
         if(!DiscordWhitelister.botEnabled)
         {

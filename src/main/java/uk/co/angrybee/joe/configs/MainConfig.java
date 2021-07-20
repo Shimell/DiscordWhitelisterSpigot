@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
+
 // discord-whitelister.yml
 public class MainConfig extends Config {
+    public static String default_token = "Discord bot token goes here, you can find it here: https://discordapp.com/developers/applications/";
     public MainConfig() {
         fileName = "discord-whitelister.yml";
         file = new File(DiscordWhitelister.getPlugin().getDataFolder(), fileName);
@@ -32,7 +34,7 @@ public class MainConfig extends Config {
 
         if (!file.exists()) {
             CreateConfig();
-            DiscordWhitelister.getPluginLogger().info("Configuration file created at: " + file.getPath() +
+            DiscordWhitelister.getPluginLogger().warning("Configuration file created at: " + file.getPath() +
                     ", please edit this else the plugin will not work!");
         }
         LoadConfigFile();
@@ -45,7 +47,7 @@ public class MainConfig extends Config {
         CheckEntry("bot-enabled", true);
 
         CheckEntry("discord-bot-token",
-                "Discord bot token goes here, you can find it here: https://discordapp.com/developers/applications/");
+                default_token);
 
         CheckEntry("use-id-for-roles", false);
 
