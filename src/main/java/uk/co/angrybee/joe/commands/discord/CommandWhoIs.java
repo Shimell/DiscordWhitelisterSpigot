@@ -1,8 +1,8 @@
 package uk.co.angrybee.joe.commands.discord;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.AccountTypeException;
 import org.yaml.snakeyaml.Yaml;
@@ -19,68 +19,45 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class CommandWhoIs {
-    public static void ExecuteCommand(MessageReceivedEvent messageReceivedEvent, String[] splitMessage) {
-        AuthorPermissions authorPermissions = new AuthorPermissions(messageReceivedEvent);
-        User author = messageReceivedEvent.getAuthor();
-        TextChannel channel = messageReceivedEvent.getTextChannel();
+    public static void ExecuteCommand(SlashCommandEvent event, String mc_name) {
+
+        AuthorPermissions authorPermissions = new AuthorPermissions(event);
+        User author = event.getUser();
+        TextChannel channel = event.getTextChannel();
 
         if (!authorPermissions.isUserCanAddRemove() && !authorPermissions.isUserCanAdd()) {
-            DiscordClient.QueueAndRemoveAfterSeconds(channel, DiscordClient.CreateInsufficientPermsMessage(author));
+            DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordClient.CreateInsufficientPermsMessage(author));
             return;
         }
-
-        // TODO make 1 function like this that multiple commands can call on
-        if (DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length > (DiscordClient.customWhoIsPrefix.length + 1)
-                || !DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length > (DiscordClient.whitelistWhoIsPrefix.length + 1)) {
-            int amountOfArgs = 0;
-            if (DiscordWhitelister.getUseCustomPrefixes())
-                amountOfArgs = splitMessage.length - (DiscordClient.customWhoIsPrefix.length);
-            else
-                amountOfArgs = splitMessage.length - (DiscordClient.whitelistWhoIsPrefix.length);
-
-            StringBuilder exampleCommand = new StringBuilder();
-            if (DiscordWhitelister.getUseCustomPrefixes()) {
-                for (int i = 0; i < DiscordClient.customWhoIsPrefix.length; i++) {
-                    exampleCommand.append(DiscordClient.customWhoIsPrefix[i]).append(" ");
-                }
-            } else {
-                for (int i = 0; i < DiscordClient.whitelistWhoIsPrefix.length; i++) {
-                    exampleCommand.append(DiscordClient.whitelistWhoIsPrefix[i]).append(" ");
-                }
+/*
+        int amountOfArgs = 0;
+        StringBuilder exampleCommand = new StringBuilder();
+        if (DiscordWhitelister.getUseCustomPrefixes()) {
+            for (int i = 0; i < DiscordClient.customWhoIsPrefix.length; i++) {
+                exampleCommand.append(DiscordClient.customWhoIsPrefix[i]).append(" ");
             }
-            exampleCommand.append("<minecraftUsername>");
-
-            MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage("Too many arguments",
-                    (author.getAsMention() + ", expected 1 argument but found " + amountOfArgs + ".\n" +
-                            "Example: " + exampleCommand.toString()), DiscordClient.EmbedMessageType.FAILURE).build();
-
-            DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
-            return;
+        } else {
+            for (int i = 0; i < DiscordClient.whitelistWhoIsPrefix.length; i++) {
+                exampleCommand.append(DiscordClient.whitelistWhoIsPrefix[i]).append(" ");
+            }
         }
+        exampleCommand.append("<minecraftUsername>");
 
-        String nameToCheck = "";
-        if (DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length >= DiscordClient.customWhoIsPrefix.length + 1)
-            nameToCheck = splitMessage[DiscordClient.customWhoIsPrefix.length];
+        MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage("Too many arguments",
+                (author.getAsMention() + ", expected 1 argument but found " + amountOfArgs + ".\n" +
+                        "Example: " + exampleCommand.toString()), DiscordClient.EmbedMessageType.FAILURE).build();
 
-        if (!DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length >= DiscordClient.whitelistWhoIsPrefix.length + 1)
-            nameToCheck = splitMessage[DiscordClient.whitelistWhoIsPrefix.length];
-
-        if (DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length == DiscordClient.customWhoIsPrefix.length
-                || !DiscordWhitelister.getUseCustomPrefixes() && splitMessage.length == DiscordClient.whitelistWhoIsPrefix.length || nameToCheck.isEmpty()) {
-            if (!DiscordClient.hideInfoCommandReplies)
-                return;
-
-            DiscordClient.QueueAndRemoveAfterSeconds(channel, DiscordClient.whoIsInfo);
-            return;
-        }
+        DiscordClient.ReplyAndRemoveAfterSeconds(event, messageEmbed);
+*/
 
         boolean idFound = false;
         // Find the Discord Id linked to the whitelisted player
         Set<String> keys = UserList.getUserList().getKeys(false);
-        for (String discordId : keys) {
+        for (
+                String discordId : keys) {
             List<?> registeredUsers = UserList.getRegisteredUsers(discordId);
-            for (Object mc_name : registeredUsers) {
-                if (mc_name.equals(nameToCheck)) {
+            for (Object name : registeredUsers) {
+                if (name.equals(mc_name)) {
                     String userAsMention = "<@!" + discordId + ">"; // use this in-case the user has left the discord ? over using fetched member
                     StringBuilder usersWhitelistedPlayers = new StringBuilder();
                     for (Object targetWhitelistedPlayer : registeredUsers) {
@@ -88,8 +65,8 @@ public class CommandWhoIs {
                             usersWhitelistedPlayers.append("- ").append((String) targetWhitelistedPlayer).append("\n");
                     }
 
-                    EmbedBuilder idFoundMessage = DiscordClient.CreateEmbeddedMessage(("Found account linked to `" + nameToCheck + "`"),
-                            (author.getAsMention() + ", the Minecraft username: `" + nameToCheck + "` is linked to " + userAsMention +
+                    EmbedBuilder idFoundMessage = DiscordClient.CreateEmbeddedMessage(("Found account linked to `" + mc_name + "`"),
+                            (author.getAsMention() + ", the Minecraft username: `" + mc_name + "` is linked to " + userAsMention +
                                     ".\n\n Here is a list of their whitelisted players:\n" + usersWhitelistedPlayers),
                             DiscordClient.EmbedMessageType.SUCCESS);
 
@@ -100,19 +77,19 @@ public class CommandWhoIs {
                     else
                         DiscordWhitelister.getPluginLogger().warning("Failed to fetch avatar linked to Discord ID: " + discordId);
 
-                    DiscordClient.QueueAndRemoveAfterSeconds(channel, idFoundMessage.build());
+                    DiscordClient.ReplyAndRemoveAfterSeconds(event, idFoundMessage.build());
                     idFound = true;
                     break;
                 }
             }
         }
         if (!idFound) {
-            MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage(("Could not find an account linked to `" + nameToCheck + "`"),
-                    (author.getAsMention() + ", the name: `" + nameToCheck +
+            MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage(("Could not find an account linked to `" + mc_name + "`"),
+                    (author.getAsMention() + ", the name: `" + mc_name +
                             "` could not be found in the users list. Please make sure that the Minecraft name is valid and whitelisted + linked to an ID before."),
                     DiscordClient.EmbedMessageType.FAILURE).build();
 
-            DiscordClient.QueueAndRemoveAfterSeconds(channel, messageEmbed);
+            DiscordClient.ReplyAndRemoveAfterSeconds(event, messageEmbed);
         }
     }
 }

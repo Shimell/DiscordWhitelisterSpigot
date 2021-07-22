@@ -31,17 +31,17 @@ public class CustomPrefixConfig extends Config
     {
         if(file.exists())
         {
-            CheckEntry("whitelist-add-prefix", "!whitelist add");
+            CheckEntry("whitelist-add-prefix", "/whitelist add");
 
-            CheckEntry("whitelist-remove-prefix", "!whitelist remove");
+            CheckEntry("whitelist-remove-prefix", "/whitelist remove");
 
-            CheckEntry("clear-name-prefix", "!clearname");
+            CheckEntry("clear-name-prefix", "/clearname");
 
-            CheckEntry("limited-whitelist-clear-prefix", "!whitelist clear");
+            CheckEntry("limited-whitelist-clear-prefix", "/whitelist clear");
 
             CheckEntry("clear-ban-prefix", "!clearban");
 
-            CheckEntry("whitelist-whois-prefix", "!whitelist whois");
+            CheckEntry("whitelist-whois-prefix", "/whitelist whois");
         }
     }
 }

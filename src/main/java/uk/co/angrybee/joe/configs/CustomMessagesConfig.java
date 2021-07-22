@@ -89,7 +89,7 @@ public class CustomMessagesConfig extends Config
             CheckEntry("clear-ban-failure-message", "{Sender}, `{MinecraftUsername}` cannot be found in any of the removed lists!");
 
             CheckEntry("instructional-message-title", "How to Whitelist");
-            CheckEntry("instructional-message", "Use `!whitelist add <minecraftUsername>` to whitelist yourself. In the case of whitelisting an incorrect name, please contact a staff member to clear it from the whitelist.");
+            CheckEntry("instructional-message", "Use `/whitelist add <minecraftUsername>` to whitelist yourself. In the case of whitelisting an incorrect name, please contact a staff member to clear it from the whitelist.");
 
             CheckEntry("whitelist-clear-success-title",  "Successfully Removed {Sender}'s Whitelisted Entries");
             CheckEntry("whitelist-clear-success-message", "{Sender} successfully removed the following users from the whitelist: \n{RemovedEntries}\nYou now have **{MaxWhitelistAmount} whitelist(s) remaining**.");

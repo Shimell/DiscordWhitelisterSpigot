@@ -21,7 +21,10 @@ import uk.co.angrybee.joe.events.EssentialsVanishEvents;
 import uk.co.angrybee.joe.events.SuperVanishEvents;
 import uk.co.angrybee.joe.events.VanishNoPacketEvents;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -138,6 +141,14 @@ public class DiscordWhitelister extends JavaPlugin {
         return thisPlugin.getServer().getOnlinePlayers().size() - vanishedPlayersCount;
     }
 
+
+    static String[] getConfigArray(String path){
+        List<String> list = mainConfig.getFileConfiguration().getStringList(path);
+        String[] array = new String[list.size()];
+        list.toArray(array);
+        return array;
+    }
+
     public static int getMaximumAllowedPlayers() {
         return thisPlugin.getServer().getMaxPlayers();
     }
@@ -205,38 +216,29 @@ public class DiscordWhitelister extends JavaPlugin {
             // TODO: below role section could be moved to DiscordClient class
             useIdForRoles = mainConfig.getFileConfiguration().getBoolean("use-id-for-roles");
 
+
+
+
+
             // set add & remove roles
-            DiscordClient.allowedToAddRemoveRoles = new String[mainConfig.getFileConfiguration().getList("add-remove-roles").size()];
-            for (int roles = 0; roles < DiscordClient.allowedToAddRemoveRoles.length; ++roles) {
-                DiscordClient.allowedToAddRemoveRoles[roles] = mainConfig.getFileConfiguration().getList("add-remove-roles").get(roles).toString();
-            }
+            DiscordClient.allowedToAddRemoveRoles = getConfigArray("add-remove-roles");
+
 
             // set add roles
-            DiscordClient.allowedToAddRoles = new String[mainConfig.getFileConfiguration().getList("add-roles").size()];
-            for (int roles = 0; roles < DiscordClient.allowedToAddRoles.length; ++roles) {
-                DiscordClient.allowedToAddRoles[roles] = mainConfig.getFileConfiguration().getList("add-roles").get(roles).toString();
-            }
+            DiscordClient.allowedToAddRoles = getConfigArray("add-roles");
+
 
             // set limited add roles
-            DiscordClient.allowedToAddLimitedRoles = new String[mainConfig.getFileConfiguration().getList("limited-add-roles").size()];
-            for (int roles = 0; roles < DiscordClient.allowedToAddLimitedRoles.length; ++roles) {
-                DiscordClient.allowedToAddLimitedRoles[roles] = mainConfig.getFileConfiguration().getList("limited-add-roles").get(roles).toString();
-            }
+            DiscordClient.allowedToAddLimitedRoles = getConfigArray("limited-add-roles");
+
 
             // Get banned roles
             if (useOnBanEvents) {
-                List<String> tempBannedRoles = mainConfig.getFileConfiguration().getStringList("banned-roles");
-                bannedRoles = new String[tempBannedRoles.size()];
-                for (int i = 0; i < tempBannedRoles.size(); i++) {
-                    bannedRoles[i] = tempBannedRoles.get(i);
-                }
+                bannedRoles = getConfigArray("banned-roles");
             }
 
             // Allowed to clear name roles
-            DiscordClient.allowedToClearNamesRoles = new String[mainConfig.getFileConfiguration().getStringList("clear-command-roles").size()];
-            for (int roles = 0; roles < DiscordClient.allowedToClearNamesRoles.length; roles++) {
-                DiscordClient.allowedToClearNamesRoles[roles] = mainConfig.getFileConfiguration().getStringList("clear-command-roles").get(roles);
-            }
+            DiscordClient.allowedToClearNamesRoles = getConfigArray("clear-command-roles");
 
             // All roles combined for role check
             DiscordClient.combinedRoles = Stream.of(DiscordClient.allowedToAddRemoveRoles, DiscordClient.allowedToAddRoles,
