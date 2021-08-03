@@ -15,9 +15,9 @@ A simple spigot plugin which allows whitelisting through a discord text channel.
 	- Can be disabled in the config (enabled by default)
 
 - Discord commands:
-    - Use `!whitelist add "minecraftUsername"` in a valid channel to whitelist people on your minecraft server
-    - Use `!whitelist remove "minecraftUsername"` in a valid channel to remove people from the whitelist on your minecraft server
-    - Use `!whitelist` in a valid channel to get info about the bot and how to use it
+    - Use `/whitelist add "minecraftUsername"` in a valid channel to whitelist people on your minecraft server
+    - Use `/whitelist remove "minecraftUsername"` in a valid channel to remove people from the whitelist on your minecraft server
+    - Use `/whitelist` in a valid channel to get info about the bot and how to use it
     
 - Custom Message Support:
     - Allows editing of server response messages (file is located at `(server-root)/plugins/DiscordWhitelister/custom-messages.yml)`
