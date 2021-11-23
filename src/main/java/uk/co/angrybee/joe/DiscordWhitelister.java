@@ -21,10 +21,7 @@ import uk.co.angrybee.joe.events.EssentialsVanishEvents;
 import uk.co.angrybee.joe.events.SuperVanishEvents;
 import uk.co.angrybee.joe.events.VanishNoPacketEvents;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -82,7 +79,7 @@ public class DiscordWhitelister extends JavaPlugin {
         PluginManager pluginManager = getServer().getPluginManager();
         essentialsPlugin = (Essentials) pluginManager.getPlugin("Essentials");
         vanishNoPacketPlugin = (VanishPlugin) pluginManager.getPlugin("VanishNoPacket");
-        hasSuperVanishOrPremiumVanish = pluginManager.getPlugin("SuperVanish") != null || pluginManager.getPlugin("PremiumVanish") != null;
+        hasSuperVanishOrPremiumVanish = pluginManager.isPluginEnabled("SuperVanish") || pluginManager.isPluginEnabled("PremiumVanish");
 
         int initSuccess = InitBot(true);
 

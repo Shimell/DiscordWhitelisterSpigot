@@ -6,7 +6,7 @@
 
   <groupId>uk.co.angrybee.joe</groupId>
   <artifactId>discord-whitelister</artifactId>
-  <version>1.4.9</version>
+  <version>1.5.0</version>
 
   <name>discord-whitelister</name>
   <url>https://github.com/JoeShimell/DiscordWhitelisterSpigot</url>
@@ -22,9 +22,6 @@
     </repository>
 
     <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
       <id>dv8tion</id>
       <name>m2-dv8tion</name>
       <url>https://m2.dv8tion.net/releases</url>
@@ -36,10 +33,9 @@
       <url>https://jitpack.io</url>
     </repository>
 
-    <!-- EssX-->
     <repository>
-      <id>ess-repo</id>
-      <url>https://ci.ender.zone/plugin/repository/everything</url>
+      <id>essentials-releases</id>
+      <url>https://repo.essentialsx.net/releases/</url>
     </repository>
 
   </repositories>
@@ -56,7 +52,7 @@
     <dependency>
       <groupId>net.dv8tion</groupId>
       <artifactId>JDA</artifactId>
-      <version>4.3.0_288</version>
+      <version>4.3.0_346</version>
       <exclusions>
         <exclusion>
           <groupId>club.minnced</groupId>
@@ -96,16 +92,22 @@
       <artifactId>SuperVanish</artifactId>
       <!-- POM is invalid with java compiler ver > 8 (maven-compiler-plugin source & target version is set to 8) -->
       <!-- TODO: get updated version if/when available for better support with compiler versions > 8  -->
-      <version>6.2.6</version>
+      <version>6.2.6-2</version>
       <scope>provided</scope>
     </dependency>
 
     <!-- EssX-->
     <dependency>
-      <groupId>net.ess3</groupId>
+      <groupId>net.essentialsx</groupId>
       <artifactId>EssentialsX</artifactId>
-      <version>2.18.2</version>
+      <version>2.19.0</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.bstats</groupId>
+          <artifactId>bstats-bukkit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- VanishNoPacket -->

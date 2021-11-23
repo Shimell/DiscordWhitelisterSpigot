@@ -1,5 +1,6 @@
 name: DiscordWhitelister
-version: 1.4.8
+version: 1.5.0
+api-version: 1.17
 author: Joe Shimell
 main: uk.co.angrybee.joe.DiscordWhitelister
 description: Discord Whitelister.

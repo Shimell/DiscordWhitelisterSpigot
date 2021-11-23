@@ -19,7 +19,7 @@ public class Utils {
         }
 
         // For SuperVanish / PremiumVanish
-        if(VanishAPI.getPlugin() != null) {
+        if(hasSuperVanishOrPremiumVanish) {
             //getPluginLogger().info("Checking via SV if " + player.getDisplayName() + " is vanished: " + VanishAPI.isInvisible(player));
             //getPluginLogger().info("Checking via SV for list of vanished players: " + VanishAPI.getAllInvisiblePlayers());
             if(VanishAPI.isInvisible(player)) return true;
