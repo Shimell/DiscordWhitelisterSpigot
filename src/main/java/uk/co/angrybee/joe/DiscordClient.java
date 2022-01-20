@@ -330,7 +330,7 @@ public class DiscordClient extends ListenerAdapter {
 
         if (!Arrays.asList(targetTextChannels).contains(event.getTextChannel().getId())) {
             MessageEmbed messageEmbed = CreateEmbeddedMessage("Sorry!",
-                    ("This bot can only used in the specified chcannel."), EmbedMessageType.FAILURE).build();
+                    ("This bot can only used in the specified channel."), EmbedMessageType.FAILURE).build();
             ReplyAndRemoveAfterSeconds(event, messageEmbed);
             return;
         }
