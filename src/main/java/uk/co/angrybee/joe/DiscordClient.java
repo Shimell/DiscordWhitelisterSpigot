@@ -328,6 +328,13 @@ public class DiscordClient extends ListenerAdapter {
             return;
         }
 
+        if (!Arrays.asList(targetTextChannels).contains(event.getTextChannel().getId())) {
+            MessageEmbed messageEmbed = CreateEmbeddedMessage("Sorry!",
+                    ("This bot can only used in the specified channel."), EmbedMessageType.FAILURE).build();
+            ReplyAndRemoveAfterSeconds(event, messageEmbed);
+            return;
+        }
+
         String subcommand = event.getSubcommandName();
         OptionMapping mc_name_op = event.getOption("minecraft_username");
         String mc_name = null;
