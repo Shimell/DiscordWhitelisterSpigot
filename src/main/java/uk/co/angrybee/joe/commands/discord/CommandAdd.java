@@ -260,6 +260,7 @@ public class CommandAdd {
                 /* Do as much as possible off the main server thread.
                 convert username into UUID to avoid depreciation and rate limits (according to https://minotar.net/) */
         String playerUUID = DiscordClient.minecraftUsernameToUUID(finalNameToAdd);
+
         final boolean invalidMinecraftName = playerUUID == null;
 
                 /* Configure success & failure messages here instead of on the main server thread -
