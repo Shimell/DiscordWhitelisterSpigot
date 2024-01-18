@@ -1,7 +1,9 @@
 package uk.co.angrybee.joe;
 
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+//import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.Arrays;
@@ -14,7 +16,7 @@ public class AuthorPermissions
     private boolean userIsBanned = false;
     private boolean userCanUseClear = false;
 
-    public AuthorPermissions(SlashCommandEvent event) {
+    public AuthorPermissions(SlashCommandInteractionEvent event) {
         for (Role role : event.getMember().getRoles())
         {
             if(!DiscordWhitelister.useIdForRoles)

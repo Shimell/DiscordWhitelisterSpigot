@@ -3,9 +3,10 @@ package uk.co.angrybee.joe.commands.discord;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.TextChannel;
+//import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+//import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import uk.co.angrybee.joe.AuthorPermissions;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 public class CommandWhoIsDiscord {
-    public static void ExecuteCommand(SlashCommandEvent event, Member target) {
+    public static void ExecuteCommand(SlashCommandInteractionEvent event, Member target) {
 
         AuthorPermissions authorPermissions = new AuthorPermissions(event);
         User author = event.getUser();

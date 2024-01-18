@@ -1,16 +1,23 @@
 package uk.co.angrybee.joe;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+//import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -19,9 +26,6 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
 import uk.co.angrybee.joe.commands.discord.*;
 import uk.co.angrybee.joe.events.ShutdownEvents;
 import uk.co.angrybee.joe.stores.UserList;
@@ -31,8 +35,11 @@ import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
 import java.awt.Color;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
+import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.TimeUnit;
 
 import static net.dv8tion.jda.api.interactions.commands.OptionType.*;
@@ -94,9 +101,9 @@ public class DiscordClient extends ListenerAdapter {
             javaDiscordAPI = JDABuilder.createDefault(clientToken)
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .setBulkDeleteSplittingEnabled(false)
-                    .disableCache(CacheFlag.VOICE_STATE, CacheFlag.EMOTE)
+                    .disableCache(CacheFlag.VOICE_STATE)
                     .setContextEnabled(true)
-                    .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                    .enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT)
                     .setChunkingFilter(ChunkingFilter.ALL)
                     .addEventListeners(new DiscordClient())
                     .addEventListeners(new ShutdownEvents())
@@ -107,31 +114,51 @@ public class DiscordClient extends ListenerAdapter {
 
             CommandListUpdateAction commands = javaDiscordAPI.updateCommands();
 
-            commands.addCommands(
-                    new CommandData("whitelist", "Edit the whitelist.")
-                            .addSubcommands(
-                                    new SubcommandData("add", "Add a user to the whitelist")
-                                            .addOption(STRING, "minecraft_username", "Minecraft username to add", true)
-                                            .addOption(USER, "discord_user", "Discord user to bind to", false),
-                                    new SubcommandData("remove", "Remove user from the whitelist")
-                                            .addOption(STRING, "minecraft_username", "Minecraft username to remove", true),
-                                    new SubcommandData("clear", "Clear whitelists assigned to your account"),
-                                    new SubcommandData("whois", "Find the Discord name linked to a Minecraft name")
-                                            .addOption(STRING, "minecraft_username", "Minecraft name to search", false)
-                                            .addOption(USER, "discord_user", "Minecraft name to search", false)),
+//            commands.addCommands(
+//                    new CommandData("whitelist", "Edit the whitelist.")
+//                            .addSubcommands(
+//                                    new SubcommandData("add", "Add a user to the whitelist")
+//                                            .addOption(STRING, "minecraft_username", "Minecraft username to add", true)
+//                                            .addOption(USER, "discord_user", "Discord user to bind to", false),
+//                                    new SubcommandData("remove", "Remove user from the whitelist")
+//                                            .addOption(STRING, "minecraft_username", "Minecraft username to remove", true),
+//                                    new SubcommandData("clear", "Clear whitelists assigned to your account"),
+//                                    new SubcommandData("whois", "Find the Discord name linked to a Minecraft name")
+//                                            .addOption(STRING, "minecraft_username", "Minecraft name to search", false)
+//                                            .addOption(USER, "discord_user", "Minecraft name to search", false)),
+//
+//                    new CommandData("clearname", "Clear name from all lists")
+//                            .addOption(STRING, "minecraft_username", "Minecraft username to clear", true),
+//                    new CommandData("clearban", "Clear ban from user")
+//                            .addOption(STRING, "minecraft_username", "Minecraft username to unban", true),
+//                    new CommandData("help", "Show bot info"))
+//                    .queue();
 
-                    new CommandData("clearname", "Clear name from all lists")
-                            .addOption(STRING, "minecraft_username", "Minecraft username to clear", true),
-                    new CommandData("clearban", "Clear ban from user")
-                            .addOption(STRING, "minecraft_username", "Minecraft username to unban", true),
-                    new CommandData("help", "Show bot info"))
+            commands.addCommands(
+                            Commands.slash("whitelist", "Edit the whitelist.")
+                                    .addSubcommands(
+                                            new SubcommandData("add", "Add a user to the whitelist")
+                                                    .addOption(STRING, "minecraft_username", "Minecraft username to add", true)
+                                                    .addOption(USER, "discord_user", "Discord user to bind to", false),
+                                            new SubcommandData("remove", "Remove user from the whitelist")
+                                                    .addOption(STRING, "minecraft_username", "Minecraft username to remove", true),
+                                            new SubcommandData("clear", "Clear whitelists assigned to your account"),
+                                            new SubcommandData("whois", "Find the Discord name linked to a Minecraft name")
+                                                    .addOption(STRING, "minecraft_username", "Minecraft name to search", false)
+                                                    .addOption(USER, "discord_user", "Minecraft name to search", false)),
+
+                            Commands.slash("clearname", "Clear name from all lists")
+                                    .addOption(STRING, "minecraft_username", "Minecraft username to clear", true),
+                            Commands.slash("clearban", "Clear ban from user")
+                                    .addOption(STRING, "minecraft_username", "Minecraft username to unban", true),
+                            Commands.slash("help", "Show bot info"))
                     .queue();
 
             // Send the new set of commands to discord, this will override any existing global commands with the new set provided here
 
 
             return 0;
-        } catch (LoginException | InterruptedException e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
             return 1;
         } catch (IllegalStateException e) {
@@ -314,7 +341,7 @@ public class DiscordClient extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommand(SlashCommandEvent event) {
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
 
         // Todo: add help: CommandInfo.ExecuteCommand(messageReceivedEvent);
         // Todo: add remove message thing
@@ -328,7 +355,7 @@ public class DiscordClient extends ListenerAdapter {
             return;
         }
 
-        if (!Arrays.asList(targetTextChannels).contains(event.getTextChannel().getId())) {
+        if (!Arrays.asList(targetTextChannels).contains(event.getChannelId())) {
             MessageEmbed messageEmbed = CreateEmbeddedMessage("Sorry!",
                     ("This bot can only used in the specified channel."), EmbedMessageType.FAILURE).build();
             ReplyAndRemoveAfterSeconds(event, messageEmbed);
@@ -422,11 +449,14 @@ public class DiscordClient extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent messageReceivedEvent) {
-        if (!messageReceivedEvent.isFromType(ChannelType.TEXT)) {
+
+        if(!messageReceivedEvent.isFromType(ChannelType.TEXT))
+        {
             return;
         }
+
         // Check if message should be handled
-        if (!Arrays.asList(targetTextChannels).contains(messageReceivedEvent.getTextChannel().getId()))
+        if (!Arrays.asList(targetTextChannels).contains(messageReceivedEvent.getChannel().getId()))
             return;
 
         if (messageReceivedEvent.getAuthor().getIdLong() == javaDiscordAPI.getSelfUser().getIdLong())
@@ -438,7 +468,7 @@ public class DiscordClient extends ListenerAdapter {
 
         // TODO remove, use in command classes when complete
         User author = messageReceivedEvent.getAuthor();
-        TextChannel channel = messageReceivedEvent.getTextChannel();
+        TextChannel channel = messageReceivedEvent.getChannel().asTextChannel();
 
         // if no commands are executed, delete the message, if enabled
         if (DiscordWhitelister.removeUnnecessaryMessages) {
@@ -824,27 +854,28 @@ public class DiscordClient extends ListenerAdapter {
     }
 
 
-    public static String minecraftUsernameToUUID(String minecraftUsername) {
-        URL playerURL;
-        String inputStream;
-        BufferedReader bufferedReader;
+    public static String minecraftUsernameToUUID(String minecraftUsername)
+    {
+        String playerId = null;
 
-        String playerUUID = null;
+        try
+        {
+            URL pURL = new URL("https://api.mojang.com/users/profiles/minecraft/" + minecraftUsername);
+            URLConnection req = pURL.openConnection();
+            req.connect();
 
-        try {
-            playerURL = new URL("https://api.mojang.com/users/profiles/minecraft/" + minecraftUsername);
-            bufferedReader = new BufferedReader(new InputStreamReader(playerURL.openStream()));
-            inputStream = bufferedReader.readLine();
+            JsonParser jsonParser = new JsonParser();
+            JsonElement root = (JsonElement) jsonParser.parse(new InputStreamReader((InputStream) req.getContent()));
+            JsonObject rootObj = root.getAsJsonObject();
+            playerId = rootObj.get("id").getAsString();
 
-            if (inputStream != null) {
-                JSONObject inputStreamObject = (JSONObject) JSONValue.parseWithException(inputStream);
-                playerUUID = inputStreamObject.get("id").toString();
-            }
-        } catch (IOException | ParseException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
 
-        return playerUUID;
+        return playerId;
     }
 
     public static void ExecuteServerCommand(String command) {
@@ -977,7 +1008,7 @@ public class DiscordClient extends ListenerAdapter {
     }
 
 
-    public static void ReplyAndRemoveAfterSeconds(SlashCommandEvent event, MessageEmbed messageEmbed) {
+    public static void ReplyAndRemoveAfterSeconds(SlashCommandInteractionEvent event, MessageEmbed messageEmbed) {
         if (DiscordWhitelister.removeUnnecessaryMessages)
             event.replyEmbeds(messageEmbed).queue(message -> message.deleteOriginal().queueAfter(DiscordWhitelister.removeMessageWaitTime, TimeUnit.SECONDS));
         else

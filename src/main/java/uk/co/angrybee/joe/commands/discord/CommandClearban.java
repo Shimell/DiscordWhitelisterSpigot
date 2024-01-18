@@ -3,9 +3,9 @@ package uk.co.angrybee.joe.commands.discord;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import uk.co.angrybee.joe.AuthorPermissions;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
@@ -13,11 +13,11 @@ import uk.co.angrybee.joe.stores.InGameRemovedList;
 import uk.co.angrybee.joe.stores.RemovedList;
 
 public class CommandClearban {
-    public static void ExecuteCommand(SlashCommandEvent event, String mc_user) {
+    public static void ExecuteCommand(SlashCommandInteractionEvent event, String mc_user) {
 
         AuthorPermissions authorPermissions = new AuthorPermissions(event);
         User author = event.getUser();
-        TextChannel channel = event.getTextChannel();
+        TextChannel channel = event.getChannel().asTextChannel();
 
 
         if (authorPermissions.isUserCanUseClear()) {

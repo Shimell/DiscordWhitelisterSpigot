@@ -1,6 +1,6 @@
 package uk.co.angrybee.joe.events;
 
-import net.dv8tion.jda.api.events.ShutdownEvent;
+import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.CloseCode;
 import uk.co.angrybee.joe.DiscordWhitelister;

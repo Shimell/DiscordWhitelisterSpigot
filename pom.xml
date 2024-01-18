@@ -61,16 +61,28 @@
       </exclusions>
     </dependency>
 
-    <dependency>
-      <groupId>com.googlecode.json-simple</groupId>
-      <artifactId>json-simple</artifactId>
-      <version>1.1.1</version>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>com.googlecode.json-simple</groupId>-->
+<!--      <artifactId>json-simple</artifactId>-->
+<!--      <version>1.1.1</version>-->
+<!--    </dependency>-->
 
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>1.4.14</version>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>1.4.14</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.10</version>
     </dependency>
 
     <dependency>
@@ -115,6 +127,12 @@
       <artifactId>VanishNoPacket</artifactId>
       <version>341a9a9710848d85813f7dfdab0b606d46ab264a</version>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.10.1</version>
     </dependency>
 
   </dependencies>
@@ -214,10 +232,10 @@
                 <shadedPattern>uk.co.angrybee.joe.shaded.org.yaml.snakeyaml</shadedPattern>
               </relocation>
 
-              <relocation>
-                <pattern>org.json.simple</pattern>
-                <shadedPattern>uk.co.angrybee.joe.shaded.org.json.simple</shadedPattern>
-              </relocation>
+<!--              <relocation>-->
+<!--                <pattern>org.json.simple</pattern>-->
+<!--                <shadedPattern>uk.co.angrybee.joe.shaded.org.json.simple</shadedPattern>-->
+<!--              </relocation>-->
 
               <relocation>
                 <pattern>org.jetbrains.annotations</pattern>
@@ -278,6 +296,11 @@
                 <pattern>ch.qos.logback</pattern>
                 <shadedPattern>uk.co.angrybee.joe.shaded.ch.qos.logback</shadedPattern>
               </relocation>
+
+              <relocation>
+                <pattern>com.google.code.gson</pattern>
+                <shadedPattern>uk.co.angrybee.joe.shaded.com.google.code.gson</shadedPattern>
+              </relocation>
             </relocations>
           </configuration>
         </plugin>
@@ -308,13 +331,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>8</source>
-          <target>8</target>
+          <source>19</source>
+          <target>19</target>
         </configuration>
-        <!--        <configuration>-->
-<!--          <source>8</source>-->
-<!--          <target>8</target>-->
-<!--        </configuration>-->
       </plugin>
 
       <plugin>

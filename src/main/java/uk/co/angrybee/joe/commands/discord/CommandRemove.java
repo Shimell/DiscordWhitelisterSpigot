@@ -2,7 +2,8 @@ package uk.co.angrybee.joe.commands.discord;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import uk.co.angrybee.joe.AuthorPermissions;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
@@ -17,11 +18,11 @@ import java.util.Set;
 
 public class CommandRemove {
 
-    public static void ExecuteCommand(SlashCommandEvent event, String mc_name) {
+    public static void ExecuteCommand(SlashCommandInteractionEvent event, String mc_name) {
 
         AuthorPermissions authorPermissions = new AuthorPermissions(event);
         User author = event.getUser();
-        TextChannel channel = event.getTextChannel();
+        TextChannel channel = event.getChannel().asTextChannel();
         Member member = event.getMember();
 
         // Remove Command

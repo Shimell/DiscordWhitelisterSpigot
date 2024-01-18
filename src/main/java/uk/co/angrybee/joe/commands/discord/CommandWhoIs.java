@@ -2,28 +2,20 @@ package uk.co.angrybee.joe.commands.discord;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.exceptions.AccountTypeException;
-import org.yaml.snakeyaml.Yaml;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import uk.co.angrybee.joe.AuthorPermissions;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
-import uk.co.angrybee.joe.configs.MainConfig;
 import uk.co.angrybee.joe.stores.UserList;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 public class CommandWhoIs {
-    public static void ExecuteCommand(SlashCommandEvent event, String mc_name) {
+    public static void ExecuteCommand(SlashCommandInteractionEvent event, String mc_name) {
 
         AuthorPermissions authorPermissions = new AuthorPermissions(event);
         User author = event.getUser();
-        TextChannel channel = event.getTextChannel();
+        TextChannel channel = event.getChannel().asTextChannel();
 
         if (!authorPermissions.isUserCanAddRemove() && !authorPermissions.isUserCanAdd()) {
             DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordClient.CreateInsufficientPermsMessage(author));

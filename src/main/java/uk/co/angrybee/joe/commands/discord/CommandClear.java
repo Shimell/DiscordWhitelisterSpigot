@@ -1,9 +1,11 @@
 package uk.co.angrybee.joe.commands.discord;
 
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.TextChannel;
+//import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+//import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import uk.co.angrybee.joe.AuthorPermissions;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
@@ -14,11 +16,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class CommandClear {
-    public static void ExecuteCommand(SlashCommandEvent event) {
+    public static void ExecuteCommand(SlashCommandInteractionEvent event) {
         // Clear whitelists for limited-whitelisters
         AuthorPermissions authorPermissions = new AuthorPermissions(event);
         User author = event.getUser();
-        TextChannel channel = event.getTextChannel();
+        TextChannel channel = event.getChannel().asTextChannel();
 
         if (!DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("allow-limited-whitelisters-to-unwhitelist-self")) {
             MessageEmbed messageEmbed = DiscordClient.CreateEmbeddedMessage("This Command is disabled",

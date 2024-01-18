@@ -2,7 +2,9 @@ package uk.co.angrybee.joe.commands.discord;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+//import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import uk.co.angrybee.joe.AuthorPermissions;
 import uk.co.angrybee.joe.DiscordClient;
@@ -19,10 +21,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CommandAdd {
-    public static void ExecuteCommand(SlashCommandEvent event, String mc_user, Member target) {
+    public static void ExecuteCommand(SlashCommandInteractionEvent event, String mc_user, Member target) {
         AuthorPermissions authorPermissions = new AuthorPermissions(event);
         User author = event.getUser();
-        TextChannel channel = event.getTextChannel();
+        TextChannel channel = event.getChannel().asTextChannel();
         Member member = event.getMember();
 
         int timesWhitelisted =0;
@@ -408,10 +410,10 @@ public class CommandAdd {
         });
     }
 
-    public static void ExecuteCommand(SlashCommandEvent event, String mc_user) {
+    public static void ExecuteCommand(SlashCommandInteractionEvent event, String mc_user) {
         AuthorPermissions authorPermissions = new AuthorPermissions(event);
         User author = event.getUser();
-        TextChannel channel = event.getTextChannel();
+        TextChannel channel = event.getChannel().asTextChannel();
         Member member = event.getMember();
 
         int timesWhitelisted =0;
