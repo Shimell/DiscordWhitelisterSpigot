@@ -1,12 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-    <appender name="STDOUT" class="uk.co.angrybee.joe.shaded.ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>[DiscordWhitelister] %boldCyan(%-34.-34thread) %red(%10.10X{jda.shard}) %boldGreen(%-15.-15logger{0}) %highlight(%-6level) %msg%n</pattern>
-        </encoder>
-    </appender>
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration>
 
-    <root level="info">
-        <appender-ref ref="STDOUT" />
-    </root>
+<configuration>
+<import class="uk.co.angrybee.joe.shaded.ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
+<import class="uk.co.angrybee.joe.shaded.ch.qos.logback.core.ConsoleAppender"/>
+
+<appender name="STDOUT" class="uk.co.angrybee.joe.shaded.ch.qos.logback.core.ConsoleAppender">
+    <append>true</append>
+    <immediateFlush>true</immediateFlush>
+    <encoder class="PatternLayoutEncoder">
+<!--        <pattern>[DiscordWhitelister] %boldCyan(%-34.-34thread) %red(%10.10X{jda.shard}) %boldGreen(%-15.-15logger{0}) %highlight(%-6level) %msg%n</pattern>-->
+        <pattern>[DiscordWhitelister] %msg%n</pattern>
+    </encoder>
+</appender>
+
 </configuration>
+

@@ -114,26 +114,6 @@ public class DiscordClient extends ListenerAdapter {
 
             CommandListUpdateAction commands = javaDiscordAPI.updateCommands();
 
-//            commands.addCommands(
-//                    new CommandData("whitelist", "Edit the whitelist.")
-//                            .addSubcommands(
-//                                    new SubcommandData("add", "Add a user to the whitelist")
-//                                            .addOption(STRING, "minecraft_username", "Minecraft username to add", true)
-//                                            .addOption(USER, "discord_user", "Discord user to bind to", false),
-//                                    new SubcommandData("remove", "Remove user from the whitelist")
-//                                            .addOption(STRING, "minecraft_username", "Minecraft username to remove", true),
-//                                    new SubcommandData("clear", "Clear whitelists assigned to your account"),
-//                                    new SubcommandData("whois", "Find the Discord name linked to a Minecraft name")
-//                                            .addOption(STRING, "minecraft_username", "Minecraft name to search", false)
-//                                            .addOption(USER, "discord_user", "Minecraft name to search", false)),
-//
-//                    new CommandData("clearname", "Clear name from all lists")
-//                            .addOption(STRING, "minecraft_username", "Minecraft username to clear", true),
-//                    new CommandData("clearban", "Clear ban from user")
-//                            .addOption(STRING, "minecraft_username", "Minecraft username to unban", true),
-//                    new CommandData("help", "Show bot info"))
-//                    .queue();
-
             commands.addCommands(
                             Commands.slash("whitelist", "Edit the whitelist.")
                                     .addSubcommands(
